@@ -1,0 +1,47 @@
+version: '3'
+services:
+  ## APP
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+    environment:
+      NODE_ENV: dev
+      VIRTUAL_HOST: "*.whatsproy.com"
+      VIRTUAL_PORT: 3000
+    networks:
+      - app-network
+
+  ## DB
+  db-global:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - globaldb-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      app-network:
+          aliases:
+            - db-global
+
+  ## NGINX server
+  nginx-proxy:
+    image: jwilder/nginx-proxy
+    ports:
+      - "80:80"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    networks:
+      - app-network
+
+networks:
+  app-network:
+
+volumes:
+  globaldb-data:
