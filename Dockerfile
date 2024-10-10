@@ -1,16 +1,31 @@
-FROM node:20.14.0-bullseye
+# Fase 1: Construcción
+FROM node:18 AS build
 
-ENV APP_PORT 3000
-ENV NODE_ENV prod
-ENV WORKDIR_APP /var/prod
+WORKDIR /app
 
-WORKDIR ${WORKDIR_APP}
-COPY package.json .
-RUN npm install
+# Copiamos los archivos necesarios para instalar las dependencias
+COPY package*.json ./
+
+# Instalamos todas las dependencias
+RUN npm install --legacy-peer-deps
+
+# Copiamos el resto de la aplicación
 COPY . .
 
+# Construimos la aplicación NestJS
 RUN npm run build
 
-EXPOSE ${APP_PORT}
+# Fase 2: Producción
+FROM node:18 AS production
 
-CMD ["bash", "run.sh"]
+WORKDIR /app
+
+COPY --from=build /app/dist ./dist
+
+COPY --from=build /app/node_modules ./node_modules
+
+COPY package*.json ./
+
+EXPOSE 3000
+
+CMD ["node", "dist/main"]
