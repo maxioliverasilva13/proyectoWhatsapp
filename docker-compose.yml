@@ -19,7 +19,7 @@ services:
     volumes:
       - .:/app
     environment:
-      NODE_ENV: dev
+      NODE_ENV: prod
       VIRTUAL_HOST: "app.whatsproy.com"
       VIRTUAL_PORT: 3000
       ENV: ${ENV}
