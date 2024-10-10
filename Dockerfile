@@ -5,6 +5,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install --legacy-peer-deps
 RUN npm install -g @nestjs/cli
+RUN npm install @types/node --save-dev
 
 COPY . .
 
