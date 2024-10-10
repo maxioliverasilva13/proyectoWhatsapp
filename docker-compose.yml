@@ -20,7 +20,7 @@ services:
       - .:/app
     environment:
       NODE_ENV: dev
-      VIRTUAL_HOST: "*.whatsproy.com"
+      VIRTUAL_HOST: "app.whatsproy.com"
       VIRTUAL_PORT: 3000
       ENV: ${ENV}
     networks:
