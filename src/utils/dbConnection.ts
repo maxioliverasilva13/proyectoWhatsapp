@@ -1,5 +1,6 @@
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ENTITIES_TO_MAP_GLOBAL_DB } from './db';
+import * as process from 'process';
 
 export const handleGetConnectionValues = () => {
   return {

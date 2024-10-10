@@ -3,6 +3,7 @@ import { EmpresaService } from 'src/empresa/empresa.service';
 import { DataSource } from 'typeorm';
 import Docker from 'dockerode';
 import { ENTITIES_TO_MAP_EMPRESA_DB } from 'src/utils/db';
+import * as process from 'process';
 
 @Injectable({ scope: Scope.REQUEST })
 export class TenantConnectionService {

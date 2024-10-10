@@ -12,6 +12,7 @@ import { Empresa } from './entities/empresa.entity';
 import { getDbName } from 'src/utils/empresa';
 import { TenantConnectionService } from 'src/tenant-connection-service/tenant-connection-service.service';
 // import { TenantConnectionService } from 'src/tenant-connection-service/tenant-connection-service.service';
+import * as process from 'process';
 
 @Injectable()
 export class EmpresaService {
