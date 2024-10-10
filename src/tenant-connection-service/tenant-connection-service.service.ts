@@ -1,12 +1,8 @@
 import { forwardRef, Inject, Injectable, Scope } from '@nestjs/common';
 import { EmpresaService } from 'src/empresa/empresa.service';
-import { Producto } from 'src/producto/entities/producto.entity';
-import {
-  handleGetConnectionValues,
-  handleGetConnectionValuesToCreateEmpresaDb,
-} from 'src/utils/dbConnection';
 import { DataSource } from 'typeorm';
-import { Client } from 'pg';
+import Docker from 'dockerode';
+import { ENTITIES_TO_MAP_EMPRESA_DB } from 'src/utils/db';
 
 @Injectable({ scope: Scope.REQUEST })
 export class TenantConnectionService {
@@ -20,25 +16,65 @@ export class TenantConnectionService {
   async getConnectionByEmpresa(empresaId: number): Promise<DataSource> {
     const empresa = await this.empresaService.findOne(empresaId);
     if (!this.connections[empresa.db_name]) {
-      const defaultConfig = handleGetConnectionValues();
+      const db_port = 5432;
       this.connections[empresa.db_name] = new DataSource({
-        ...defaultConfig,
-        database: empresa.db_name,
-        entities: [Producto],
+        type: 'postgres',
+        host: `${empresa.db_name}-db`,
+        port: db_port,
+        synchronize: true,
+        username: `${empresa.db_name}_user`,
+        password: `${empresa.db_name}_pass`,
+        database: `db_${empresa.db_name}`,
+        entities: ENTITIES_TO_MAP_EMPRESA_DB,
       });
       await this.connections[empresa.db_name].initialize();
     }
     return this.connections[empresa.db_name];
   }
 
-  async createDB(db_name: string): Promise<boolean> {
-    const client = new Client(handleGetConnectionValuesToCreateEmpresaDb());
-    await client.connect();
+  async createDB(empresa_prefix: string) {
+    try {
+      const dbName = `${empresa_prefix}_db`;
+      const containerName = `nest_${empresa_prefix}`;
+      const docker = new Docker();
 
-    const result = await client.query(`CREATE DATABASE "${db_name}"`);
-    console.log(result);
-    console.log(`Base de datos '${db_name}' creada con éxito`);
-    await client.end();
-    return true;
+      await Docker.createContainer({
+        Image: 'postgres:13',
+        name: `${dbName}`,
+        Env: [
+          `POSTGRES_USER=${empresa_prefix}_user`,
+          `POSTGRES_PASSWORD=${empresa_prefix}_pass`,
+          `POSTGRES_DB=${dbName}`,
+        ],
+        HostConfig: {
+          NetworkMode: 'app-network',
+        },
+      });
+
+      await docker.createContainer({
+        Image: 'nest-backend-image',
+        name: containerName,
+        Env: [
+          `POSTGRES_USER=${process.env.POSTGRES_USER}`,
+          `POSTGRES_PASSWORD=${process.env.POSTGRES_PASSWORD}`,
+          `POSTGRES_DB=${process.env.POSTGRES_DB}`,
+        ],
+        Labels: {
+          'traefik.http.routers.company.rule': `Host(\`${empresa_prefix}.whatsproy.com\`)`,
+        },
+        HostConfig: {
+          NetworkMode: 'app-network',
+        },
+      });
+
+      // Iniciar los contenedores
+      await docker.getContainer(dbName).start();
+      await docker.getContainer(containerName).start();
+      return true;
+    } catch (error: any) {
+      console.log(`error creating infrasturcutre to ${empresa_prefix}`);
+      console.log(error);
+      return false;
+    }
   }
 }

@@ -29,25 +29,37 @@ export class EmpresaService {
       if (!createEmpresaDto.nombre) {
         throw new BadRequestException('Nombre invalido');
       }
-      const dbName = getDbName(createEmpresaDto.nombre);
-      const newEmpresaDb = await this.tenantService.createDB(dbName);
-      if (newEmpresaDb) {
-        // mapear empresa
-        // const tenantConnection = new TenantConnectionService(this);
-        // console.log(tenantConnection);
+
+      if (process.env.ENV !== 'dev') {
+        const dbName = getDbName(createEmpresaDto.nombre);
+        const newEmpresaDb = await this.tenantService.createDB(dbName);
+        if (newEmpresaDb) {
+          const newEmpresa = new Empresa();
+          newEmpresa.nombre = createEmpresaDto.nombre;
+          newEmpresa.db_name = dbName;
+          await this.empresaRepository.save(newEmpresa);
+          this.tenantService.getConnectionByEmpresa(newEmpresa.id);
+
+          return {
+            ok: true,
+            statusCode: 200,
+            message: 'Empresa creada exitosamente',
+          };
+        } else {
+          throw new Error('No se pudo crear la empresa');
+        }
+      } else {
+        const dbName = getDbName(createEmpresaDto.nombre);
         const newEmpresa = new Empresa();
         newEmpresa.nombre = createEmpresaDto.nombre;
         newEmpresa.db_name = dbName;
         await this.empresaRepository.save(newEmpresa);
         this.tenantService.getConnectionByEmpresa(newEmpresa.id);
-
         return {
           ok: true,
           statusCode: 200,
           message: 'Empresa creada exitosamente',
         };
-      } else {
-        throw new Error('No se pudo crear la empresa');
       }
     } catch (error: any) {
       throw new BadRequestException({

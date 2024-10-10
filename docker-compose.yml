@@ -1,5 +1,16 @@
 version: '3'
 services:
+  reverse-proxy:
+    image: traefik:v2.5
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
   ## APP
   app:
     build: .
@@ -11,6 +22,7 @@ services:
       NODE_ENV: dev
       VIRTUAL_HOST: "*.whatsproy.com"
       VIRTUAL_PORT: 3000
+      ENV: ${ENV}
     networks:
       - app-network
 
@@ -21,6 +33,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
+      ENV: ${ENV}
     volumes:
       - globaldb-data:/var/lib/postgresql/data
     ports:
@@ -31,14 +44,14 @@ services:
             - db-global
 
   ## NGINX server
-  nginx-proxy:
-    image: jwilder/nginx-proxy
-    ports:
-      - "80:80"
-    volumes:
-      - /var/run/docker.sock:/tmp/docker.sock:ro
-    networks:
-      - app-network
+  # nginx-proxy:
+  #   image: jwilder/nginx-proxy
+  #   ports:
+  #     - "81:81"
+  #   volumes:
+  #     - /var/run/docker.sock:/tmp/docker.sock:ro
+  #   networks:
+  #     - app-network
 
 networks:
   app-network:

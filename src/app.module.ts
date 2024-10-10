@@ -11,7 +11,6 @@ import {
   AppWithoutSubdomainMiddleware,
   SubdomainMiddleware,
 } from './middleware/subdomain.middleware';
-import { AppController } from './app.controller';
 ConfigModule.forRoot();
 
 @Module({
@@ -22,9 +21,7 @@ ConfigModule.forRoot();
 export class AppModule {
   // Se aplica el midelware para que los controladores de la base general , funcinenen solo con el subdominio `app`
   configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(AppWithoutSubdomainMiddleware)
-      .forRoutes(AppController, EmpresaController);
+    consumer.apply(AppWithoutSubdomainMiddleware).forRoutes(EmpresaController);
 
     consumer.apply(SubdomainMiddleware).forRoutes(ProductoController);
   }

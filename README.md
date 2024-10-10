@@ -107,11 +107,66 @@ docker-compose down
 docker-compose up
 ```
 
+- run project
+
+`docker-compose up`
+
+The .env is necessary to run this command
+
 And if you go to `app.whatsproy.com` , you should be able to use API with wildcard subdomain
 
-## utils commands
+## Comandos utiles
 
-- Generate resource
+- Generar un nuevo recurso
 ```
 nest g resource cliente
 ```
+
+Esto generara la carpeta de tu `recurso`, el archivo service, module, controller y los spec
+
+
+## Correr el proyecto localmente
+
+
+```
+docker-compose -f docker-compose-dev.yml up
+```
+
+## Crear una nueva empresa en `docker-compose-dev.yml`
+
+```
+  works-app:
+    build: .
+    ports:
+      - "3001:3000"
+    volumes:
+      - .:/app
+    environment:
+      NODE_ENV: dev
+      VIRTUAL_HOST: "works.whatsproy.com"
+      VIRTUAL_PORT: 3000
+      ENV: ${ENV}
+    networks:
+      - app-network
+
+  works-db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: works_user
+      POSTGRES_PASSWORD: works_pass
+      POSTGRES_DB: db_works
+      ENV: ${ENV}
+    volumes:
+      - works-db-data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    networks:
+      app-network:
+          aliases:
+            - works-db
+    
+```
+
+Agregar ese contenido, lo importante son los puertos locales, por ejemplo, como se ve en el ejmplo, no se pueden repetir <br />
+
+Si se crea una nueva empresa, seria el puerto 3002, y sucesivamente, lo mismo para postgres, 5432 y asi sucesivamente

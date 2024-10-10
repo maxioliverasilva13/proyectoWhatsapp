@@ -1,12 +1,12 @@
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Empresa } from 'src/empresa/entities/empresa.entity';
+import { ENTITIES_TO_MAP_GLOBAL_DB } from './db';
 
 export const handleGetConnectionValues = () => {
   return {
     type: 'postgres',
     host: 'db-global',
     port: 5432,
-    entities: [Empresa],
+    entities: ENTITIES_TO_MAP_GLOBAL_DB,
     synchronize: true,
     username: process.env.POSTGRES_USER,
     password: process.env.POSTGRES_PASSWORD,
