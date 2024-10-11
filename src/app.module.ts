@@ -12,10 +12,15 @@ import {
   SubdomainMiddleware,
 } from './middleware/subdomain.middleware';
 import { AppController } from './app.controller';
+import { UsuarioModule } from './usuario/usuario.module';
+import { AuthModule } from './auth/auth.module';
+import { BcryptModule } from './bcrypt/bcrypt.module';
+import { JwtModule } from './jwt/jwt.module';
+import { JsonWebTokenService } from './jwt/jwt.service';
 ConfigModule.forRoot();
 
 @Module({
-  imports: [handleGetConnection(), EmpresaModule, TenantConnectionModule],
+  imports: [handleGetConnection(), EmpresaModule, TenantConnectionModule, UsuarioModule, AuthModule],
   controllers: [ProductoController, EmpresaController],
   providers: [AppService, ProductoService],
 })

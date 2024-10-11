@@ -7,6 +7,7 @@ import {
 } from 'src/utils/dbConnection';
 import { DataSource } from 'typeorm';
 import { Client } from 'pg';
+import { Usuario } from 'src/usuario/entities/usuario.entity';
 
 @Injectable({ scope: Scope.REQUEST })
 export class TenantConnectionService {
@@ -24,7 +25,7 @@ export class TenantConnectionService {
       this.connections[empresa.db_name] = new DataSource({
         ...defaultConfig,
         database: empresa.db_name,
-        entities: [Producto],
+        entities: [Producto,Usuario],
       });
       await this.connections[empresa.db_name].initialize();
     }
