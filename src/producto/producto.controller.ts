@@ -13,7 +13,6 @@ export class ProductoController {
     @Body() createProductoDto: CreateProductoDto,
   ) {
     const empresaId = request['empresaId'];
-    console.log('producto is', empresaId);
     return this.productoService.create(createProductoDto, empresaId);
   }
 
@@ -21,6 +20,6 @@ export class ProductoController {
   findAll(@Req() request: Request) {
     const empresaId = request['empresaId'];
     console.log('producto is', empresaId);
-    return this.productoService.findAll(empresaId);
+    return this.productoService.findAll();
   }
 }

@@ -11,7 +11,6 @@ import { Repository } from 'typeorm';
 import { Empresa } from './entities/empresa.entity';
 import { getDbName } from 'src/utils/empresa';
 import { TenantConnectionService } from 'src/tenant-connection-service/tenant-connection-service.service';
-// import { TenantConnectionService } from 'src/tenant-connection-service/tenant-connection-service.service';
 import * as process from 'process';
 
 @Injectable()
@@ -33,13 +32,13 @@ export class EmpresaService {
 
       if (process.env.ENV !== 'dev') {
         const dbName = getDbName(createEmpresaDto.nombre);
-        const newEmpresaDb = await this.tenantService.createDB(dbName);
+        const newEmpresaDb =
+          await this.tenantService.createInfraEmpresa(dbName);
         if (newEmpresaDb) {
           const newEmpresa = new Empresa();
           newEmpresa.nombre = createEmpresaDto.nombre;
           newEmpresa.db_name = dbName;
           await this.empresaRepository.save(newEmpresa);
-          this.tenantService.getConnectionByEmpresa(newEmpresa.id);
 
           return {
             ok: true,
@@ -55,7 +54,6 @@ export class EmpresaService {
         newEmpresa.nombre = createEmpresaDto.nombre;
         newEmpresa.db_name = dbName;
         await this.empresaRepository.save(newEmpresa);
-        this.tenantService.getConnectionByEmpresa(newEmpresa.id);
         return {
           ok: true,
           statusCode: 200,

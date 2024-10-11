@@ -11,7 +11,11 @@ services:
       NODE_ENV: dev
       VIRTUAL_HOST: "app.whatsproy.com"
       VIRTUAL_PORT: 3000
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
       ENV: ${ENV}
+      SUBDOMAIN: "app"
     networks:
       - app-network
 
@@ -43,7 +47,14 @@ services:
       NODE_ENV: dev
       VIRTUAL_HOST: "works.whatsproy.com"
       VIRTUAL_PORT: 3000
+      POSTGRES_USER: "works_user"
+      POSTGRES_PASSWORD: "works_pass"
+      POSTGRES_DB: "db_works"
+      POSTGRES_USER_GLOBAL: ${POSTGRES_USER_GLOBAL}
+      POSTGRES_PASSWORD_GLOBAL: ${POSTGRES_PASSWORD_GLOBAL}
+      POSTGRES_DB_GLOBAL: ${POSTGRES_DB_GLOBAL}
       ENV: ${ENV}
+      SUBDOMAIN: works
     networks:
       - app-network
 
@@ -63,8 +74,7 @@ services:
           aliases:
             - works-db
 
-
-  ############ works Empresa ##################
+############ works Empresa ##################
 
   # NGINX server
   nginx-proxy:

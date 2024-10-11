@@ -1,25 +1,25 @@
-FROM node:18 AS build
+FROM node:18-alpine AS builder
 
 WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm install --no-cache --legacy-peer-deps --maxsockets=1
+RUN npm install --production
 
 COPY . .
 
 RUN npm run build
 
-FROM node:18 AS production
+FROM node:18-alpine
 
 WORKDIR /app
 
-COPY --from=build /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
 
-COPY --from=build /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
 
-COPY package*.json ./
+ENV NODE_ENV=production
 
 EXPOSE 3000
 
-CMD ["npm", "run", "start:dev"]
+CMD ["node", "dist/main"]

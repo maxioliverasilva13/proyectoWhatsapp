@@ -135,7 +135,7 @@ docker-compose -f docker-compose-dev.yml up
 ## Crear una nueva empresa en `docker-compose-dev.yml`
 
 ```
-  works-app:
+  [subdomain]-app:
     build: .
     ports:
       - "3001:3000"
@@ -143,28 +143,35 @@ docker-compose -f docker-compose-dev.yml up
       - .:/app
     environment:
       NODE_ENV: dev
-      VIRTUAL_HOST: "works.whatsproy.com"
+      VIRTUAL_HOST: "[subdomain].whatsproy.com"
       VIRTUAL_PORT: 3000
+      POSTGRES_USER: "[subdomain]_user"
+      POSTGRES_PASSWORD: "[subdomain]_pass"
+      POSTGRES_DB: "db_[subdomain]"
+      POSTGRES_USER_GLOBAL: ${POSTGRES_USER_GLOBAL}
+      POSTGRES_PASSWORD_GLOBAL: ${POSTGRES_PASSWORD_GLOBAL}
+      POSTGRES_DB_GLOBAL: ${POSTGRES_DB_GLOBAL}
       ENV: ${ENV}
+      SUBDOMAIN: [subdomain]
     networks:
       - app-network
 
-  works-db:
+  [subdomain]-db:
     image: postgres:13
     environment:
-      POSTGRES_USER: works_user
-      POSTGRES_PASSWORD: works_pass
-      POSTGRES_DB: db_works
+      POSTGRES_USER: [subdomain]_user
+      POSTGRES_PASSWORD: [subdomain]_pass
+      POSTGRES_DB: db_[subdomain]
       ENV: ${ENV}
     volumes:
-      - works-db-data:/var/lib/postgresql/data
+      - [subdomain]-db-data:/var/lib/postgresql/data
     ports:
       - "5433:5432"
     networks:
       app-network:
           aliases:
-            - works-db
-    
+            - [subdomain]-db
+
 ```
 
 Agregar ese contenido, lo importante son los puertos locales, por ejemplo, como se ve en el ejmplo, no se pueden repetir <br />
