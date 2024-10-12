@@ -1,5 +1,6 @@
 import { IsEmail } from "class-validator";
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Exclude } from "class-transformer";
 
 @Entity('usuarios')
 export class Usuario {
@@ -13,6 +14,7 @@ export class Usuario {
     @IsEmail()
     email: string;
 
+    @Exclude() // Exluimos el campo password de lecturas.
     @Column()
     password: string;
 
