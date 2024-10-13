@@ -12,12 +12,27 @@ import {
   SubdomainMiddleware,
 } from './middleware/subdomain.middleware';
 import { AppController } from './app.controller';
+import { UsuarioModule } from './usuario/usuario.module';
+import { AuthModule } from './auth/auth.module';
+import { JwtModule } from '@nestjs/jwt';
+import { JsonWebTokenService } from './jwt/jwt.service';
+
 ConfigModule.forRoot();
 
 @Module({
-  imports: [handleGetConnection(), EmpresaModule, TenantConnectionModule],
+  imports: [handleGetConnection(), 
+    EmpresaModule, 
+    TenantConnectionModule, 
+    UsuarioModule, 
+    AuthModule,
+    JwtModule.register({
+      global: true,
+      secret:  process.env.JWT_SECRET,
+      signOptions: { expiresIn: '24h' },
+    }) 
+  ],
   controllers: [ProductoController, EmpresaController],
-  providers: [AppService, ProductoService],
+  providers: [AppService, ProductoService,JsonWebTokenService],
 })
 export class AppModule {
   // Se aplica el midelware para que los controladores de la base general , funcinenen solo con el subdominio `app`
