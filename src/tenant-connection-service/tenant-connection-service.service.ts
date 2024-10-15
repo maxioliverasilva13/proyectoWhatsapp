@@ -31,13 +31,13 @@ export class TenantConnectionService {
           `POSTGRES_USER=${process.env.POSTGRES_USER}`,
           `POSTGRES_PASSWORD=${process.env.POSTGRES_PASSWORD}`,
           `POSTGRES_DB=${process.env.POSTGRES_DB}`,
+          `POSTGRES_USER_GLOBAL=${process.env.POSTGRES_USER_GLOBAL}`,
+          `POSTGRES_PASSWORD_GLOBAL=${process.env.POSTGRES_PASSWORD_GLOBAL}`,
+          `POSTGRES_DB_GLOBAL: ${process.env.POSTGRES_DB_GLOBAL}`,
           `SUBDOMAIN=${empresa_prefix}`,
           `VIRTUAL_HOST=${empresa_prefix}.whatsproy.com`,
           `NODE_ENV=prod`,
         ],
-        Labels: {
-          'traefik.http.routers.company.rule': `Host(\`${empresa_prefix}.whatsproy.com\`)`,
-        },
         HostConfig: {
           NetworkMode: 'app-network',
         },
