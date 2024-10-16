@@ -10,6 +10,8 @@ import { ProductoModule } from './producto/producto.module';
 import { ProductoController } from './producto/producto.controller';
 ConfigModule.forRoot();
 
+console.log("xd")
+
 const connection = handleGetConnection();
 @Module({
   imports: [connection, EmpresaModule, ProductoModule],
