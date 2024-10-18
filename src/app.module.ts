@@ -12,10 +12,11 @@ import {
   SubdomainMiddleware,
 } from './middleware/subdomain.middleware';
 import { AppController } from './app.controller';
+import { NotificationsModule } from './notifications/notifications.module';
 ConfigModule.forRoot();
 
 @Module({
-  imports: [handleGetConnection(), EmpresaModule, TenantConnectionModule],
+  imports: [handleGetConnection(), EmpresaModule, TenantConnectionModule, NotificationsModule],
   controllers: [ProductoController, EmpresaController],
   providers: [AppService, ProductoService],
 })
