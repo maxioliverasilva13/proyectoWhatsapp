@@ -19,6 +19,7 @@ export class ProductoController {
   @Get()
   findAll(@Req() request: Request) {
     const empresaId = request['empresaId'];
-    return this.productoService.findAll(empresaId);
+    console.log('producto is', empresaId);
+    return this.productoService.findAll();
   }
 }
