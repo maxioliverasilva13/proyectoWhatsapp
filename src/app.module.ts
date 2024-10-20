@@ -8,13 +8,24 @@ import { AppService } from './app.service';
 import { EmpresaModule } from './empresa/empresa.module';
 import { ProductoModule } from './producto/producto.module';
 import { ProductoController } from './producto/producto.controller';
+import { PedidoModule } from './pedido/pedido.module';
+import { ChatModule } from './chat/chat.module';
+import { MensajeModule } from './mensaje/mensaje.module';
+import { EstadoModule } from './estado/estado.module';
+import { CambioestadopedidoModule } from './cambioestadopedido/cambioestadopedido.module';
+import { UsuarioModule } from './usuario/usuario.module';
+import { ClienteModule } from './cliente/cliente.module';
+import { RolesModule } from './roles/roles.module';
+import { PlanModule } from './plan/plan.module';
+import { TiposervicioModule } from './tiposervicio/tiposervicio.module';
+import { ProductopedidoModule } from './productopedido/productopedido.module';
 ConfigModule.forRoot();
 
 console.log("xd")
 
 const connection = handleGetConnection();
 @Module({
-  imports: [connection, EmpresaModule, ProductoModule],
+  imports: [connection, EmpresaModule, ProductoModule, PedidoModule, ChatModule, MensajeModule, EstadoModule, CambioestadopedidoModule, UsuarioModule, ClienteModule, RolesModule, PlanModule, TiposervicioModule, ProductopedidoModule],
   controllers: [AppController],
   providers: [AppService],
 })

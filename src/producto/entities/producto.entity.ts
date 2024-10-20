@@ -1,7 +1,8 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { ProductoPedido } from 'src/productopedido/entities/productopedido.entity';
+import { Entity, Column, PrimaryGeneratedColumn, BaseEntity, OneToMany } from 'typeorm';
 
 @Entity('productos')
-export class Producto {
+export class Producto extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -13,4 +14,16 @@ export class Producto {
 
   @Column()
   empresa_id: number;
+
+  @Column()
+  descripcion: string;
+
+  @Column()
+  plazoDuracionEstimadoMinutos: number;
+
+  @Column()
+  disponible: boolean;
+
+  @OneToMany(() => ProductoPedido, (prod) => prod.producto)
+  pedidosprod: ProductoPedido[];
 }

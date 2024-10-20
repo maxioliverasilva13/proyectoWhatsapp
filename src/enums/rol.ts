@@ -1,0 +1,4 @@
+export enum TipoRol {
+  ADMIN_EMPRESA = 'ADMIN_EMPRESA',
+  SUPER_ADMIN = 'SUPER_ADMIN',
+}
