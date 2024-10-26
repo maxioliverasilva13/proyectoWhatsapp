@@ -98,6 +98,7 @@ async function deployApp() {
   );
 }
 
+
 (async () => {
   await deployApp();
   const empresas = await getCompanies();
