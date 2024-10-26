@@ -21,6 +21,10 @@ jobs:
     - name: Install dependencies
       run: npm install
 
+    - name: Install Kompose
+      run: |
+        curl -sSL https://get.kompose.sh | sudo sh
+
     - name: Set up doctl
       uses: digitalocean/action-doctl@v2
       with:
