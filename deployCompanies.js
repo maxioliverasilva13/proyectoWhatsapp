@@ -23,6 +23,8 @@ async function getCompanies() {
   } catch (error) {
     console.log('error', error);
     return [];
+  } finally {
+    await client.end();
   }
 }
 
@@ -97,9 +99,16 @@ async function deployApp() {
 
 
 (async () => {
-  await deployApp();
-  const empresas = await getCompanies();
-  for (const empresa of empresas) {
-    deployCompany(empresa);
+  try {
+    await deployApp();
+    const empresas = await getCompanies();
+    for (const empresa of empresas) {
+    await deployCompany(empresa);
+  }
+  } catch (error) {
+    console.log("error", error)
+    process.exit(1);
+  } finally {
+    process.exit(0);
   }
 })();
