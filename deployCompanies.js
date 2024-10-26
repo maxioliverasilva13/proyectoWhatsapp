@@ -66,18 +66,18 @@ function deployCompany(empresa) {
 
 }
 
-function deployApp() {
+async function deployApp() {
     const dropletIp = process.env.DROPLET_IP;
     createEnvFileApp();
     require('dotenv').config({ path: `.env.app` });
 
-    execSync(`ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'mkdir -p /path/on/droplet/app'`);
-    execSync(`scp -i private_key -o StrictHostKeyChecking=no -r ./docker-compose-app.yml root@${dropletIp}:/path/on/droplet/app/docker-compose-app.yml`);
-    execSync(`ssh -i private_key root@${dropletIp} 'cd /path/on/droplet/app && docker-compose -f docker-compose-app.yml up -d'`);
+    await execSync(`ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'mkdir -p /path/on/droplet/app'`);
+    await execSync(`scp -i private_key -o StrictHostKeyChecking=no -r ./docker-compose-app.yml root@${dropletIp}:/path/on/droplet/app/docker-compose-app.yml`);
+    await execSync(`ssh -i private_key root@${dropletIp} 'cd /path/on/droplet/app && docker-compose -f docker-compose-app.yml up -d'`);
 }
 
 (async () => {
-  deployApp();
+  await deployApp();
   // const empresas = await getCompanies();
   // for (const empresa of empresas) {
   //   deployCompany(empresa);
