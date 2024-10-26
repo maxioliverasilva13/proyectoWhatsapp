@@ -23,7 +23,8 @@ jobs:
 
     - name: Install Kompose
       run: |
-        curl -sSL https://get.kompose.sh | sudo sh
+        curl -L https://github.com/kubernetes/kompose/releases/latest/download/kompose-linux-amd64 -o /usr/local/bin/kompose
+        chmod +x /usr/local/bin/kompose
 
     - name: Set up doctl
       uses: digitalocean/action-doctl@v2
