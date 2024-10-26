@@ -88,7 +88,7 @@ async function deployApp() {
     `scp -i private_key -o StrictHostKeyChecking=no -r .env.app root@${dropletIp}:/path/on/droplet/app/.env`,
   );
   await execSync(
-    `scp -i private_key -o StrictHostKeyChecking=no -r ./* root@${dropletIp}:/path/on/droplet/app/ --exclude=./node_modules`,
+    `rsync -avz -e "ssh -i private_key -o StrictHostKeyChecking=no" --exclude='node_modules' ./ root@${dropletIp}:/path/on/droplet/app/`,
   );
   await execSync(
     `ssh -i private_key root@${dropletIp} 'cd /path/on/droplet/app && npm install'`,
