@@ -8,7 +8,7 @@ const client = new Client({
   host: process.env.POSTGRES_GLOBAL_DB_HOST,
   database: process.env.POSTGRES_DB_GLOBAL,
   password: process.env.POSTGRES_PASSWORD_GLOBAL,
-  port: 5432,
+  port: process.env.POSTGRES_GLOBAL_DB_PORT,
 });
 
 async function getCompanies() {
