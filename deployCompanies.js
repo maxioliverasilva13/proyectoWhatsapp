@@ -71,7 +71,7 @@ function deployApp() {
     createEnvFileApp();
     require('dotenv').config({ path: `.env.app` });
 
-    execSync(`scp -i private_key -o StrictHostKeyChecking=no -r ./docker-compose-app.yml root@${dropletIp}:/path/on/droplet/app/docker-compose.yml`);
+    execSync(`scp -i private_key -o StrictHostKeyChecking=no -r ./docker-compose-app.yml root@${dropletIp}:/path/on/droplet/app/docker-compose-app.yml`);
     execSync(`ssh -i private_key root@${dropletIp} 'cd /path/on/droplet/app && docker-compose up -d'`);
 }
 
