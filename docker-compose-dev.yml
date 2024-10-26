@@ -1,17 +1,17 @@
-version: '3'
+---
+version: "3"
 services:
-  ## APP
   app:
     build:
       context: .
       dockerfile: Dockerfile.dev
     ports:
-      - "3000:3000"
+      - 3000:3000
     volumes:
       - .:/app
     environment:
       NODE_ENV: dev
-      VIRTUAL_HOST: "app.whatsproy.com"
+      VIRTUAL_HOST: app.whatsproy.com
       VIRTUAL_PORT: 3000
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -19,11 +19,9 @@ services:
       POSTGRES_GLOBAL_DB_HOST: ${POSTGRES_GLOBAL_DB_HOST}
       POSTGRES_GLOBAL_DB_PORT: ${POSTGRES_GLOBAL_DB_PORT}
       ENV: ${ENV}
-      SUBDOMAIN: "app"
+      SUBDOMAIN: app
     networks:
       - app-network
-
-  ## DB
   db-global:
     image: postgres:13
     environment:
@@ -34,28 +32,26 @@ services:
     volumes:
       - globaldb-data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - 5432:5432
     networks:
       app-network:
-          aliases:
-            - db-global
-  
-  ############ works Empresa ##################
+        aliases:
+          - db-global
   works-app:
     build:
       context: .
       dockerfile: Dockerfile.dev
     ports:
-      - "3001:3000"
+      - 3001:3000
     volumes:
       - .:/app
     environment:
       NODE_ENV: dev
-      VIRTUAL_HOST: "works.whatsproy.com"
+      VIRTUAL_HOST: works.whatsproy.com
       VIRTUAL_PORT: 3000
-      POSTGRES_USER: "works_user"
-      POSTGRES_PASSWORD: "works_pass"
-      POSTGRES_DB: "db_works"
+      POSTGRES_USER: works_user
+      POSTGRES_PASSWORD: works_pass
+      POSTGRES_DB: db_works
       POSTGRES_USER_GLOBAL: ${POSTGRES_USER_GLOBAL}
       POSTGRES_PASSWORD_GLOBAL: ${POSTGRES_PASSWORD_GLOBAL}
       POSTGRES_DB_GLOBAL: ${POSTGRES_DB_GLOBAL}
@@ -65,7 +61,6 @@ services:
       SUBDOMAIN: works
     networks:
       - app-network
-
   works-db:
     image: postgres:13
     environment:
@@ -76,27 +71,21 @@ services:
     volumes:
       - works-db-data:/var/lib/postgresql/data
     ports:
-      - "5433:5432"
+      - 5433:5432
     networks:
       app-network:
-          aliases:
-            - works-db
-
-############ works Empresa ##################
-
-  # NGINX server
+        aliases:
+          - works-db
   nginx-proxy:
     image: jwilder/nginx-proxy
     ports:
-      - "80:80"
+      - 80:80
     volumes:
       - /var/run/docker.sock:/tmp/docker.sock:ro
     networks:
       - app-network
-
 networks:
-  app-network:
-
+  app-network: null
 volumes:
-  globaldb-data:
-  works-db-data:
+  globaldb-data: null
+  works-db-data: null

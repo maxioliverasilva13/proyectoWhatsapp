@@ -1,12 +1,12 @@
-version: '3'
+---
+version: "3"
 services:
-  ## APP
   app:
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - 3000:3000
     environment:
       NODE_ENV: production
       POSTGRES_USER: ${POSTGRES_USER}
@@ -20,20 +20,17 @@ services:
       POSTGRES_GLOBAL_DB_HOST: ${POSTGRES_GLOBAL_DB_HOST}
       POSTGRES_DB_GLOBAL: ${POSTGRES_DB_GLOBAL}
       POSTGRES_GLOBAL_DB_PORT: ${POSTGRES_GLOBAL_DB_PORT}
-
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.${SUBDOMAIN}-router.rule=Host(`${VIRTUAL_HOST}`)"
-      - "traefik.http.routers.${SUBDOMAIN}-router.entrypoints=web"
-      - "traefik.http.services.${SUBDOMAIN}-service.loadbalancer.server.port=3000"
+      - traefik.enable=true
+      - traefik.http.routers.${SUBDOMAIN}-router.rule=Host(`${VIRTUAL_HOST}`)
+      - traefik.http.routers.${SUBDOMAIN}-router.entrypoints=web
+      - traefik.http.services.${SUBDOMAIN}-service.loadbalancer.server.port=3000
     depends_on:
       - db-global
     networks:
       - app-network
     restart: always
     container_name: ${SUBDOMAIN}-app
-
-  ## DB
   db:
     image: postgres:13
     environment:
@@ -46,24 +43,21 @@ services:
       - app-network
     restart: always
     container_name: ${SUBDOMAIN}-db
-
   traefik:
     image: traefik:v2.10
     command:
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--entrypoints.web.address=:80"
+      - --api.insecure=true
+      - --providers.docker=true
+      - --entrypoints.web.address=:80
     ports:
-      - "80:80"
-      - "8080:8080"
+      - 80:80
+      - 8080:8080
     volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - app-network
     restart: always
-
 networks:
-  app-network:
-
+  app-network: null
 volumes:
-  globaldb-data:
+  globaldb-data: null
