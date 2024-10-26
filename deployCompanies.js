@@ -9,6 +9,9 @@ const client = new Client({
   database: process.env.POSTGRES_DB_GLOBAL,
   password: process.env.POSTGRES_PASSWORD_GLOBAL,
   port: process.env.POSTGRES_GLOBAL_DB_PORT,
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
 
 async function getCompanies() {
@@ -68,6 +71,7 @@ function deployApp(empresa) {
   }
 
 (async () => {
+  console.log("xd1");
   const empresas = await getCompanies();
   deployApp();
   for (const empresa of empresas) {
