@@ -62,7 +62,7 @@ function createEnvFileApp() {
     require('dotenv').config({ path: `.env.${empresa.db_name}` });
   
     execSync(`kompose convert -f docker-compose.yml`);
-    execSync(`kubectl apply -f . --validate=false`);
+    execSync(`kubectl apply -f ./${empresa?.db_name}-deployment.yaml --validate=false`);
   }
 
 function deployApp(empresa) {
@@ -71,7 +71,7 @@ function deployApp(empresa) {
     require('dotenv').config({ path: `.env.app` });
     
     execSync(`kompose convert -f docker-compose-app.yml --verbose`);
-    execSync(`kubectl apply -f . --validate=false`);
+    execSync(`kubectl apply -f ./app-deployment.yaml --validate=false`);
   }
 
 (async () => {
