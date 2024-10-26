@@ -1,4 +1,4 @@
-version: "3"
+version: "1.27.0"
 services:
   app:
     build:
@@ -84,7 +84,7 @@ services:
     networks:
       - app-network
 networks:
-  app-network: null
+  app-network:
 volumes:
-  globaldb-data: null
-  works-db-data: null
+  globaldb-data:
+  works-db-data:
