@@ -56,17 +56,21 @@ function createEnvFileApp() {
     fs.writeFileSync(`.env.app`, envContent);
   }
 
-function deployCompany(empresa) {
-  createEnvFile(empresa);
+  function deployCompany(empresa) {
+    createEnvFile(empresa);
   
-  execSync(`kompose convert -f docker-compose.yml --env-file .env.${empresa.db_name}`);
-  execSync(`kubectl apply -f .`);
-}
+    require('dotenv').config({ path: `.env.${empresa.db_name}` });
+  
+    execSync(`kompose convert -f docker-compose.yml`);
+    execSync(`kubectl apply -f .`);
+  }
 
 function deployApp(empresa) {
     createEnvFileApp(empresa);
+
+    require('dotenv').config({ path: `.env.app` });
     
-    execSync(`kompose convert -f docker-compose-app.yml --env-file .env.app`);
+    execSync(`kompose convert -f docker-compose-app.yml`);
     execSync(`kubectl apply -f .`);
   }
 
