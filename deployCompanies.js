@@ -49,6 +49,7 @@ function createEnvFileApp() {
       ENV=qa
       SUBDOMAIN=app
     `;
+    console.log("envContent", envContent)
     fs.writeFileSync(`.env.app`, envContent);
   }
 
