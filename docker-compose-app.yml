@@ -26,8 +26,6 @@ services:
       - "traefik.http.routers.${SUBDOMAIN}-router.rule=Host(`${VIRTUAL_HOST}`)"
       - "traefik.http.routers.${SUBDOMAIN}-router.entrypoints=web"
       - "traefik.http.services.${SUBDOMAIN}-service.loadbalancer.server.port=3000"
-    depends_on:
-      - db-global
     networks:
       - app-network
     restart: always
