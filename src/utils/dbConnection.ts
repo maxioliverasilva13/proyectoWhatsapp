@@ -13,11 +13,11 @@ export const handleGetConnectionValuesToCreateEmpresaDb = () => {
 
 export const handleGetConnection = () => {
   const env = process.env.SUBDOMAIN;
-  const host = env === 'app' ? `db-global` : `works-db`;
+  const host = env === 'app' ? `${process.env.POSTGRES_GLOBAL_DB_HOST}` : `${env}-db`;
   return TypeOrmModule.forRoot({
     type: 'postgres',
     host: host,
-    port: 5432,
+    port: env === 'app' ? Number(process.env.POSTGRES_GLOBAL_DB_PORT || 5432) : 5432,
     entities:
       env === 'app' ? ENTITIES_TO_MAP_GLOBAL_DB : ENTITIES_TO_MAP_EMPRESA_DB,
     synchronize: true,
@@ -31,7 +31,7 @@ export const handleGetGlobalConnection = async () => {
   const globalConnection = new DataSource({
     type: 'postgres',
     host: 'db-global',
-    port: 5432,
+    port: Number(process.env.POSTGRES_GLOBAL_DB_PORT || 5432),
     entities: ENTITIES_TO_MAP_GLOBAL_DB,
     name: 'global_db',
     synchronize: true,

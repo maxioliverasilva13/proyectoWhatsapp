@@ -1,0 +1,40 @@
+name: Deploy to QA
+
+on:
+  push:
+    branches:
+      - qa
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: qa
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18.x'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Set up doctl
+      uses: digitalocean/action-doctl@v2
+      with:
+        token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+    - name: Configure kubectl
+      run: |
+        doctl kubernetes cluster kubeconfig save ${{ secrets.DIGITAL_OCEAN_CLUSTER_NAME }}
+
+    - name: Deploy Companies
+      env:
+        POSTGRES_USER_GLOBAL: ${{ secrets.POSTGRES_USER_GLOBAL }}
+        POSTGRES_PASSWORD_GLOBAL: ${{ secrets.POSTGRES_PASSWORD_GLOBAL }}
+        POSTGRES_DB_GLOBAL: ${{ secrets.POSTGRES_DB_GLOBAL }}
+        POSTGRES_GLOBAL_DB_HOST: ${{ secrets.POSTGRES_GLOBAL_DB_HOST }}
+        POSTGRES_GLOBAL_DB_PORT: ${{ secrets.POSTGRES_GLOBAL_DB_PORT }}
+      run: node deployCompanies.js
