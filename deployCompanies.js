@@ -61,8 +61,9 @@ function deployCompany(empresa) {
 
   require('dotenv').config({ path: `.env.${empresa.db_name}` });
 
-  execSync(`scp -r ./docker-compose.yml root@${dropletIp}:/path/on/droplet/${empresa.db_name}/`);
-  execSync(`ssh root@${dropletIp} 'cd /path/on/droplet/${empresa.db_name} && docker-compose up -d'`);
+  execSync(`scp -i private_key -o StrictHostKeyChecking=no -r ./docker-compose.yml root@${dropletIp}:/path/on/droplet/${empresa.db_name}/docker-compose.yml`);
+  execSync(`ssh -i private_key root@${dropletIp} 'cd /path/on/droplet/${empresa.db_name} && docker-compose up -d'`);
+
 }
 
 function deployApp() {
@@ -70,7 +71,7 @@ function deployApp() {
     createEnvFileApp();
     require('dotenv').config({ path: `.env.app` });
 
-    execSync(`scp -i private_key -r ./docker-compose-app.yml root@${dropletIp}:/path/on/droplet/app/`);
+    execSync(`scp -i private_key -o StrictHostKeyChecking=no -r ./docker-compose-app.yml root@${dropletIp}:/path/on/droplet/app/docker-compose.yml`);
     execSync(`ssh -i private_key root@${dropletIp} 'cd /path/on/droplet/app && docker-compose up -d'`);
 }
 
