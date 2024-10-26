@@ -75,7 +75,7 @@ async function deployApp() {
 
     await execSync(`ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'mkdir -p /path/on/droplet/app'`);
     await execSync(`scp -i private_key -o StrictHostKeyChecking=no -r .env.app root@${dropletIp}:/path/on/droplet/app/.env`);
-    await execSync(`scp -i private_key -o StrictHostKeyChecking=no ./* root@${dropletIp}:/path/on/droplet/app/`);
+    await execSync(`scp -i private_key -o StrictHostKeyChecking=no -r ./* root@${dropletIp}:/path/on/droplet/app/`);
     await execSync(`ssh -i private_key root@${dropletIp} 'cd /path/on/droplet/app && docker-compose -f docker-compose-app.yml up -d'`);
 }
 
