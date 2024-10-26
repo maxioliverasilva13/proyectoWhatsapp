@@ -33,6 +33,7 @@ function createEnvFile(empresa) {
     POSTGRES_GLOBAL_DB_HOST=${process.env.POSTGRES_GLOBAL_DB_HOST}
     POSTGRES_GLOBAL_DB_PORT=${process.env.POSTGRES_GLOBAL_DB_PORT}
     ENV=qa
+    DOCKER_BUILDKIT=1
     SUBDOMAIN=${empresa.db_name}
   `;
   fs.writeFileSync(`.env.${empresa.db_name}`, envContent);
@@ -50,6 +51,7 @@ function createEnvFileApp() {
       POSTGRES_GLOBAL_DB_HOST=${process.env.POSTGRES_GLOBAL_DB_HOST}
       POSTGRES_GLOBAL_DB_PORT=${process.env.POSTGRES_GLOBAL_DB_PORT}
       ENV=qa
+      DOCKER_BUILDKIT=1
       SUBDOMAIN=app
     `;
     fs.writeFileSync(`.env.app`, envContent);
@@ -72,9 +74,8 @@ async function deployApp() {
     require('dotenv').config({ path: `.env.app` });
 
     await execSync(`ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'mkdir -p /path/on/droplet/app'`);
-
     await execSync(`scp -i private_key -o StrictHostKeyChecking=no -r .env.app root@${dropletIp}:/path/on/droplet/app/.env`);
-    await execSync(`scp -i private_key -o StrictHostKeyChecking=no -r ./docker-compose-app.yml root@${dropletIp}:/path/on/droplet/app/docker-compose-app.yml`);
+    await execSync(`scp -i private_key -o StrictHostKeyChecking=no -r ./ root@${dropletIp}:/path/on/droplet/app/`);
     await execSync(`ssh -i private_key root@${dropletIp} 'cd /path/on/droplet/app && docker-compose -f docker-compose-app.yml up -d'`);
 }
 
