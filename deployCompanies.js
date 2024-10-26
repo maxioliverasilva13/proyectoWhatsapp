@@ -69,10 +69,10 @@ function deployCompany(empresa) {
   require('dotenv').config({ path: `.env.${empresa.db_name}` });
 
   execSync(
-    `scp -i private_key -o StrictHostKeyChecking=no -r ./docker-compose.yml root@${dropletIp}:/path/on/droplet/${empresa.db_name}/docker-compose.yml`,
+    `scp -i private_key -o StrictHostKeyChecking=no -r ./docker-compose.yml root@${dropletIp}:/projects/${empresa.db_name}/docker-compose.yml`,
   );
   execSync(
-    `ssh -i private_key root@${dropletIp} 'cd /path/on/droplet/${empresa.db_name} && docker-compose up -d'`,
+    `ssh -i private_key root@${dropletIp} 'cd /projects/${empresa.db_name} && docker-compose up -d'`,
   );
 }
 
@@ -82,19 +82,16 @@ async function deployApp() {
   require('dotenv').config({ path: `.env.app` });
 
   await execSync(
-    `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'mkdir -p /path/on/droplet/app'`,
+    `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'mkdir -p /projects/app'`,
   );
   await execSync(
-    `scp -i private_key -o StrictHostKeyChecking=no -r .env.app root@${dropletIp}:/path/on/droplet/app/.env`,
+    `scp -i private_key -o StrictHostKeyChecking=no -r .env.app root@${dropletIp}:/projects/app/.env`,
   );
   await execSync(
-    `rsync -avz -e "ssh -i private_key -o StrictHostKeyChecking=no" --exclude='node_modules' ./ root@${dropletIp}:/path/on/droplet/app/`,
+    `rsync -avz -e "ssh -i private_key -o StrictHostKeyChecking=no" --exclude='node_modules' ./ root@${dropletIp}:/projects/app/`,
   );
   await execSync(
-    `ssh -i private_key root@${dropletIp} 'cd /path/on/droplet/app && npm install'`,
-  );
-  await execSync(
-    `ssh -i private_key root@${dropletIp} 'cd /path/on/droplet/app && docker-compose -f docker-compose-app.yml up -d'`,
+    `ssh -i private_key root@${dropletIp} 'cd /projects/app && docker-compose -f docker-compose-app.yml up -d'`,
   );
 }
 
