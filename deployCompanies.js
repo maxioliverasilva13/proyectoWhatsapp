@@ -44,6 +44,8 @@ function createEnvFileApp() {
       POSTGRES_USER_GLOBAL=${process.env.POSTGRES_USER_GLOBAL}
       POSTGRES_PASSWORD_GLOBAL=${process.env.POSTGRES_PASSWORD_GLOBAL}
       POSTGRES_DB_GLOBAL=${process.env.POSTGRES_DB_GLOBAL}
+      POSTGRES_GLOBAL_DB_HOST=${process.env.POSTGRES_GLOBAL_DB_HOST}
+      POSTGRES_GLOBAL_DB_PORT=${process.env.POSTGRES_GLOBAL_DB_PORT}
       ENV=qa
       SUBDOMAIN=app
     `;
