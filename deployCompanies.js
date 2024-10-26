@@ -70,7 +70,7 @@ function deployApp(empresa) {
 
     require('dotenv').config({ path: `.env.app` });
     
-    execSync(`kompose convert -f docker-compose-app.yml`);
+    execSync(`kompose convert -f docker-compose-app.yml --verbose`);
     execSync(`kubectl apply -f . --validate=false`);
   }
 
