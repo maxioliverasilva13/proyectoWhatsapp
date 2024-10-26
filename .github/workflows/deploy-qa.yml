@@ -29,6 +29,10 @@ jobs:
       run: |
         echo "${SSH_PRIVATE_KEY}" > private_key
         chmod 600 private_key
+
+        echo "DROPLET_USER: ${DROPLET_USER}"  # Solo imprime el usuario
+        echo "DROPLET_IP: ${DROPLET_IP}"
+        
         ssh -i private_key -o StrictHostKeyChecking=no "${DROPLET_USER}@${DROPLET_IP}" 'mkdir -p /path/on/droplet'
 
     - name: Execute Deployment Script
