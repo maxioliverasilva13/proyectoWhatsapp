@@ -71,9 +71,8 @@ function deployApp(empresa) {
   }
 
 (async () => {
-  console.log("xd1");
-  const empresas = await getCompanies();
   deployApp();
+  const empresas = await getCompanies();
   for (const empresa of empresas) {
     deployCompany(empresa);
   }
