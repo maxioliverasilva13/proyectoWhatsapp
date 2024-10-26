@@ -21,25 +21,23 @@ jobs:
     - name: Install dependencies
       run: npm install
 
-    - name: Install Kompose
+    - name: Deploy to DigitalOcean
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        DROPLET_IP: ${{ secrets.DROPLET_IP }}
+        DROPLET_USER: ${{ secrets.DROPLET_USER }}
       run: |
-        curl -L https://github.com/kubernetes/kompose/releases/latest/download/kompose-linux-amd64 -o /usr/local/bin/kompose
-        chmod +x /usr/local/bin/kompose
+        echo "${SSH_PRIVATE_KEY}" > private_key
+        chmod 600 private_key
+        ssh -i private_key -o StrictHostKeyChecking=no "${DROPLET_USER}@${DROPLET_IP}" 'mkdir -p /path/on/droplet'
 
-    - name: Set up doctl
-      uses: digitalocean/action-doctl@v2
-      with:
-        token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-
-    - name: Configure kubectl
-      run: |
-        doctl kubernetes cluster kubeconfig save ${{ secrets.DIGITAL_OCEAN_CLUSTER_NAME }}
-
-    - name: Deploy Companies
+    - name: Execute Deployment Script
       env:
         POSTGRES_USER_GLOBAL: ${{ secrets.POSTGRES_USER_GLOBAL }}
         POSTGRES_PASSWORD_GLOBAL: ${{ secrets.POSTGRES_PASSWORD_GLOBAL }}
         POSTGRES_DB_GLOBAL: ${{ secrets.POSTGRES_DB_GLOBAL }}
         POSTGRES_GLOBAL_DB_HOST: ${{ secrets.POSTGRES_GLOBAL_DB_HOST }}
         POSTGRES_GLOBAL_DB_PORT: ${{ secrets.POSTGRES_GLOBAL_DB_PORT }}
+        DROPLET_IP: ${{ secrets.DROPLET_IP }}
       run: node deployCompanies.js
+

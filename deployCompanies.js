@@ -35,7 +35,7 @@ function createEnvFile(empresa) {
     ENV=qa
     SUBDOMAIN=${empresa.db_name}
   `;
-  fs.writeFileSync(`.env.${company.name}`, envContent);
+  fs.writeFileSync(`.env.${empresa.db_name}`, envContent);
 }
 
 function createEnvFileApp() {
@@ -52,31 +52,30 @@ function createEnvFileApp() {
       ENV=qa
       SUBDOMAIN=app
     `;
-    console.log("envContent", envContent)
     fs.writeFileSync(`.env.app`, envContent);
-  }
+}
 
-  function deployCompany(empresa) {
-    createEnvFile(empresa);
-  
-    require('dotenv').config({ path: `.env.${empresa.db_name}` });
-  
-    execSync(`kompose convert -f docker-compose.yml`);
-    execSync(`kubectl apply -f ./${empresa?.db_name}-deployment.yaml --validate=false`);
-  }
+function deployCompany(empresa) {
+  const dropletIp = process.env.DROPLET_IP;
+  createEnvFile(empresa);
 
-function deployApp(empresa) {
-    createEnvFileApp(empresa);
+  require('dotenv').config({ path: `.env.${empresa.db_name}` });
 
+  execSync(`scp -r ./docker-compose.yml root@${dropletIp}:/path/on/droplet/${empresa.db_name}/`);
+  execSync(`ssh root@${dropletIp} 'cd /path/on/droplet/${empresa.db_name} && docker-compose up -d'`);
+}
+
+function deployApp() {
+    const dropletIp = process.env.DROPLET_IP;
+    createEnvFileApp();
     require('dotenv').config({ path: `.env.app` });
-    
-    execSync(`kompose convert -f docker-compose-app.yml --verbose`);
-    execSync(`kubectl apply -f ./app-deployment.yaml --validate=false`);
-  }
+
+    execSync(`scp -r ./docker-compose-app.yml root@${dropletIp}:/path/on/droplet/app/`);
+    execSync(`ssh root@${dropletIp} 'cd /path/on/droplet/app && docker-compose up -d'`);
+}
 
 (async () => {
   deployApp();
-  console.log("xd1");
   const empresas = await getCompanies();
   for (const empresa of empresas) {
     deployCompany(empresa);
