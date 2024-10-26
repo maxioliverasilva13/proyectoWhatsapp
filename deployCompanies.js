@@ -70,8 +70,8 @@ function deployApp() {
     createEnvFileApp();
     require('dotenv').config({ path: `.env.app` });
 
-    execSync(`scp -r ./docker-compose-app.yml root@${dropletIp}:/path/on/droplet/app/`);
-    execSync(`ssh root@${dropletIp} 'cd /path/on/droplet/app && docker-compose up -d'`);
+    execSync(`scp -i private_key -r ./docker-compose-app.yml root@${dropletIp}:/path/on/droplet/app/`);
+    execSync(`ssh -i private_key root@${dropletIp} 'cd /path/on/droplet/app && docker-compose up -d'`);
 }
 
 (async () => {
