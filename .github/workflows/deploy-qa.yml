@@ -25,7 +25,7 @@ jobs:
       uses: GarreauArthur/manage-digital-ocean-managed-database-trusted-sources-gh-action@main
       with:
         action: "add"
-        database_id: ${{ secrets.POSTGRES_DB_GLOBAL }}
+        database_id: ${{ secrets.DO_DB_ID }}
         digitalocean_token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
 
     - name: Do something with you database
@@ -35,7 +35,7 @@ jobs:
       uses: GarreauArthur/manage-digital-ocean-managed-database-trusted-sources-gh-action@main
       with:
         action: "remove"
-        database_id: ${{ secrets.POSTGRES_DB_GLOBAL }}
+        database_id: ${{ secrets.DO_DB_ID }}
         digitalocean_token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
 
     - name: Deploy to DigitalOcean
