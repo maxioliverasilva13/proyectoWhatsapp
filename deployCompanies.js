@@ -74,7 +74,7 @@ function deployCompany(empresa) {
     `scp -i private_key -o StrictHostKeyChecking=no -r ./docker-compose.yml root@${dropletIp}:/projects/${empresa.db_name}/docker-compose.yml`,
   );
   execSync(
-    `ssh -i private_key root@${dropletIp} 'cd /projects/${empresa.db_name} && docker-compose up -d'`,
+    `ssh -i private_key root@${dropletIp} 'cd /projects/${empresa.db_name} && docker-compose up -d --build'`,
   );
 }
 
@@ -93,7 +93,7 @@ async function deployApp() {
     `rsync -avz -e "ssh -i private_key -o StrictHostKeyChecking=no" --exclude='node_modules' ./ root@${dropletIp}:/projects/app/`,
   );
   await execSync(
-    `ssh -i private_key root@${dropletIp} 'cd /projects/app && docker-compose -f docker-compose-app.yml up -d'`,
+    `ssh -i private_key root@${dropletIp} 'cd /projects/app && docker-compose -f docker-compose-app.yml up -d --build'`,
   );
 }
 
