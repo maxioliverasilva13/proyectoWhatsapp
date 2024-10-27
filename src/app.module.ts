@@ -21,7 +21,7 @@ import { TiposervicioModule } from './tiposervicio/tiposervicio.module';
 import { ProductopedidoModule } from './productopedido/productopedido.module';
 ConfigModule.forRoot();
 
-console.log("xd")
+console.log("asd")
 const env = process.env.SUBDOMAIN;
 const host = env === 'app' ? `${process.env.POSTGRES_GLOBAL_DB_HOST}` : `${env}-db`;
 console.log('xd1', {
