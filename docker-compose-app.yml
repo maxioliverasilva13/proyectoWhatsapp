@@ -41,5 +41,6 @@ services:
     restart: always
 networks:
   app-network:
+    driver: bridge
 volumes:
   globaldb-data:
