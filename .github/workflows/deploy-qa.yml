@@ -28,16 +28,6 @@ jobs:
         database_id: ${{ secrets.DO_DB_ID }}
         digitalocean_token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
 
-    - name: Do something with you database
-      run: echo "Migrating database"
-
-    - name: Remove IP address to trusted source (managed database)
-      uses: GarreauArthur/manage-digital-ocean-managed-database-trusted-sources-gh-action@main
-      with:
-        action: "remove"
-        database_id: ${{ secrets.DO_DB_ID }}
-        digitalocean_token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-
     - name: Deploy to DigitalOcean
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -57,4 +47,11 @@ jobs:
         POSTGRES_GLOBAL_DB_PORT: ${{ secrets.POSTGRES_GLOBAL_DB_PORT }}
         DROPLET_IP: ${{ secrets.DROPLET_IP }}
       run: node deployCompanies.js
+
+    - name: Remove IP address to trusted source (managed database)
+      uses: GarreauArthur/manage-digital-ocean-managed-database-trusted-sources-gh-action@main
+      with:
+        action: "remove"
+        database_id: ${{ secrets.DO_DB_ID }}
+        digitalocean_token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
 
