@@ -20,19 +20,19 @@ export class Empresa extends BaseEntity {
   @Column({ nullable: true })
   descripcion?: string;
 
-  @Column()
+  @Column({ nullable: true })
   menu: string;
 
-  @Column()
+  @Column( { default: false })
   abierto: boolean;
 
-  @Column()
-  hora_apertura: boolean;
+  @Column({ nullable: true})
+  hora_apertura: Date;
 
-  @Column()
-  hora_cierre: boolean;
+  @Column({  nullable: true })
+  hora_cierre: Date;
 
-  @Column()
+  @Column({ default: false })
   notificarReservaHoras: boolean;
 
   @ManyToOne(() => Plan, (plan) => plan.empresas)
