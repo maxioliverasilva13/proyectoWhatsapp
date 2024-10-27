@@ -22,6 +22,22 @@ import { ProductopedidoModule } from './productopedido/productopedido.module';
 ConfigModule.forRoot();
 
 console.log("xd")
+const env = process.env.SUBDOMAIN;
+const host = env === 'app' ? `${process.env.POSTGRES_GLOBAL_DB_HOST}` : `${env}-db`;
+console.log('xd1', {
+  type: 'postgres',
+  host: host,
+  port: env === 'app' ? Number(process.env.POSTGRES_GLOBAL_DB_PORT || 5432) : 5432,
+  entities:
+    env === 'app' ? [] : [],
+  synchronize: false,
+  username: process.env.POSTGRES_USER,
+  password: process.env.POSTGRES_PASSWORD,
+  database: process.env.POSTGRES_DB,
+  ssl: {
+    rejectUnauthorized: false,
+  },
+})
 
 const connection = handleGetConnection();
 @Module({
