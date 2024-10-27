@@ -24,7 +24,7 @@ services:
       - traefik.http.routers.${SUBDOMAIN}-router.entrypoints=web
       - traefik.http.services.${SUBDOMAIN}-service.loadbalancer.server.port=3000
     depends_on:
-      - db-global
+      - db
     networks:
       - app-network
     restart: always
