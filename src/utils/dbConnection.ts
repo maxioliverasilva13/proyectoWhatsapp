@@ -14,6 +14,20 @@ export const handleGetConnectionValuesToCreateEmpresaDb = () => {
 export const handleGetConnection = () => {
   const env = process.env.SUBDOMAIN;
   const host = env === 'app' ? `${process.env.POSTGRES_GLOBAL_DB_HOST}` : `${env}-db`;
+  console.log('xd1', {
+    type: 'postgres',
+    host: host,
+    port: env === 'app' ? Number(process.env.POSTGRES_GLOBAL_DB_PORT || 5432) : 5432,
+    entities:
+      env === 'app' ? ENTITIES_TO_MAP_GLOBAL_DB : ENTITIES_TO_MAP_EMPRESA_DB,
+    synchronize: true,
+    username: process.env.POSTGRES_USER,
+    password: process.env.POSTGRES_PASSWORD,
+    database: process.env.POSTGRES_DB,
+    ssl: {
+      rejectUnauthorized: false,
+    },
+  })
   return TypeOrmModule.forRoot({
     type: 'postgres',
     host: host,
