@@ -64,17 +64,23 @@ function createEnvFileApp() {
   fs.writeFileSync(`.env.app`, envContent);
 }
 
-function deployCompany(empresa) {
+async function deployCompany(empresa) {
   const dropletIp = process.env.DROPLET_IP;
   createEnvFile(empresa);
 
   require('dotenv').config({ path: `.env.${empresa.db_name}` });
 
-  execSync(
-    `scp -i private_key -o StrictHostKeyChecking=no -r ./docker-compose.yml root@${dropletIp}:/projects/${empresa.db_name}/docker-compose.yml`,
+  await execSync(
+    `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'mkdir -p /projects/${empresa?.db_name}'`,
   );
-  execSync(
-    `ssh -i private_key root@${dropletIp} 'cd /projects/${empresa.db_name} && docker-compose up -d --build'`,
+  await execSync(
+    `scp -i private_key -o StrictHostKeyChecking=no -r .env.${empresa.db_name} root@${dropletIp}:/projects/${empresa?.db_name}/.env`,
+  );
+  await execSync(
+    `rsync -avz -e "ssh -i private_key -o StrictHostKeyChecking=no" --exclude='node_modules' ./ root@${dropletIp}:/projects/${empresa?.db_name}/`,
+  );
+  await execSync(
+    `ssh -i private_key root@${dropletIp} 'cd /projects/${empresa?.db_name} && docker-compose -f docker-compose.yml up -d --build'`,
   );
 }
 
