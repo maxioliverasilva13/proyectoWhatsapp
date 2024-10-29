@@ -9,7 +9,7 @@ export class ClienteController {
 
   @Post()
   create(@Body() createClienteDto: CreateClienteDto) {
-    return this.clienteService.create(createClienteDto);
+    return this.clienteService.createOrReturnExistClient(createClienteDto);
   }
 
   @Get()

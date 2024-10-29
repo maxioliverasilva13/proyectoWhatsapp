@@ -11,10 +11,10 @@ export const handleGetConnectionValuesToCreateEmpresaDb = () => {
   } as any;
 };
 
-export const handleGetConnection = () => {
+export const handleGetConnection = async () => {
   const env = process.env.SUBDOMAIN;
   const host = env === 'app' ? `db-global` : `works-db`;
-  return TypeOrmModule.forRoot({
+  const dbConnection = TypeOrmModule.forRoot({
     type: 'postgres',
     host: host,
     port: 5432,
@@ -25,6 +25,8 @@ export const handleGetConnection = () => {
     password: process.env.POSTGRES_PASSWORD,
     database: process.env.POSTGRES_DB,
   });
+
+  return dbConnection
 };
 
 export const handleGetGlobalConnection = async () => {

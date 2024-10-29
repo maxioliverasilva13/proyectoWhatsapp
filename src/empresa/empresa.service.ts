@@ -24,7 +24,6 @@ export class EmpresaService {
 
   async create(createEmpresaDto: CreateEmpresaDto) {
     // TODO: agregar libreria para validar DTO
-
     try {
       if (!createEmpresaDto.nombre) {
         throw new BadRequestException('Nombre invalido');
@@ -45,6 +44,7 @@ export class EmpresaService {
             statusCode: 200,
             message: 'Empresa creada exitosamente',
           };
+          
         } else {
           throw new Error('No se pudo crear la empresa');
         }

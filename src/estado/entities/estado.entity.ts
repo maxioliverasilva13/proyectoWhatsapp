@@ -22,5 +22,5 @@ export class Estado extends BaseEntity {
     pedidos: Pedido[];
 
     @Column()
-    tipoServicioId: boolean;
+    tipoServicioId: number;
 }

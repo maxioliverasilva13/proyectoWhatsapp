@@ -12,6 +12,8 @@ import { Chat } from "src/chat/entities/chat.entity";
 import { Estado } from "src/estado/entities/estado.entity";
 import { Mensaje } from "src/mensaje/entities/mensaje.entity";
 import { ProductoPedido } from "src/productopedido/entities/productopedido.entity";
+import { ChatGptThreads } from "src/chatGptThreads/entities/chatGpThreads.entity";
+
 
 export const ENTITIES_TO_MAP_GLOBAL_DB = [
   Plan,
@@ -30,6 +32,7 @@ export const ENTITIES_TO_MAP_EMPRESA_DB = [
   ProductoPedido,
   Estado,
   Mensaje,
+  ChatGptThreads
 ];
 
 export const isDev = process.env.ENV == "dev";
