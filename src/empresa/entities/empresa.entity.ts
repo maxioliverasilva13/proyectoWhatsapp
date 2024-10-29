@@ -38,4 +38,9 @@ export class Empresa extends BaseEntity {
   @ManyToOne(() => Plan, (plan) => plan.empresas)
   plan: Plan;
 
+  @Column({ nullable: true })
+  greenApiInstance: string;
+
+  @Column({ nullable: true })
+  greenApiInstanceToken: string;
 }

@@ -35,10 +35,10 @@ export const handleGetConnection = async () => {
 export const handleGetGlobalConnection = async () => {
   const globalConnection = new DataSource({
     type: 'postgres',
-    host: 'db-global',
+    host: `${process.env.POSTGRES_GLOBAL_DB_HOST}`,
     port: Number(process.env.POSTGRES_GLOBAL_DB_PORT || 5432),
     entities: ENTITIES_TO_MAP_GLOBAL_DB,
-    name: 'global_db',
+    name: `${process.env.POSTGRES_DB_GLOBAL}`,
     synchronize: true,
     username: process.env.POSTGRES_USER_GLOBAL,
     password: process.env.POSTGRES_PASSWORD_GLOBAL,
