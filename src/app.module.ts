@@ -19,32 +19,18 @@ import { RolesModule } from './roles/roles.module';
 import { PlanModule } from './plan/plan.module';
 import { TiposervicioModule } from './tiposervicio/tiposervicio.module';
 import { ProductopedidoModule } from './productopedido/productopedido.module';
-ConfigModule.forRoot();
+import { GreenApiModule } from './greenApi/GreenApi.module';
+import { ChatGptThreadsModule } from './chatGptThreads/chatGptThreads.module';
 
-console.log("asd")
-const env = process.env.SUBDOMAIN;
-const host = env === 'app' ? `${process.env.POSTGRES_GLOBAL_DB_HOST}` : `${env}-db`;
-console.log('xd1', {
-  type: 'postgres',
-  host: host,
-  port: env === 'app' ? Number(process.env.POSTGRES_GLOBAL_DB_PORT || 5432) : 5432,
-  entities:
-    env === 'app' ? [] : [],
-  synchronize: false,
-  username: process.env.POSTGRES_USER,
-  password: process.env.POSTGRES_PASSWORD,
-  database: process.env.POSTGRES_DB,
-  ssl: {
-    rejectUnauthorized: false,
-  },
-})
+ConfigModule.forRoot();
 
 const connection = handleGetConnection();
 @Module({
-  imports: [connection, EmpresaModule, ProductoModule, PedidoModule, ChatModule, MensajeModule, EstadoModule, CambioestadopedidoModule, UsuarioModule, ClienteModule, RolesModule, PlanModule, TiposervicioModule, ProductopedidoModule],
+  imports: [connection, EmpresaModule, ProductoModule, PedidoModule, ChatModule, MensajeModule, EstadoModule, CambioestadopedidoModule, UsuarioModule, ClienteModule, RolesModule, PlanModule, TiposervicioModule, ProductopedidoModule, GreenApiModule, ChatGptThreadsModule ],
   controllers: [AppController],
   providers: [AppService],
 })
+
 export class AppModule {
   // Se aplica el midelware para que los controladores de la base general , funcinenen solo con el subdominio `app`
   configure(consumer: MiddlewareConsumer) {

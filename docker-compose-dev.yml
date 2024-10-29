@@ -57,6 +57,10 @@ services:
       POSTGRES_GLOBAL_DB_PORT: ${POSTGRES_GLOBAL_DB_PORT}
       ENV: ${ENV}
       SUBDOMAIN: works
+      GREEN_API_TOKEN: ${GREEN_API_TOKEN}
+      ID_INSTANCE: ${ID_INSTANCE}
+      API_TOKEN_INSTANCE: ${API_TOKEN_INSTANCE}
+
     networks:
       - app-network
   works-db:

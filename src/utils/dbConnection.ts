@@ -11,7 +11,7 @@ export const handleGetConnectionValuesToCreateEmpresaDb = () => {
   } as any;
 };
 
-export const handleGetConnection = () => {
+export const handleGetConnection = async () => {
   const env = process.env.SUBDOMAIN;
   const host = env === 'app' ? `${process.env.POSTGRES_GLOBAL_DB_HOST}` : `${env}-db`;
   return TypeOrmModule.forRoot({
