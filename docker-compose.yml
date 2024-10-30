@@ -41,5 +41,6 @@ services:
     container_name: ${SUBDOMAIN}-db
 networks:
   app-network:
+    external: true
 volumes:
   globaldb-data:
