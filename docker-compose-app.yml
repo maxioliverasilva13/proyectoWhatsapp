@@ -42,7 +42,6 @@ services:
 networks:
   app-network:
     driver: bridge
-    networks:
     external: true
 volumes:
   globaldb-data:
