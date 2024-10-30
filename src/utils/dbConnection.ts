@@ -12,6 +12,7 @@ export const handleGetConnectionValuesToCreateEmpresaDb = () => {
 };
 
 export const handleGetConnection = async () => {
+  console.log("here handleGetConnection")
   const env = process.env.SUBDOMAIN;
   const host = env === 'app' ? `${process.env.POSTGRES_GLOBAL_DB_HOST}` : `${env}-db`;
   return TypeOrmModule.forRoot({
@@ -33,6 +34,7 @@ export const handleGetConnection = async () => {
 };
 
 export const handleGetGlobalConnection = async () => {
+  console.log("here handleGetGlobalConnection")
   const globalConnection = new DataSource({
     type: 'postgres',
     host: `${process.env.POSTGRES_GLOBAL_DB_HOST}`,
