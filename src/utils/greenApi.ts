@@ -8,7 +8,7 @@ export async function connectToGreenApi(): Promise < void> {
         }));
 
         await restAPI.settings.setSettings({
-            webhookUrl: `http://${process.env.VIRTUAL_HOST}/webhooks`
+            webhookUrl: `https://${process.env.VIRTUAL_HOST}/webhooks`
         });
         console.log('Conectado a Green API:');
     } catch(error) {
