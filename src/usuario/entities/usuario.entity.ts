@@ -8,9 +8,6 @@ export class Usuario extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @OneToMany(() => Cambioestadopedido, (cmbe) => cmbe.usuario)
-    cambioEstados: Cambioestadopedido[];
-
     @Column()
     nombre: string;
 
