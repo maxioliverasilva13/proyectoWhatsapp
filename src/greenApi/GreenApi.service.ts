@@ -46,7 +46,6 @@ export class GreenApiService {
 
         console.log(openAIResponseFormatted);
         
-
         switch (openAIResponseFormatted.status) {
             case 1:
                 console.log("Falta nombre del producto");
@@ -64,6 +63,9 @@ export class GreenApiService {
                 break;
             case 5:
                 console.log("Listar productos");
+                break;
+            case 6:
+                console.log("Mensaje saludo");
                 break;
             default:
                 console.log("Estado no reconocido:", openAIResponseFormatted.status);
