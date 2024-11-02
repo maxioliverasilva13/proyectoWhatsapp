@@ -19,8 +19,10 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.${SUBDOMAIN}-router.rule=Host(`${VIRTUAL_HOST}`)
-      - traefik.http.routers.${SUBDOMAIN}-router.entrypoints=web
+      - traefik.http.routers.${SUBDOMAIN}-router.entrypoints=websecure
       - traefik.http.services.${SUBDOMAIN}-service.loadbalancer.server.port=3000
+      - traefik.http.routers.${SUBDOMAIN}-router.tls=true
+      - traefik.http.routers.${SUBDOMAIN}-router.tls.certresolver=myresolver
     networks:
       - app-network
     restart: always
@@ -28,14 +30,20 @@ services:
   traefik:
     image: traefik:v2.10
     command:
-      - --api.insecure=true
-      - --providers.docker=true
-      - --entrypoints.web.address=:80
+     - --api.insecure=true
+     - --providers.docker=true
+     - --entrypoints.web.address=:80
+     - --entrypoints.websecure.address=:443
+     - --certificatesresolvers.myresolver.acme.tlschallenge=true
+     - --certificatesresolvers.myresolver.acme.email=angelotunado02@gmail.com
+     - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
     ports:
       - 80:80
+      - 433:433
       - 8080:8080
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./letsencrypt:/letsencrypt
     networks:
       - app-network
     restart: always

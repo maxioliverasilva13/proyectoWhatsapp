@@ -16,11 +16,16 @@ services:
       POSTGRES_GLOBAL_DB_HOST: ${POSTGRES_GLOBAL_DB_HOST}
       POSTGRES_DB_GLOBAL: ${POSTGRES_DB_GLOBAL}
       POSTGRES_GLOBAL_DB_PORT: ${POSTGRES_GLOBAL_DB_PORT}
+      ID_INSTANCE: ${ID_INSTANCE}
+      API_TOKEN_INSTANCE: ${API_TOKEN_INSTANCE}
+      OPEN_AI_TOKEN: ${OPEN_AI_TOKEN}
     labels:
       - traefik.enable=true
       - traefik.http.routers.${SUBDOMAIN}-router.rule=Host(`${VIRTUAL_HOST}`)
-      - traefik.http.routers.${SUBDOMAIN}-router.entrypoints=web
+      - traefik.http.routers.${SUBDOMAIN}-router.entrypoints=websecure
       - traefik.http.services.${SUBDOMAIN}-service.loadbalancer.server.port=3000
+      - traefik.http.routers.${SUBDOMAIN}-router.tls=true
+      - traefik.http.routers.${SUBDOMAIN}-router.tls.certresolver=myresolver
     depends_on:
       - db
     networks:
