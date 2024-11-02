@@ -24,6 +24,7 @@ import { ChatGptThreadsModule } from './chatGptThreads/chatGptThreads.module';
 
 ConfigModule.forRoot();
 
+console.log(".env is", process.env)
 const connection = handleGetConnection();
 @Module({
   imports: [connection, EmpresaModule, ProductoModule, PedidoModule, ChatModule, MensajeModule, EstadoModule, CambioestadopedidoModule, UsuarioModule, ClienteModule, RolesModule, PlanModule, TiposervicioModule, ProductopedidoModule, GreenApiModule, ChatGptThreadsModule ],
