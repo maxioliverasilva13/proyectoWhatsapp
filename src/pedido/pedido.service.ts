@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { Pedido } from './entities/pedido.entity';
 import { Estado } from 'src/estado/entities/estado.entity';
 import { CreatePedidoDto } from './dto/create-pedido.dto';
+import { ProductopedidoService } from 'src/productopedido/productopedido.service';
 
 @Injectable()
 export class PedidoService {
@@ -13,11 +14,11 @@ export class PedidoService {
     private pedidoRepository: Repository<Pedido>,
     @InjectRepository(Estado)
     private estadoRepository: Repository<Estado>,
+    private readonly productoPedidoService : ProductopedidoService
   ) {}
 
   async create(createPedidoDto : CreatePedidoDto) {
-    try {
-
+    try {      
       const estado = await this.estadoRepository.findOne({where:{id:createPedidoDto.estadoId}})
 
       if(!estado) throw new BadRequestException("no existe un estado con ese id")
@@ -30,6 +31,18 @@ export class PedidoService {
       newPedido.tipo_servicio_id = createPedidoDto.tipo_servicioId,
 
       await this.pedidoRepository.save(newPedido);
+
+      // ahora creamoos los productos.servicio:
+      await Promise.all(
+        createPedidoDto.productos.map((prod) => 
+          this.productoPedidoService.create({
+            cantidad: prod.cantidad,
+            productoId: prod.producto,
+            pedidoId: newPedido.id,
+            detalle: prod.detalle,
+          })
+        )
+      );
 
       return {
         statusCode: 200,

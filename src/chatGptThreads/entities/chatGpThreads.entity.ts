@@ -5,7 +5,6 @@ export class ChatGptThreads extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-
     @Column({ type: 'bigint' })
     numberPhone: string; 
 
@@ -15,6 +14,7 @@ export class ChatGptThreads extends BaseEntity {
     @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
     last_update: Date;
 
-    @Column({ default: true })
+    @Column({ default: false })
     sesionStatus: boolean;
+
 }
