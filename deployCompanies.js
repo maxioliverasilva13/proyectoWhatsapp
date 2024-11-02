@@ -47,6 +47,8 @@ function createEnvFile(empresa) {
     DOCKER_BUILDKIT=1
     SUBDOMAIN=${empresa.db_name}
   `;
+
+  console.log("xd1", envContent)
   fs.writeFileSync(`.env.${empresa.db_name}`, envContent);
 }
 
