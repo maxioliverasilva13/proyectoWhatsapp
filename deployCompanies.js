@@ -73,7 +73,7 @@ async function deployCompany(empresa) {
   createEnvFile(empresa);
 
   const envFileContent = fs.readFileSync(`.env.${empresa.db_name}`, 'utf8');
-  console.log(`Contenido de ${envFilePath}:`, envFileContent);
+  console.log(`Contenido de .env.${empresa.db_name}:`, envFileContent);
 
   require('dotenv').config({ path: `.env.${empresa.db_name}` });
 
