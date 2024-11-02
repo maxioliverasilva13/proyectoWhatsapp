@@ -67,6 +67,9 @@ export class GreenApiService {
             case 6:
                 console.log("Mensaje saludo");
                 break;
+            case 7:
+                console.log("No pudimos procesar tu solicitud");
+                break;
             default:
                 console.log("Estado no reconocido:", openAIResponseFormatted.status);
                 break;
