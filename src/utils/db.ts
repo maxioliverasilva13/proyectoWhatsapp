@@ -21,11 +21,11 @@ export const ENTITIES_TO_MAP_GLOBAL_DB = [
   Tiposervicio,
   Role,
   Cliente,
+  Usuario,
 ];
 
 export const ENTITIES_TO_MAP_EMPRESA_DB = [
   Producto,
-  Usuario,
   Pedido,
   Cambioestadopedido,
   Chat,
