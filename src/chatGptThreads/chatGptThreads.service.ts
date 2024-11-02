@@ -21,9 +21,9 @@ export class ChatGptThreadsService {
             return {
                 ok: true,
                 threadId: lastThread?.threadId ? lastThread?.threadId : null,
+                statusRun: lastThread.sesionStatus,
                 statusCode: 200,
             };
-
 
         } catch (error) {
             return {
@@ -34,7 +34,6 @@ export class ChatGptThreadsService {
             };
         }
     }
-
 
     async createThreads(data) {
         try {
@@ -117,6 +116,4 @@ export class ChatGptThreadsService {
             });
         }
     }
-
-
 }

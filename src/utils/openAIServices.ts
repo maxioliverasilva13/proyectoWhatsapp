@@ -34,7 +34,7 @@ export const askAssistant = async (question, instrucciones) => {
     }
 };
 
-export async function createThread() {
+export async function createThread(products) {
     const response = await fetch(`https://api.openai.com/v1/threads`, {
         method: "POST",
         headers: {
@@ -42,18 +42,26 @@ export async function createThread() {
             "Content-Type": "application/json",
             "OpenAI-Beta": "assistants=v2"
         },
+        body: JSON.stringify({
+            messages: [
+                {role: "assistant",content: products}
+            ]
+        }),    
     });
 
     if (!response.ok) {
         const errorResponse = await response.json();
         throw new Error(`Error al crear el thread: ${JSON.stringify(errorResponse)}`);
-    }
+    }    
 
     const threadData = await response.json();
+    console.log("thread creado");
+    
     return threadData.id;
 }
 
-export async function sendMessageToThread(threadId, text) {
+
+export async function sendMessageToThread(threadId, text, code) {
     const headers = {
         "Authorization": `Bearer ${process.env.OPEN_AI_TOKEN}`,
         "Content-Type": "application/json",
@@ -127,10 +135,7 @@ export async function sendMessageToThread(threadId, text) {
 
     if (!assistantMessage) {
         throw new Error("No se encontró una respuesta del asistente.");
-    }
-
-    console.log(assistantMessage);
-    
+    }    
 
     return assistantMessage;
 }

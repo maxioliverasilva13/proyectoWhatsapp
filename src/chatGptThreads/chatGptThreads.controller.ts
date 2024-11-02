@@ -26,4 +26,5 @@ export class ChatGptThreadsController {
     handleUpdateThreadStatus(@Param("threadId") threadId : string) {
         return this.chatGptThreadsService.updateThreadStatus(threadId)
     }
+    
 }

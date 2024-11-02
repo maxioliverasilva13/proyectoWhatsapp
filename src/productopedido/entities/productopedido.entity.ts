@@ -1,7 +1,7 @@
 import { Pedido } from "src/pedido/entities/pedido.entity";
 import { Producto } from "src/producto/entities/producto.entity";
 import { BaseEntity } from "src/utils/base.entity";
-import { Entity, ManyToOne, PrimaryColumn } from "typeorm";
+import { Column, Entity, ManyToOne, PrimaryColumn } from "typeorm";
 
 @Entity('productopedido')
 export class ProductoPedido extends BaseEntity {
@@ -10,6 +10,12 @@ export class ProductoPedido extends BaseEntity {
   
     @PrimaryColumn()
     pedidoId: number;
+
+    @Column()
+    cantidad : number;
+
+    @Column({ nullable: true, default: null })
+    detalle: string | null;
 
     @ManyToOne(() => Producto, (prod) => prod.pedidosprod)
     producto: Producto;

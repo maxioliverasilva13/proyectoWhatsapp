@@ -18,8 +18,11 @@ export class ProductoController {
 
   @Get()
   findAll(@Req() request: Request) {
-    const empresaId = request['empresaId'];
-    console.log('producto is', empresaId);
     return this.productoService.findAll();
+  }
+
+  @Get("formatedText")
+  findAllInText(@Req() request: Request) {
+    return this.productoService.findAllInText();
   }
 }

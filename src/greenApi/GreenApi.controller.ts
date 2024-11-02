@@ -8,18 +8,24 @@ export class GrenApiController {
     ) { }
 
     @Post('/webhooks')
-    async handleWebhook(@Body() body: any) {        
-        const { typeWebhook, messageData, senderData } = body;
-        const { sender } = senderData;
-        const numberSender = sender.match(/^\d+/)[0];
-        if (typeWebhook === 'incomingMessageReceived') {
-            this.greenApi.handleMessage(messageData,numberSender)
-        } else if (typeWebhook === 'incomingAudioReceived') {
-            console.log("Audio entrante recibido:", messageData);
+    async handleWebhook(@Body() body: any) {
+        if (!body.stateInstance) {
+            const { typeWebhook, messageData, senderData } = body;
+            const { sender } = senderData;
+            const numberSender = sender.match(/^\d+/)[0];
+
+            if (typeWebhook === 'incomingMessageReceived') {
+                this.greenApi.handleMessagetText(messageData, numberSender)
+            } else if (typeWebhook === 'incomingAudioReceived') {
+                console.log("Audio entrante recibido:", messageData);
+            }
+            else {
+                console.log('Evento desconocido del webhook:', typeWebhook);
+            }
+        } else {
+            console.log('La instancia está iniciando.');
         }
-        else {
-            console.log('Evento desconocido del webhook:', typeWebhook);
-        }
+
     }
 }
 
