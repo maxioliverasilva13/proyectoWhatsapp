@@ -1,6 +1,7 @@
 import { Plan } from 'src/plan/entities/plan.entity';
+import { Tiposervicio } from 'src/tiposervicio/entities/tiposervicio.entity';
 import { BaseEntity } from 'src/utils/base.entity';
-import { Entity, Column, PrimaryGeneratedColumn, Unique, ManyToOne } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, Unique, ManyToOne, OneToMany } from 'typeorm';
 
 @Entity('empresa')
 @Unique(['db_name'])
@@ -37,6 +38,9 @@ export class Empresa extends BaseEntity {
 
   @ManyToOne(() => Plan, (plan) => plan.empresas)
   plan: Plan;
+
+  @ManyToOne(() => Tiposervicio, (cmbe) => cmbe.empresas)
+  tipoServicio: Tiposervicio;
 
   @Column({ nullable: true })
   greenApiInstance: string;
