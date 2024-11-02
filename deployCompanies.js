@@ -30,6 +30,7 @@ async function getCompanies() {
 }
 
 function createEnvFile(empresa) {
+  console.log("empresa", empresa);
   const envContent = `
     POSTGRES_USER=${empresa.db_name}_user
     POSTGRES_PASSWORD=${empresa.db_name}_pass
