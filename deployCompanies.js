@@ -19,7 +19,6 @@ async function getCompanies() {
     await client.connect();
     const res = await client.query('SELECT * FROM empresa');
     await client.end();
-    console.log("empresas", res?.rows)
     return res.rows;
   } catch (error) {
     console.log('error', error);
@@ -30,7 +29,6 @@ async function getCompanies() {
 }
 
 function createEnvFile(empresa) {
-  console.log("empresa", empresa);
   const envContent = `
     POSTGRES_USER=${empresa.db_name}_user
     POSTGRES_PASSWORD=${empresa.db_name}_pass
@@ -49,7 +47,6 @@ function createEnvFile(empresa) {
     SUBDOMAIN=${empresa.db_name}
   `;
 
-  console.log("xd1", envContent)
   fs.writeFileSync(`.env.${empresa.db_name}`, envContent);
 }
 
@@ -74,6 +71,9 @@ function createEnvFileApp() {
 async function deployCompany(empresa) {
   const dropletIp = process.env.DROPLET_IP;
   createEnvFile(empresa);
+
+  const envFileContent = fs.readFileSync(`.env.${empresa.db_name}`, 'utf8');
+  console.log(`Contenido de ${envFilePath}:`, envFileContent);
 
   require('dotenv').config({ path: `.env.${empresa.db_name}` });
 
