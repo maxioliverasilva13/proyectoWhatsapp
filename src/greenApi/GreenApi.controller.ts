@@ -1,5 +1,6 @@
-import { Controller, Post, Body, Get } from '@nestjs/common';
+import { Controller, Post, Body, Get, Req } from '@nestjs/common';
 import { GreenApiService } from './GreenApi.service';
+import { Request } from 'express';
 
 @Controller()
 export class GrenApiController {
@@ -8,13 +9,15 @@ export class GrenApiController {
     ) { }
 
     @Post('/webhooks')
-    async handleWebhook(@Body() body: any) {
+    async handleWebhook( @Req() request: Request, @Body() body: any) {
         if (!body.stateInstance) {
+            const empresaType = request["empresaType"]
             const { typeWebhook, messageData, senderData } = body;
             const { sender } = senderData;
             const numberSender = sender.match(/^\d+/)[0];
 
             if (typeWebhook === 'incomingMessageReceived') {
+                // fijarse cual empresa type es
                 this.greenApi.handleMessagetText(messageData, numberSender)
             } else if (typeWebhook === 'incomingAudioReceived') {
                 console.log("Audio entrante recibido:", messageData);

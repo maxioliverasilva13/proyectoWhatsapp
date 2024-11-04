@@ -21,8 +21,11 @@ import { TiposervicioModule } from './tiposervicio/tiposervicio.module';
 import { ProductopedidoModule } from './productopedido/productopedido.module';
 import { GreenApiModule } from './greenApi/GreenApi.module';
 import { ChatGptThreadsModule } from './chatGptThreads/chatGptThreads.module';
+import { GrenApiController } from './greenApi/GreenApi.controller';
 
 ConfigModule.forRoot();
+
+console.log(process.env.GREEN_API_TOKEN);
 
 const connection = handleGetConnection();
 @Module({
@@ -35,6 +38,6 @@ export class AppModule {
   // Se aplica el midelware para que los controladores de la base general , funcinenen solo con el subdominio `app`
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(AppWithoutSubdomainMiddleware).forRoutes(EmpresaController);
-    consumer.apply(SubdomainMiddleware).forRoutes(ProductoController);
+    consumer.apply(SubdomainMiddleware).forRoutes(ProductoController, GrenApiController);
   }
 }
