@@ -23,7 +23,7 @@ export class GreenApiService {
         }
     }
 
-    async handleMessagetText(messageData, senderData) {
+    async handleMessagetText(messageData, senderData, empresaType) {
         const { textMessageData: { textMessage } } = messageData;
         const { threadId, statusRun } = await this.chatGptThreadsService.getLastThreads(senderData);
         const { clienteId } = await this.clienteService.createOrReturnExistClient({ empresaId: 1, nombre: "rodri", telefono: senderData })
@@ -40,13 +40,25 @@ export class GreenApiService {
             });
         }
 
-        const openAIResponse = await sendMessageToThread(currentThreadId, textMessage, statusRun);
+        const openAIResponse = await sendMessageToThread(currentThreadId, textMessage, empresaType);
 
         const openAIResponseFormatted = JSON.parse(openAIResponse.content[0].text.value);
 
+        if(empresaType === "DELIVERY") {
+            this.hanldeCasesForDelivery(currentThreadId,clienteId, openAIResponseFormatted)
+        } else if(empresaType === "RESERVA") {
+            this.hanldeCasesForReserva()
+        }
+
         console.log(openAIResponseFormatted);
         
+        // actualizamos el last_updated del thread  
+        if(openAIResponseFormatted.status != 4) {
+            await this.chatGptThreadsService.updateThreadStatus(threadId)
+        }
+    }
 
+    async hanldeCasesForDelivery (currentThreadId,clienteId,openAIResponseFormatted) {
         switch (openAIResponseFormatted.status) {
             case 1:
                 console.log("Falta nombre del producto");
@@ -69,11 +81,13 @@ export class GreenApiService {
                 console.log("Estado no reconocido:", openAIResponseFormatted.status);
                 break;
         }
-        // actualizamos el last_updated del thread  
-        if(openAIResponseFormatted.status != 4) {
-            await this.chatGptThreadsService.updateThreadStatus(threadId)
-        }
     }
+
+    async hanldeCasesForReserva () {
+        console.log("jajajaja");
+        
+    }
+
 
     async hacerPedido(currentThreadId, clienteId, openAIResponse) {
         await this.chatGptThreadsService.deleteThread(currentThreadId)

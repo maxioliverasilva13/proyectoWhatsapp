@@ -14,11 +14,11 @@ export class GrenApiController {
             const empresaType = request["empresaType"]
             const { typeWebhook, messageData, senderData } = body;
             const { sender } = senderData;
+            
             const numberSender = sender.match(/^\d+/)[0];
 
             if (typeWebhook === 'incomingMessageReceived') {
-                // fijarse cual empresa type es
-                this.greenApi.handleMessagetText(messageData, numberSender)
+                await this.greenApi.handleMessagetText(messageData, numberSender, empresaType )
             } else if (typeWebhook === 'incomingAudioReceived') {
                 console.log("Audio entrante recibido:", messageData);
             }

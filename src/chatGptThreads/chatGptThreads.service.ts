@@ -63,6 +63,7 @@ export class ChatGptThreadsService {
         }
     }
 
+    
     async updateThreadStatus(threadId: string) {
         try {
             const thread = await this.threadsRepository.findOne({ where: { threadId } });

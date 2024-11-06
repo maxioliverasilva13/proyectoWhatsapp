@@ -13,7 +13,7 @@ export class SubdomainMiddleware implements NestMiddleware {
 
   async use(req: Request, res: Response, next: NextFunction) {
     const host = req.headers.host;
-    const subdomain = host.split('.')[0];
+    const subdomain = process.env.SUBDOMAIN || host.split('.')[0];
 
     if (subdomain === 'app') {
       throw new BadRequestException('Subdominio invalido.');
@@ -23,14 +23,16 @@ export class SubdomainMiddleware implements NestMiddleware {
 
     const empresaExists = await empresaRepository.findOne({
       where: { db_name: subdomain },
+      relations: ['tipoServicioId']
     });
+
     if (!empresaExists) {
       throw new BadRequestException('Subdominio invalido');
     }
     req['subdomain'] = subdomain;
     req['empresaId'] = empresaExists?.id;
-    req['empresaType'] = empresaExists.tipoServicio
-
+    req['empresaType'] = empresaExists.tipoServicioId.tipo
+    
     next();
   }
 }

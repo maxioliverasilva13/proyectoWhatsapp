@@ -10,7 +10,7 @@ export class Tiposervicio extends BaseEntity {
     @Column()
     nombre: string;
 
-    @OneToMany(() => Empresa, (cmbe) => cmbe.tipoServicio)
+    @OneToMany(() => Empresa, (cmbe) => cmbe.tipoServicioId)
     empresas: Empresa[];
 
     @Column({
