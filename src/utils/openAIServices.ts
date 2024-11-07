@@ -79,7 +79,6 @@ export async function sendMessageToThread(threadId, text, tipoEmpresa) {
         })
     });
 
-
     const response = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs`, {
         method: "POST",
         headers,

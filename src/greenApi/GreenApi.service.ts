@@ -23,8 +23,10 @@ export class GreenApiService {
         }
     }
 
-    async handleMessagetText(messageData, senderData, empresaType) {
-        const { textMessageData: { textMessage } } = messageData;
+    
+    async handleMessagetText(textMessage, senderData, empresaType) {
+        console.log(textMessage);
+        
         const { threadId, statusRun } = await this.chatGptThreadsService.getLastThreads(senderData);
         const { clienteId } = await this.clienteService.createOrReturnExistClient({ empresaId: 1, nombre: "rodri", telefono: senderData })
 
@@ -32,7 +34,7 @@ export class GreenApiService {
         if (!threadId) {
             // cargo los productos
             const textProducts = await this.productoService.findAllInText()
-            
+
             currentThreadId = await createThread(textProducts);
             await this.chatGptThreadsService.createThreads({
                 numberPhone: senderData,
@@ -41,24 +43,24 @@ export class GreenApiService {
         }
 
         const openAIResponse = await sendMessageToThread(currentThreadId, textMessage, empresaType);
-
+        
         const openAIResponseFormatted = JSON.parse(openAIResponse.content[0].text.value);
 
-        if(empresaType === "DELIVERY") {
-            this.hanldeCasesForDelivery(currentThreadId,clienteId, openAIResponseFormatted)
-        } else if(empresaType === "RESERVA") {
-            this.hanldeCasesForReserva()
+        if (empresaType === "DELIVERY") {
+            this.hanldeCasesForDelivery(currentThreadId, clienteId, openAIResponseFormatted)
+        } else if (empresaType === "RESERVA") {
+            this.hanldeCasesForReserva(openAIResponseFormatted, currentThreadId, clienteId)
         }
 
         console.log(openAIResponseFormatted);
-        
+
         // actualizamos el last_updated del thread  
-        if(openAIResponseFormatted.status != 4) {
+        if (openAIResponseFormatted.status != 4) {
             await this.chatGptThreadsService.updateThreadStatus(threadId)
         }
     }
 
-    async hanldeCasesForDelivery (currentThreadId,clienteId,openAIResponseFormatted) {
+    async hanldeCasesForDelivery(currentThreadId, clienteId, openAIResponseFormatted) {
         switch (openAIResponseFormatted.status) {
             case 1:
                 console.log("Falta nombre del producto");
@@ -72,7 +74,7 @@ export class GreenApiService {
             case 4:
                 console.log("Crear pedido");
                 // tarea: responder al user
-                await this.hacerPedido(currentThreadId, clienteId, openAIResponseFormatted)
+                await this.hacerPedido(currentThreadId, clienteId, openAIResponseFormatted, undefined)
                 break;
             case 5:
                 console.log("Listar productos");
@@ -81,26 +83,54 @@ export class GreenApiService {
                 console.log("Estado no reconocido:", openAIResponseFormatted.status);
                 break;
         }
+
     }
 
-    async hanldeCasesForReserva () {
-        console.log("jajajaja");
-        
+    async hanldeCasesForReserva(openAiRes, currentThreadId, clienteId) {
+        switch (openAiRes.status) {
+            case 1:
+                console.log("espesificar fecha");
+                break;
+            case 2:
+                console.log("falta el nombre del producto");
+                break;
+            case 3:
+                console.log("mensaje fuera de contexto");
+                break;
+            case 4:
+                console.log("Revisar agenda");
+                const res = await this.pedidoService.consultarHorarioxd(openAiRes.hora, openAiRes.producto)
+                if(res.isAviable === true) {
+                    console.log("crear");
+                    await this.hacerPedido(currentThreadId, clienteId, openAiRes,openAiRes.hora)
+                } else {   1
+                    console.log("horario no disponible");
+                }
+
+                break;
+            case 5:
+                console.log("responder saludo");
+                break;
+            case 6:
+                console.log("listar horarios disponibles");
+                break;
+            case 7:
+                console.log("producto no existe");
+                break;
+        }
     }
 
-
-    async hacerPedido(currentThreadId, clienteId, openAIResponse) {
-        await this.chatGptThreadsService.deleteThread(currentThreadId)
-        await closeThread(currentThreadId);
-
+    async hacerPedido(currentThreadId, clienteId, openAIResponse, fecha) {
         await this.pedidoService.create({
             clienteId: clienteId,
             confirmado: false,
             estadoId: 1,
             tipo_servicioId: 1,
-            productos: openAIResponse.productos
+            productos: openAIResponse.productos,
+            fecha
         })
-
+        await closeThread(currentThreadId);
+        await this.chatGptThreadsService.deleteThread(currentThreadId)
     }
 
 }

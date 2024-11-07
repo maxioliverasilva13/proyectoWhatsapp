@@ -78,6 +78,25 @@ services:
       app-network:
         aliases:
           - works-db
+  demonio:
+    build:
+      context: .
+      dockerfile: Dockerfile.demonio
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: [ "python", "-u", "/app/demonio.py" ]
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_GLOBAL_DB_HOST: ${POSTGRES_GLOBAL_DB_HOST}
+      POSTGRES_GLOBAL_DB_PORT: ${POSTGRES_GLOBAL_DB_PORT}
+      SUBDOMAIN: works-db
+    depends_on:
+      - works-db
+    networks:
+      - app-network
   nginx-proxy:
     image: jwilder/nginx-proxy
     ports:
