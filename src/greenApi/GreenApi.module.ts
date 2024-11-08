@@ -6,9 +6,10 @@ import { ChatGptThreadsModule } from 'src/chatGptThreads/chatGptThreads.module';
 import { PedidoModule } from 'src/pedido/pedido.module';
 import { ClienteModule } from 'src/cliente/cliente.module';
 import { ProductoModule } from 'src/producto/producto.module';
+import { NumeroConfianzaModule } from 'src/numerosConfianza/numeroConfianza.module';
 
 @Module({
-  imports:[ ChatGptThreadsModule, PedidoModule, ClienteModule, ProductoModule],
+  imports:[ ChatGptThreadsModule, PedidoModule, ClienteModule, ProductoModule, NumeroConfianzaModule],
   controllers: [GrenApiController],
   providers: [GreenApiService , TenantConnectionService],
   exports: [GreenApiService],

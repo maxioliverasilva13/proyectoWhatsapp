@@ -13,7 +13,6 @@ export class GreenApiService {
         private readonly pedidoService: PedidoService,
         private readonly clienteService: ClienteService,
         private readonly productoService: ProductoService
-
     ) { }
 
     async onModuleInit() {
@@ -23,13 +22,10 @@ export class GreenApiService {
         }
     }
 
-    
-    async handleMessagetText(textMessage, senderData, empresaType) {
-        console.log(textMessage);
-        
+    async handleMessagetText(textMessage, senderData, empresaType) {        
         const { threadId, statusRun } = await this.chatGptThreadsService.getLastThreads(senderData);
         const { clienteId } = await this.clienteService.createOrReturnExistClient({ empresaId: 1, nombre: "rodri", telefono: senderData })
-
+        
         let currentThreadId = threadId;
         if (!threadId) {
             // cargo los productos

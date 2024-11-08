@@ -13,6 +13,7 @@ import { Estado } from "src/estado/entities/estado.entity";
 import { Mensaje } from "src/mensaje/entities/mensaje.entity";
 import { ProductoPedido } from "src/productopedido/entities/productopedido.entity";
 import { ChatGptThreads } from "src/chatGptThreads/entities/chatGpThreads.entity";
+import { NumeroConfianza } from "src/numerosConfianza/entities/numeroConfianza.entity";
 
 
 export const ENTITIES_TO_MAP_GLOBAL_DB = [
@@ -22,6 +23,7 @@ export const ENTITIES_TO_MAP_GLOBAL_DB = [
   Role,
   Cliente,
   Usuario,
+  NumeroConfianza
 ];
 
 export const ENTITIES_TO_MAP_EMPRESA_DB = [

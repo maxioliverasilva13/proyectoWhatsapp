@@ -12,9 +12,11 @@ DATABASE_CONFIG = {
     'port': '5432'
 }
 
-def procesar_cambios():
+def borrar_threads_viejos():
     try:
+        # me conecto a la bd
         conn = psycopg2.connect(**DATABASE_CONFIG)
+        # para poder hacer queys
         cursor = conn.cursor(cursor_factory=RealDictCursor)
         
         cursor.execute('DELETE FROM public."chatGptThreads" WHERE last_update <= NOW() - INTERVAL \'1 minute\';')
@@ -26,5 +28,5 @@ def procesar_cambios():
 
 if __name__ == "__main__":
     while True:
-        time.sleep(60) 
-        procesar_cambios()
+        time.sleep(60*5) 
+        borrar_threads_viejos()
