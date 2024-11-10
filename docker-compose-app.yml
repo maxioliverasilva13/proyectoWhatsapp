@@ -16,6 +16,7 @@ services:
       POSTGRES_GLOBAL_DB_HOST: ${POSTGRES_GLOBAL_DB_HOST}
       POSTGRES_DB_GLOBAL: ${POSTGRES_DB_GLOBAL}
       POSTGRES_GLOBAL_DB_PORT: ${POSTGRES_GLOBAL_DB_PORT}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
     labels:
       - traefik.enable=true
       - traefik.http.routers.${SUBDOMAIN}-router.rule=Host(`${VIRTUAL_HOST}`)

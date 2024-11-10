@@ -60,8 +60,10 @@ export async function createThread(products) {
     return threadData.id;
 }
 
+export async function sendMessageToThread(threadId, text, tipoEmpresa) {
 
-export async function sendMessageToThread(threadId, text, code) {
+    console.log(tipoEmpresa);
+    
     const headers = {
         "Authorization": `Bearer ${process.env.OPEN_AI_TOKEN}`,
         "Content-Type": "application/json",
@@ -81,7 +83,7 @@ export async function sendMessageToThread(threadId, text, code) {
         method: "POST",
         headers,
         body: JSON.stringify({
-            assistant_id: "asst_SInibWr2VnppUKQCz3huhIFE",
+            assistant_id: tipoEmpresa === "DELIVERY" ? process.env.DELIVERY_ASSISTANT : process.env.RESERVA_ASSISTANT,
         })
     });
 

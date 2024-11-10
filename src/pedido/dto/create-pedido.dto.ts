@@ -4,4 +4,5 @@ export class CreatePedidoDto {
     clienteId:number;
     estadoId:number;
     productos: any[];
+    fecha? : Date
 }

@@ -1,3 +1,4 @@
+import { NumeroConfianza } from 'src/numerosConfianza/entities/numeroConfianza.entity';
 import { Plan } from 'src/plan/entities/plan.entity';
 import { Tiposervicio } from 'src/tiposervicio/entities/tiposervicio.entity';
 import { BaseEntity } from 'src/utils/base.entity';
@@ -40,7 +41,10 @@ export class Empresa extends BaseEntity {
   plan: Plan;
 
   @ManyToOne(() => Tiposervicio, (cmbe) => cmbe.empresas)
-  tipoServicio: Tiposervicio;
+  tipoServicioId: Tiposervicio;
+
+  @OneToMany(() => NumeroConfianza, (numeroConfianza) => numeroConfianza.empresa)
+  numeroConfianza: NumeroConfianza[];
 
   @Column({ nullable: true })
   greenApiInstance: string;

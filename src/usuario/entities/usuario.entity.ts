@@ -1,8 +1,9 @@
 import { Cambioestadopedido } from "src/cambioestadopedido/entities/cambioestadopedido.entity";
 import { BaseEntity } from "src/utils/base.entity";
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn, Unique } from "typeorm";
 
 @Entity('usuario')
+@Unique(['correo'])
 export class Usuario extends BaseEntity {
 
     @PrimaryGeneratedColumn()
@@ -20,12 +21,12 @@ export class Usuario extends BaseEntity {
     @Column()
     password: string;
 
-    @Column()
+    @Column({ nullable: true })
     id_empresa: number;
 
     @Column()
     id_rol: number;
     
-    @Column()
+    @Column({ nullable: true })
     activo: boolean;
 }
