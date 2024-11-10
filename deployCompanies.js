@@ -43,6 +43,7 @@ function createEnvFile(empresa) {
     ID_INSTANCE=${empresa?.greenApiInstance}
     API_TOKEN_INSTANCE=${empresa?.greenApiInstanceToken}
     OPEN_AI_TOKEN=${process.env.OPEN_AI_TOKEN}
+    JWT_SECRET_KEY=${process.env.JWT_SECRET_KEY}
     ENV=qa
     DOCKER_BUILDKIT=1
     SUBDOMAIN=${empresa.db_name}
@@ -61,6 +62,7 @@ function createEnvFileApp() {
       POSTGRES_DB_GLOBAL=${process.env.POSTGRES_DB_GLOBAL}
       POSTGRES_GLOBAL_DB_HOST=${process.env.POSTGRES_GLOBAL_DB_HOST}
       POSTGRES_GLOBAL_DB_PORT=${process.env.POSTGRES_GLOBAL_DB_PORT}
+      JWT_SECRET_KEY=${process.env.JWT_SECRET_KEY}
       ENV=qa
       DOCKER_BUILDKIT=1
       SUBDOMAIN=app

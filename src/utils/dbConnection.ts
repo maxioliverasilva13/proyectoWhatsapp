@@ -1,6 +1,9 @@
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ENTITIES_TO_MAP_EMPRESA_DB, ENTITIES_TO_MAP_GLOBAL_DB } from './db';
+import { ENTITIES_TO_MAP_EMPRESA_DB, ENTITIES_TO_MAP_GLOBAL_DB, SEEDERS_TO_MAP_EMPRESA, SEEDERS_TO_MAP_GLOBAL_DB } from './db';
 import { DataSource } from 'typeorm';
+import { runSeeders } from 'typeorm-extension';
+
+
 export const handleGetConnectionValuesToCreateEmpresaDb = () => {
   return {
     host: 'db-global',
@@ -14,7 +17,7 @@ export const handleGetConnectionValuesToCreateEmpresaDb = () => {
 export const handleGetConnection = async () => {
   const env = process.env.SUBDOMAIN;
   const host = env === 'app' ? `${process.env.POSTGRES_GLOBAL_DB_HOST}` : `${env}-db`;
-  return TypeOrmModule.forRoot({
+  const params = {
     type: 'postgres',
     host: host,
     port: env === 'app' ? Number(process.env.POSTGRES_GLOBAL_DB_PORT || 5432) : 5432,
@@ -29,7 +32,18 @@ export const handleGetConnection = async () => {
         rejectUnauthorized: false,
       },
     }: {})
+  } as any;
+  
+  const empresaConnection = new DataSource(params);
+  if (!empresaConnection.isInitialized && env !== 'app') {
+    await empresaConnection.initialize();
+    runSeeders(empresaConnection, {
+      seeds: [SEEDERS_TO_MAP_EMPRESA],
   });
+    await runSeeders(empresaConnection);
+  }
+
+  return TypeOrmModule.forRoot(params);
 };
 
 export const handleGetGlobalConnection = async () => {
@@ -49,9 +63,12 @@ export const handleGetGlobalConnection = async () => {
         rejectUnauthorized: false,
       },
     }: {})
-  });
-  if (!globalConnection.isInitialized) {
+  } as any);
+  if (!globalConnection.isInitialized && env === 'app') {
     await globalConnection.initialize();
+    await runSeeders(globalConnection, {
+      seeds: [SEEDERS_TO_MAP_GLOBAL_DB],
+  });
   }
   return globalConnection;
 };

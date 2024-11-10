@@ -1,4 +1,4 @@
-export enum TipoRol {
+export enum TypeRol {
   ADMIN_EMPRESA = 'ADMIN_EMPRESA',
   SUPER_ADMIN = 'SUPER_ADMIN',
 }
