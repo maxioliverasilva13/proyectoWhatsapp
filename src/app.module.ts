@@ -24,6 +24,7 @@ import { ChatGptThreadsModule } from './chatGptThreads/chatGptThreads.module';
 import { GrenApiController } from './greenApi/GreenApi.controller';
 import { NumeroConfianzaModule } from './numerosConfianza/numeroConfianza.module';
 import { NumeroConfianzaController } from './numerosConfianza/numeroConfianza.controller';
+import { ScheduleModule } from '@nestjs/schedule';
 
 ConfigModule.forRoot();
 
@@ -31,7 +32,7 @@ console.log(process.env.GREEN_API_TOKEN);
 
 const connection = handleGetConnection();
 @Module({
-  imports: [connection, EmpresaModule, ProductoModule, PedidoModule, ChatModule, MensajeModule, EstadoModule, CambioestadopedidoModule, UsuarioModule, ClienteModule, RolesModule, PlanModule, TiposervicioModule, ProductopedidoModule, GreenApiModule, ChatGptThreadsModule,NumeroConfianzaModule ],
+  imports: [connection, ScheduleModule.forRoot(), EmpresaModule, ProductoModule, PedidoModule, ChatModule, MensajeModule, EstadoModule, CambioestadopedidoModule, UsuarioModule, ClienteModule, RolesModule, PlanModule, TiposervicioModule, ProductopedidoModule, GreenApiModule, ChatGptThreadsModule,NumeroConfianzaModule ],
   controllers: [AppController],
   providers: [AppService],
 })
