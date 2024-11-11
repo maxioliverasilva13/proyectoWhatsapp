@@ -44,7 +44,7 @@ export async function createThread(products) {
         },
         body: JSON.stringify({
             messages: [
-                {role: "assistant",content: products}
+                {role: "user",content: `LISTA-PRODUCTOS: /n ${products || 'No hay productos'}`}
             ]
         }),    
     });

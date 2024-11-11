@@ -11,7 +11,7 @@ export class Estado extends BaseEntity {
     @Column()
     nombre: string;
 
-    @Column()
+    @Column({ default: true })
     es_defecto: boolean;
 
     @OneToMany(() => Cambioestadopedido, (cmbe) => cmbe.estado)

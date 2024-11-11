@@ -37,4 +37,9 @@ export const ENTITIES_TO_MAP_EMPRESA_DB = [
   ChatGptThreads
 ];
 
+export const SEEDERS_TO_MAP_GLOBAL_DB = 'src/database/seeders/app/*{.ts,.js}'
+
+export const SEEDERS_TO_MAP_EMPRESA = 'src/database/seeders/empresa/*{.ts,.js}'
+
+
 export const isDev = process.env.ENV == "dev";

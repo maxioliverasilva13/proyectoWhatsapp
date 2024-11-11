@@ -19,6 +19,12 @@ export class Pedido extends BaseEntity {
     @ManyToOne(() => Estado, (estado) => estado.pedidos)
     estado: Estado;
 
+    @Column({ nullable: true })
+    fecha_calendario: Date;
+
+    @Column({ nullable: true })
+    detalle_pedido: Date;
+
     @Column()
     tipo_servicio_id: number;
 

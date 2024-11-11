@@ -1,4 +1,4 @@
-import { MiddlewareConsumer, Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config'; // <--- Importa ConfigModule
 import { handleGetConnection } from './utils/dbConnection';
 import { EmpresaController } from './empresa/empresa.controller';
@@ -25,22 +25,40 @@ import { GrenApiController } from './greenApi/GreenApi.controller';
 import { NumeroConfianzaModule } from './numerosConfianza/numeroConfianza.module';
 import { NumeroConfianzaController } from './numerosConfianza/numeroConfianza.controller';
 import { ScheduleModule } from '@nestjs/schedule';
+import { AuthModule } from './auth/auth.module';
+import { JwtMiddleware } from './middleware/jwt.middleware';
+import { AuthController } from './auth/auth.controller';
 
 ConfigModule.forRoot();
 
-console.log(process.env.GREEN_API_TOKEN);
-
 const connection = handleGetConnection();
 @Module({
-  imports: [connection, ScheduleModule.forRoot(), EmpresaModule, ProductoModule, PedidoModule, ChatModule, MensajeModule, EstadoModule, CambioestadopedidoModule, UsuarioModule, ClienteModule, RolesModule, PlanModule, TiposervicioModule, ProductopedidoModule, GreenApiModule, ChatGptThreadsModule,NumeroConfianzaModule ],
+  imports: [connection, ScheduleModule.forRoot(), EmpresaModule, ProductoModule, PedidoModule, ChatModule, MensajeModule, EstadoModule, CambioestadopedidoModule, UsuarioModule, ClienteModule, RolesModule, PlanModule, TiposervicioModule, ProductopedidoModule, GreenApiModule, ChatGptThreadsModule,NumeroConfianzaModule, AuthModule ],
   controllers: [AppController],
   providers: [AppService],
 })
 
 export class AppModule {
-  // Se aplica el midelware para que los controladores de la base general , funcinenen solo con el subdominio `app`
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(AppWithoutSubdomainMiddleware).forRoutes(EmpresaController);
-    consumer.apply(SubdomainMiddleware).forRoutes(ProductoController, GrenApiController, NumeroConfianzaController);
+    // APP ROUTES
+    consumer.apply(AppWithoutSubdomainMiddleware)
+    .exclude(
+      { path: '/auth/me', method: RequestMethod.ALL }
+    )
+    .forRoutes(EmpresaController, AuthController);
+
+    // EMPRESA ROUTES
+    consumer.apply(SubdomainMiddleware)
+    .forRoutes(ProductoController, GrenApiController, NumeroConfianzaController, { path: "/auth/me", method: RequestMethod.ALL });
+
+    //JWT MIDDLEWARE
+    consumer
+    .apply(JwtMiddleware)
+    .exclude(
+      { path: '/auth/login', method: RequestMethod.ALL },
+      { path: '/auth/register', method: RequestMethod.ALL },
+      { path: '/webhooks', method: RequestMethod.ALL },
+    )
+    .forRoutes('*');
   }
 }

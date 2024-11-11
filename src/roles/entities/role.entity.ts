@@ -1,4 +1,4 @@
-import { TipoRol } from "src/enums/rol";
+import { TypeRol } from "src/enums/rol";
 import { BaseEntity } from "src/utils/base.entity";
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
@@ -13,7 +13,7 @@ export class Role extends BaseEntity {
 
     @Column({
       type: 'enum',
-      enum: TipoRol,
+      enum: TypeRol,
     })
-    tipo: TipoRol;
+    tipo: TypeRol;
 }

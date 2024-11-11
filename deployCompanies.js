@@ -19,7 +19,6 @@ async function getCompanies() {
     await client.connect();
     const res = await client.query('SELECT * FROM empresa');
     await client.end();
-    console.log("empresas", res?.rows)
     return res.rows;
   } catch (error) {
     console.log('error', error);
@@ -43,10 +42,12 @@ function createEnvFile(empresa) {
     ID_INSTANCE=${empresa?.greenApiInstance}
     API_TOKEN_INSTANCE=${empresa?.greenApiInstanceToken}
     OPEN_AI_TOKEN=${process.env.OPEN_AI_TOKEN}
+    JWT_SECRET_KEY=${process.env.JWT_SECRET_KEY}
     ENV=qa
     DOCKER_BUILDKIT=1
     SUBDOMAIN=${empresa.db_name}
   `;
+
   fs.writeFileSync(`.env.${empresa.db_name}`, envContent);
 }
 
@@ -61,6 +62,7 @@ function createEnvFileApp() {
       POSTGRES_DB_GLOBAL=${process.env.POSTGRES_DB_GLOBAL}
       POSTGRES_GLOBAL_DB_HOST=${process.env.POSTGRES_GLOBAL_DB_HOST}
       POSTGRES_GLOBAL_DB_PORT=${process.env.POSTGRES_GLOBAL_DB_PORT}
+      JWT_SECRET_KEY=${process.env.JWT_SECRET_KEY}
       ENV=qa
       DOCKER_BUILDKIT=1
       SUBDOMAIN=app
@@ -72,19 +74,27 @@ async function deployCompany(empresa) {
   const dropletIp = process.env.DROPLET_IP;
   createEnvFile(empresa);
 
+  const envFileContent = fs.readFileSync(`.env.${empresa.db_name}`, 'utf8');
+  console.log(`Contenido de .env.${empresa.db_name}:`, envFileContent);
+
   require('dotenv').config({ path: `.env.${empresa.db_name}` });
 
   await execSync(
     `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'mkdir -p /projects/${empresa?.db_name}'`,
   );
-  await execSync(
-    `scp -i private_key -o StrictHostKeyChecking=no -r .env.${empresa.db_name} root@${dropletIp}:/projects/${empresa?.db_name}/.env`,
-  );
+  // remove old .env
+
   await execSync(
     `rsync -avz -e "ssh -i private_key -o StrictHostKeyChecking=no" --exclude='node_modules' ./ root@${dropletIp}:/projects/${empresa?.db_name}/`,
   );
   await execSync(
-    `ssh -i private_key root@${dropletIp} 'cd /projects/${empresa?.db_name} && docker-compose -f docker-compose.yml up -d --build'`,
+    `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'rm -f /projects/${empresa?.db_name}/.env'`
+  );
+  await execSync(
+    `scp -i private_key -o StrictHostKeyChecking=no -r .env.${empresa.db_name} root@${dropletIp}:/projects/${empresa?.db_name}/.env`,
+  );
+  await execSync(
+    `ssh -i private_key root@${dropletIp} 'cd /projects/${empresa?.db_name} && docker-compose -f docker-compose.yml up -d --build --remove-orphans'`,
   );
 }
 
@@ -95,6 +105,10 @@ async function deployApp() {
 
   await execSync(
     `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'mkdir -p /projects/app'`,
+  );
+  // remove old .env
+  await execSync(
+    `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'rm -f /projects/app/.env'`
   );
   await execSync(
     `scp -i private_key -o StrictHostKeyChecking=no -r .env.app root@${dropletIp}:/projects/app/.env`,

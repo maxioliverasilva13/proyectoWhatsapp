@@ -48,8 +48,6 @@ export class GreenApiService {
             this.hanldeCasesForReserva(openAIResponseFormatted, currentThreadId, clienteId)
         }
 
-        console.log(openAIResponseFormatted);
-
         // actualizamos el last_updated del thread  
         if (openAIResponseFormatted.status != 4) {
             await this.chatGptThreadsService.updateThreadStatus(threadId)
@@ -74,6 +72,12 @@ export class GreenApiService {
                 break;
             case 5:
                 console.log("Listar productos");
+                break;
+            case 6:
+                console.log("Mensaje saludo");
+                break;
+            case 7:
+                console.log("No pudimos procesar tu solicitud");
                 break;
             default:
                 console.log("Estado no reconocido:", openAIResponseFormatted.status);
