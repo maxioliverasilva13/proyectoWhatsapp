@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import { EmpresaService } from './empresa.service';
 import { CreateEmpresaDto } from './dto/create-empresa.dto';
@@ -14,6 +15,7 @@ import { UpdateEmpresaDto } from './dto/update-empresa.dto';
 import { Roles } from 'src/guards/roles.decorator';
 import { RolesGuard } from 'src/guards/role.guard';
 import { TypeRol } from 'src/enums/rol';
+import { Request } from 'express';
 
 @Controller('empresa')
 export class EmpresaController {
@@ -50,5 +52,13 @@ export class EmpresaController {
   @UseGuards(RolesGuard)
   remove(@Param('id') id: string) {
     return this.empresaService.remove(+id);
+  }
+
+  @Post('cierreProvisorio')
+  // @Roles(TypeRol.SUPER_ADMIN)
+  // @UseGuards(RolesGuard)
+  cierre_provisorio(@Body() status: boolean, @Req() req : Request) {
+    const empresaId = req["empresaId"]
+    return this.empresaService.HandleCierreProvisorio(status,empresaId);
   }
 }

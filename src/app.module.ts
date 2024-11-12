@@ -33,7 +33,7 @@ ConfigModule.forRoot();
 
 const connection = handleGetConnection();
 @Module({
-  imports: [connection, ScheduleModule.forRoot(), EmpresaModule, ProductoModule, PedidoModule, ChatModule, MensajeModule, EstadoModule, CambioestadopedidoModule, UsuarioModule, ClienteModule, RolesModule, PlanModule, TiposervicioModule, ProductopedidoModule, GreenApiModule, ChatGptThreadsModule,NumeroConfianzaModule, AuthModule ],
+  imports: [connection,ScheduleModule.forRoot(), EmpresaModule, ProductoModule, PedidoModule, ChatModule, MensajeModule, EstadoModule, CambioestadopedidoModule, UsuarioModule, ClienteModule, RolesModule, PlanModule, TiposervicioModule, ProductopedidoModule, GreenApiModule, ChatGptThreadsModule,NumeroConfianzaModule, AuthModule ],
   controllers: [AppController],
   providers: [AppService],
 })

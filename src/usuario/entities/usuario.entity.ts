@@ -1,9 +1,9 @@
 import { Cambioestadopedido } from "src/cambioestadopedido/entities/cambioestadopedido.entity";
 import { BaseEntity } from "src/utils/base.entity";
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn, Unique } from "typeorm";
+import { Column, Entity, Index, OneToMany, PrimaryGeneratedColumn, Unique } from "typeorm";
 
 @Entity('usuario')
-@Unique(['correo'])
+@Index("idx_usuario_id_correo", ["id", "correo"], { unique: true })
 export class Usuario extends BaseEntity {
 
     @PrimaryGeneratedColumn()

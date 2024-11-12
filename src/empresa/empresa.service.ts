@@ -12,6 +12,7 @@ import { Empresa } from './entities/empresa.entity';
 import { getDbName } from 'src/utils/empresa';
 import { TenantConnectionService } from 'src/tenant-connection-service/tenant-connection-service.service';
 import * as process from 'process';
+import { Interval } from '@nestjs/schedule';
 
 @Injectable()
 export class EmpresaService {
@@ -90,4 +91,32 @@ export class EmpresaService {
   remove(id: number) {
     return `This action removes a #${id} empresa`;
   }
+
+  async HandleCierreProvisorio(status, empresaId) {
+    try {
+      const empresa = await  this.empresaRepository.findOne({where:{id:empresaId}}) 
+      if(!empresa) {
+        throw new BadRequestException('la empresa no existe')
+      }     
+      empresa.cierre_provisorio = status;
+
+      await this.empresaRepository.save(empresa)
+
+    } catch (error) {
+      throw new BadRequestException({
+        ok: false,
+        statusCode: 400,
+        message: error?.message,
+        error: 'Bad Request',
+      });
+    }
+  }
+
+  // @Interval(1000) 
+  // mensjae() {
+  //   console.log("hola");
+    
+  // }
+
+  
 }

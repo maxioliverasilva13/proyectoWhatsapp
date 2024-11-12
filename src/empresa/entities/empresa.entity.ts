@@ -28,12 +28,15 @@ export class Empresa extends BaseEntity {
   @Column( { default: false })
   abierto: boolean;
 
-  @Column({ nullable: true})
-  hora_apertura: Date;
+  @Column({ type: 'time', nullable: true, default: null })
+  hora_cierre: string;
+  
+  @Column({ type: 'time', nullable: true, default: null})
+  hora_apertura: string;
 
-  @Column({  nullable: true })
-  hora_cierre: Date;
-
+  @Column({default: false})
+  cierre_provisorio: boolean;
+  
   @Column({ default: false })
   notificarReservaHoras: boolean;
 

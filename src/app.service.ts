@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Interval } from '@nestjs/schedule';
 import { DemonDeleteOldsThreads } from './utils/demonToThreads';
+import { OpenOrClose } from './utils/demonOpenOrClose';
 
 @Injectable()
 export class AppService {
@@ -8,7 +9,7 @@ export class AppService {
 
   async onModuleInit() {
     const subdomain = process.env.SUBDOMAIN;
-    if (subdomain === "works") {
+    if (subdomain !== "app") {
       this.shouldExecuteInterval = true;
     }
   }
@@ -18,9 +19,16 @@ export class AppService {
   }
 
   @Interval(900000)
-  handleInterval() {
+  handleIntervalDeleteThreads() {
     if (this.shouldExecuteInterval) {
       DemonDeleteOldsThreads()
+    }
+  }
+
+  @Interval(5000)
+  handleIntervalOpenOrClose() {
+    if (this.shouldExecuteInterval) {
+      OpenOrClose()
     }
   }
 }

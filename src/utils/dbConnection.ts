@@ -31,15 +31,15 @@ export const handleGetConnection = async () => {
       ssl: {
         rejectUnauthorized: false,
       },
-    }: {})
+    } : {})
   } as any;
-  
+
   const empresaConnection = new DataSource(params);
   if (!empresaConnection.isInitialized && env !== 'app') {
     await empresaConnection.initialize();
     runSeeders(empresaConnection, {
       seeds: [SEEDERS_TO_MAP_EMPRESA],
-  });
+    });
     await runSeeders(empresaConnection);
   }
 
@@ -62,13 +62,17 @@ export const handleGetGlobalConnection = async () => {
       ssl: {
         rejectUnauthorized: false,
       },
-    }: {})
+    } : {})
   } as any);
-  if (!globalConnection.isInitialized && env === 'app') {
+  if (!globalConnection.isInitialized) {
     await globalConnection.initialize();
-    await runSeeders(globalConnection, {
-      seeds: [SEEDERS_TO_MAP_GLOBAL_DB],
-  });
+
+    if (env === 'app') {
+      await runSeeders(globalConnection, {
+        seeds: [SEEDERS_TO_MAP_GLOBAL_DB],
+      });
+    }
   }
   return globalConnection;
 };
+
