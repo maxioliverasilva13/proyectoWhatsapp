@@ -11,4 +11,4 @@ import { CierreProvisorioController } from "./cierreProvisorio.controller";
     providers:[CierreProvisorioService],
     exports:[CierreProvisorioService]
 })
-export class EmpresaModule {}
+export class CierreProvisorioModule {}

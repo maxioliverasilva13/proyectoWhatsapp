@@ -28,12 +28,13 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { AuthModule } from './auth/auth.module';
 import { JwtMiddleware } from './middleware/jwt.middleware';
 import { AuthController } from './auth/auth.controller';
+import { CierreProvisorioModule } from './cierreProvisorio/cierreProvisorio.module';
 
 ConfigModule.forRoot();
 
 const connection = handleGetConnection();
 @Module({
-  imports: [connection,ScheduleModule.forRoot(), EmpresaModule, ProductoModule, PedidoModule, ChatModule, MensajeModule, EstadoModule, CambioestadopedidoModule, UsuarioModule, ClienteModule, RolesModule, PlanModule, TiposervicioModule, ProductopedidoModule, GreenApiModule, ChatGptThreadsModule,NumeroConfianzaModule, AuthModule ],
+  imports: [connection,ScheduleModule.forRoot(), EmpresaModule, ProductoModule, PedidoModule, ChatModule, MensajeModule, EstadoModule, CambioestadopedidoModule, UsuarioModule, ClienteModule, RolesModule, PlanModule, TiposervicioModule, ProductopedidoModule, GreenApiModule, ChatGptThreadsModule,NumeroConfianzaModule, AuthModule, CierreProvisorioModule ],
   controllers: [AppController],
   providers: [AppService],
 })

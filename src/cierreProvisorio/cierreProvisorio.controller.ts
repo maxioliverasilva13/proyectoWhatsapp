@@ -1,8 +1,6 @@
 import { Controller, Delete, Get, Param, Post, Put } from "@nestjs/common";
 import { CierreProvisorioService } from "./cierreProvisorio.service";
 
-
-
 @Controller('cierreProvisorio')
 export class CierreProvisorioController {
     constructor ( private readonly cierreProvisorioService: CierreProvisorioService) {}

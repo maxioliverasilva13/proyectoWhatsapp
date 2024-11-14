@@ -14,11 +14,13 @@ import { Mensaje } from "src/mensaje/entities/mensaje.entity";
 import { ProductoPedido } from "src/productopedido/entities/productopedido.entity";
 import { ChatGptThreads } from "src/chatGptThreads/entities/chatGpThreads.entity";
 import { NumeroConfianza } from "src/numerosConfianza/entities/numeroConfianza.entity";
+import { CierreProvisorio } from "src/cierreProvisorio/entities/cierreProvisorio.entitty";
 
 
 export const ENTITIES_TO_MAP_GLOBAL_DB = [
   Plan,
   Empresa,
+  CierreProvisorio,
   Tiposervicio,
   Role,
   Cliente,
