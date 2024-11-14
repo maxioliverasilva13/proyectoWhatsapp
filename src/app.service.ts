@@ -6,11 +6,14 @@ import { OpenOrClose } from './utils/demonOpenOrClose';
 @Injectable()
 export class AppService {
   private shouldExecuteInterval = false;
+  private shouldExecuteIntervalDeleteThreads = false;
 
   async onModuleInit() {
     const subdomain = process.env.SUBDOMAIN;
-    if (subdomain !== "app") {
+    if (subdomain === "app") {
       this.shouldExecuteInterval = true;
+    } else {
+      this.shouldExecuteIntervalDeleteThreads = true;
     }
   }
 
@@ -20,15 +23,15 @@ export class AppService {
 
   @Interval(900000)
   handleIntervalDeleteThreads() {
-    if (this.shouldExecuteInterval) {
+    if (this.shouldExecuteIntervalDeleteThreads) {
       DemonDeleteOldsThreads()
     }
   }
 
-  @Interval(5000)
-  handleIntervalOpenOrClose() {
-    if (this.shouldExecuteInterval) {
-      OpenOrClose()
-    }
-  }
+  // @Interval(5000)
+  // handleIntervalOpenOrClose() {
+  //   if (this.shouldExecuteInterval) {
+  //     OpenOrClose()
+  //   }
+  // }
 }

@@ -92,30 +92,9 @@ export class EmpresaService {
     return `This action removes a #${id} empresa`;
   }
 
-  async HandleCierreProvisorio(status, empresaId) {
-    try {
-      const empresa = await  this.empresaRepository.findOne({where:{id:empresaId}}) 
-      if(!empresa) {
-        throw new BadRequestException('la empresa no existe')
-      }     
-      empresa.cierre_provisorio = status;
-
-      await this.empresaRepository.save(empresa)
-
-    } catch (error) {
-      throw new BadRequestException({
-        ok: false,
-        statusCode: 400,
-        message: error?.message,
-        error: 'Bad Request',
-      });
-    }
-  }
-
   // @Interval(1000) 
   // mensjae() {
   //   console.log("hola");
-    
   // }
 
   

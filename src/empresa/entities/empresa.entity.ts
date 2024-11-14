@@ -1,3 +1,4 @@
+import { CierreProvisorio } from 'src/cierreProvisorio/entities/cierreProvisorio.entitty';
 import { NumeroConfianza } from 'src/numerosConfianza/entities/numeroConfianza.entity';
 import { Plan } from 'src/plan/entities/plan.entity';
 import { Tiposervicio } from 'src/tiposervicio/entities/tiposervicio.entity';
@@ -33,12 +34,15 @@ export class Empresa extends BaseEntity {
   
   @Column({ type: 'time', nullable: true, default: null})
   hora_apertura: string;
-
-  @Column({default: false})
-  cierre_provisorio: boolean;
   
   @Column({ default: false })
   notificarReservaHoras: boolean;
+
+  @Column({ nullable: true })
+  greenApiInstance: string;
+
+  @Column({ nullable: true })
+  greenApiInstanceToken: string;
 
   @ManyToOne(() => Plan, (plan) => plan.empresas)
   plan: Plan;
@@ -49,9 +53,6 @@ export class Empresa extends BaseEntity {
   @OneToMany(() => NumeroConfianza, (numeroConfianza) => numeroConfianza.empresa)
   numeroConfianza: NumeroConfianza[];
 
-  @Column({ nullable: true })
-  greenApiInstance: string;
-
-  @Column({ nullable: true })
-  greenApiInstanceToken: string;
+  @OneToMany(()=> CierreProvisorio, (CierreProvisorio)=> CierreProvisorio.empresa)
+  cierre_provisorio: CierreProvisorio[];
 }

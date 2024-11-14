@@ -53,12 +53,4 @@ export class EmpresaController {
   remove(@Param('id') id: string) {
     return this.empresaService.remove(+id);
   }
-
-  @Post('cierreProvisorio')
-  // @Roles(TypeRol.SUPER_ADMIN)
-  // @UseGuards(RolesGuard)
-  cierre_provisorio(@Body() status: boolean, @Req() req : Request) {
-    const empresaId = req["empresaId"]
-    return this.empresaService.HandleCierreProvisorio(status,empresaId);
-  }
 }
