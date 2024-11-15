@@ -28,7 +28,7 @@ export class AppService {
     }
   }
 
-  @Interval(5000)
+  @Interval(900000)
   handleIntervalOpenOrClose() {
     if (this.shouldExecuteInterval) {
       OpenOrClose()
