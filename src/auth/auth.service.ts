@@ -45,7 +45,8 @@ export class AuthService {
 
         // Chcek if rol is valid
 
-
+        console.log(userData);
+        
         // todo: user another DTO
         const hashedPassword = await bcrypt.hash(userData.password, 10);
         const user = this.usuarioRepository.create({
@@ -53,7 +54,7 @@ export class AuthService {
           activo: true,
           password: hashedPassword,
         });
-        delete user.password;
+        // delete user.password;
         return this.usuarioRepository.save(user);
       }
 

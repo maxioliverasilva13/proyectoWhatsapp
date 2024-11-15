@@ -12,7 +12,6 @@ export class JwtMiddleware implements NestMiddleware {
     if (!token) {
       return res.status(401).json({ message: 'Token no proporcionado' });
     }
-
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY) as any;
       if (decoded) {
