@@ -28,10 +28,10 @@ export class AppService {
     }
   }
 
-  // @Interval(5000)
-  // handleIntervalOpenOrClose() {
-  //   if (this.shouldExecuteInterval) {
-  //     OpenOrClose()
-  //   }
-  // }
+  @Interval(5000)
+  handleIntervalOpenOrClose() {
+    if (this.shouldExecuteInterval) {
+      OpenOrClose()
+    }
+  }
 }
