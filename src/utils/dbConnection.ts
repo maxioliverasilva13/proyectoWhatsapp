@@ -47,6 +47,7 @@ export const handleGetConnection = async () => {
 };
 
 export const handleGetGlobalConnection = async () => {
+  console.log("global connection")
   const env = process.env.SUBDOMAIN;
   const globalConnection = new DataSource({
     type: 'postgres',
