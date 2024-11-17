@@ -58,11 +58,9 @@ export const handleGetGlobalConnection = async () => {
     username: process.env.POSTGRES_USER_GLOBAL,
     password: process.env.POSTGRES_PASSWORD_GLOBAL,
     database: process.env.POSTGRES_DB_GLOBAL,
-    ...(env === "app" && process.env.ENV !== 'dev' ? {
-      ssl: {
-        rejectUnauthorized: false,
-      },
-    } : {})
+    ssl: {
+      rejectUnauthorized: false,
+    }
   } as any);
   if (!globalConnection.isInitialized) {
     await globalConnection.initialize();
