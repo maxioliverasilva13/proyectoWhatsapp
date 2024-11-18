@@ -47,7 +47,6 @@ export const handleGetConnection = async () => {
 };
 
 export const handleGetGlobalConnection = async () => {
-  console.log("global connection")
   const env = process.env.SUBDOMAIN;
   const globalConnection = new DataSource({
     type: 'postgres',
@@ -59,9 +58,11 @@ export const handleGetGlobalConnection = async () => {
     username: process.env.POSTGRES_USER_GLOBAL,
     password: process.env.POSTGRES_PASSWORD_GLOBAL,
     database: process.env.POSTGRES_DB_GLOBAL,
-    ssl: {
-      rejectUnauthorized: false,
-    }
+    ...(process.env.ENV !== 'dev' ? {
+      ssl: {
+        rejectUnauthorized: false,
+      },
+    } : {})
   } as any);
   if (!globalConnection.isInitialized) {
     await globalConnection.initialize();

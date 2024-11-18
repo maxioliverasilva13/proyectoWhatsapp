@@ -11,6 +11,10 @@ services:
       NODE_ENV: dev
       VIRTUAL_HOST: app.whatsproy.com
       VIRTUAL_PORT: 3000
+      EMAIL_USER: ${EMAIL_USER}
+      EMAIL_PASS: ${EMAIL_PASS}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
@@ -55,6 +59,10 @@ services:
       POSTGRES_PASSWORD_GLOBAL: ${POSTGRES_PASSWORD_GLOBAL}
       POSTGRES_DB_GLOBAL: ${POSTGRES_DB_GLOBAL}
       POSTGRES_GLOBAL_DB_HOST: ${POSTGRES_GLOBAL_DB_HOST}
+      EMAIL_USER: ${EMAIL_USER}
+      EMAIL_PASS: ${EMAIL_PASS}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
       POSTGRES_GLOBAL_DB_PORT: ${POSTGRES_GLOBAL_DB_PORT}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       ENV: ${ENV}
@@ -87,6 +95,14 @@ services:
       - /var/run/docker.sock:/tmp/docker.sock:ro
     networks:
       - app-network
+  redis:
+    image: redis:7.0
+    container_name: redis
+    ports:
+      - 6379:6379
+    networks:
+      - app-network
+    restart: always
 networks:
   app-network:
 volumes:

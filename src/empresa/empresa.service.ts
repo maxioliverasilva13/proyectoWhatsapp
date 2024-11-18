@@ -12,13 +12,20 @@ import { Empresa } from './entities/empresa.entity';
 import { getDbName } from 'src/utils/empresa';
 import { TenantConnectionService } from 'src/tenant-connection-service/tenant-connection-service.service';
 import * as process from 'process';
-import { Interval } from '@nestjs/schedule';
+import { isValidTimeFormat } from 'src/utils/time';
+import { Tiposervicio } from 'src/tiposervicio/entities/tiposervicio.entity';
+import { Usuario } from 'src/usuario/entities/usuario.entity';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class EmpresaService {
   constructor(
     @InjectRepository(Empresa)
     private empresaRepository: Repository<Empresa>,
+    @InjectRepository(Tiposervicio)
+    private tipoServicioRepository: Repository<Tiposervicio>,
+    @InjectRepository(Usuario)
+    private usuarioRepository: Repository<Usuario>,
     @Inject(forwardRef(() => TenantConnectionService))
     private tenantService: TenantConnectionService,
   ) {}
@@ -32,35 +39,56 @@ export class EmpresaService {
 
       if (process.env.ENV !== 'dev') {
         const dbName = getDbName(createEmpresaDto.nombre);
-        const newEmpresaDb =
-          await this.tenantService.createInfraEmpresa(dbName);
-        if (newEmpresaDb) {
+          const empresaExistsWithThisDbName = await this.empresaRepository?.findOne({ where: { db_name: dbName } });
+          if (empresaExistsWithThisDbName) {
+            throw new Error("Ya existe una emrpesa con este nombre")
+          }
+
           const newEmpresa = new Empresa();
           newEmpresa.nombre = createEmpresaDto.nombre;
           newEmpresa.db_name = dbName;
-          await this.empresaRepository.save(newEmpresa);
+
+          if (!isValidTimeFormat(createEmpresaDto?.hora_apertura) || isValidTimeFormat(createEmpresaDto?.hora_cierre)) {
+            throw new Error('Hora de apertur y cierre invalidos');
+          }
+          newEmpresa.hora_apertura = createEmpresaDto.hora_apertura;
+          newEmpresa.hora_cierre = createEmpresaDto.hora_cierre
+          newEmpresa.logo = createEmpresaDto.logo;
+          newEmpresa.descripcion = createEmpresaDto.descripcion;
+          newEmpresa.menu = createEmpresaDto.menu;
+
+          const existsTipoServicio = await this.tipoServicioRepository.findOne({ where: { id: Number(createEmpresaDto?.tipoServicioId) } });
+          if (!existsTipoServicio) {
+            throw new Error('El tipo de servicio es invalido');
+          }
+
+          const userExistsWithThisEmail = await this.usuarioRepository.findOne({ where: { correo: createEmpresaDto?.userEmail } });
+          if (!userExistsWithThisEmail) {
+            throw new Error('Ya existe un usuario con el correo ingresado');
+          }
+          const empresaCreated = await this.empresaRepository.save(newEmpresa);
+          const hashedPassword = await bcrypt.hash(createEmpresaDto?.password, 10);
+          const user = this.usuarioRepository.create({
+            activo: true,
+            nombre: '',
+            correo: createEmpresaDto?.userEmail,
+            apellido: '',
+            id_empresa: empresaCreated?.id,
+            // admin empresa
+            id_rol: 1,
+            password: hashedPassword,
+          });
+
+          // send email
 
           return {
             ok: true,
             statusCode: 200,
             message: 'Empresa creada exitosamente',
           };
-          
         } else {
           throw new Error('No se pudo crear la empresa');
         }
-      } else {
-        const dbName = getDbName(createEmpresaDto.nombre);
-        const newEmpresa = new Empresa();
-        newEmpresa.nombre = createEmpresaDto.nombre;
-        newEmpresa.db_name = dbName;
-        await this.empresaRepository.save(newEmpresa);
-        return {
-          ok: true,
-          statusCode: 200,
-          message: 'Empresa creada exitosamente',
-        };
-      }
     } catch (error: any) {
       throw new BadRequestException({
         ok: false,

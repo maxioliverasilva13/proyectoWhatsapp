@@ -6,6 +6,10 @@ services:
     environment:
       NODE_ENV: production
       POSTGRES_USER: ${POSTGRES_USER}
+      EMAIL_USER: ${EMAIL_USER}
+      EMAIL_PASS: ${EMAIL_PASS}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
       ENV: production
@@ -48,7 +52,16 @@ services:
     networks:
       - app-network
     restart: always
-networks:
+  
+  redis:
+     image: redis:7.0
+     container_name: redis
+     ports:
+       - 6379:6379
+     networks:
+       - app-network
+     restart: always
+n etworks:
   app-network:
     external: true
 volumes:

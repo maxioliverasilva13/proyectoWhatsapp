@@ -81,4 +81,19 @@ export class AuthService {
           apiUrl: apiUrl,
         }
       }
+
+      async resetPassword(userEmail: string) {
+        const globalConnection = await handleGetGlobalConnection();
+        const userRepository = globalConnection.getRepository(Usuario); 
+
+        const user = await userRepository.findOne({ where: { correo: userEmail }});
+        if (!user) {
+          throw new HttpException("Invalid user", 400);
+        }
+        // send mail to reset password
+        return {
+          ok: true,
+          message: "La password se restablecio correctamente, chequea el email",
+        }
+      }
 }
