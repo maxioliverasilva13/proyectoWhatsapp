@@ -52,7 +52,6 @@ services:
     networks:
       - app-network
     restart: always
-  
   redis:
      image: redis:7.0
      container_name: redis
@@ -61,7 +60,8 @@ services:
      networks:
        - app-network
      restart: always
-n etworks:
+
+networks:
   app-network:
     external: true
 volumes:
