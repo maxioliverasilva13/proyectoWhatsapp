@@ -58,6 +58,21 @@ export class EmpresaController {
   @Roles(TypeRol.SUPER_ADMIN)
   @UseGuards(RolesGuard)
   configOk(@Param('id') id: number) {
-    return this.empresaService.configured(id);
+    return this.empresaService.configured(+id);
   }
+
+  @Get('/qr/:id')
+  @Roles(TypeRol.SUPER_ADMIN)
+  @UseGuards(RolesGuard)
+  getQr(@Param('id') id: number) {
+    return this.empresaService.getQR(+id);
+  }
+
+  @Get('/authCode/:id/:numberPhone')
+  @Roles(TypeRol.SUPER_ADMIN)
+  @UseGuards(RolesGuard)
+  getAuthCode(@Param('id') @Param('numberPhone') id: number, numberPhone: number) {
+    return this.empresaService.getLink(+id, numberPhone );
+  }
+  
 }

@@ -72,12 +72,15 @@ export class AuthService {
     let configStatus;
     let paymentMade = false;
     let apiUrl = "";
+    let greenApiConfigured = false
     if (user.id_empresa) {
       const empresa = await this.empresaRepository.findOne({ where: { id: user.id_empresa } });
       if (empresa) {
         configStatus = empresa.configStatus
+        greenApiConfigured = empresa.greenApiConfigured
         apiUrl = `${process.env.ENV === "dev" ? "http" : "https"}://${process.env.VIRTUAL_HOST?.replace("app", empresa?.db_name)}`
       }
+      
       const lastPlan = await this.planesRepository.findOne({
         where: { empresas: empresa },
         order: { fecha_inicio: "DESC" }, 
@@ -89,7 +92,6 @@ export class AuthService {
 
         paymentMade = now <= planExpiryDate;
       }
-
     }
 
     const newUser = { ...user }
@@ -100,6 +102,8 @@ export class AuthService {
       configStatus,
       paymentMade,
       userConfigured,
+      greenApiConfigured,
+      globalConfig: greenApiConfigured && userConfigured && paymentMade && configStatus
     }
   }
 

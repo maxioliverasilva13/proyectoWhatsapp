@@ -16,6 +16,7 @@ import { isValidTimeFormat } from 'src/utils/time';
 import { Tiposervicio } from 'src/tiposervicio/entities/tiposervicio.entity';
 import { Usuario } from 'src/usuario/entities/usuario.entity';
 import * as bcrypt from 'bcryptjs';
+import { METHODS } from 'http';
 
 @Injectable()
 export class EmpresaService {
@@ -125,7 +126,7 @@ export class EmpresaService {
       const existEmpresa = await this.empresaRepository.findOne({ where: { id } });
       if (existEmpresa.configStatus) {
         return {
-          ok: true,
+          ok: false,
           statusCode: 200,
           message: 'Empresa ya fue configutada',
         };
@@ -137,8 +138,69 @@ export class EmpresaService {
       return {
         ok: true,
         statusCode: 201,
-        message: 'Empresa ya fue configutada',
+        message: 'Empresa configutada correctamente',
       };
+    } catch (error) {
+      throw new BadRequestException({
+        ok: false,
+        statusCode: 400,
+        message: error?.message,
+        error: 'Bad Request',
+      });
+    }
+  }
+
+  async getLink(id:number, phoneNumber) {
+    try {
+      const existEmpresa = await this.empresaRepository.findOne({ where: { id } });
+      if (!existEmpresa) {
+        throw new BadRequestException('La empresa no existe')
+      }
+
+      const authCode = await fetch(`https://7103.api.greenapi.com/waInstance${existEmpresa.greenApiInstance}/getAuthorizationCode/${existEmpresa.greenApiInstanceToken}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          phoneNumber: phoneNumber
+        }),
+      });
+
+      const resAuth = await authCode.json()
+      
+      return {
+        statusCode:200,
+        ok: true,
+        resAuth:resAuth
+      }
+
+    } catch (error) {
+      throw new BadRequestException({
+        ok: false,
+        statusCode: 400,
+        message: error?.message,
+        error: 'Bad Request',
+      });
+    }
+  }
+
+  async getQR(id: number) {
+    try {
+      const existEmpresa = await this.empresaRepository.findOne({ where: { id } });
+      if (!existEmpresa) {
+        throw new BadRequestException('La empresa no existe')
+      }
+      const myQr = await fetch(`https://7103.api.greenapi.com/waInstance${existEmpresa.greenApiInstance}/qr/${existEmpresa.greenApiInstanceToken}`)      
+
+      const res = await myQr.json();
+
+      return {
+        statusCode:200,
+        ok: true,
+        qr: res,
+      }
+
     } catch (error) {
       throw new BadRequestException({
         ok: false,
