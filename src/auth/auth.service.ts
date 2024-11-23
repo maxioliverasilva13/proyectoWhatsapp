@@ -66,10 +66,12 @@ export class AuthService {
         if (!user) {
           throw new HttpException("Invalid user", 400);
         }
+        let configStatus;
         let apiUrl = "";
         if (user.id_empresa) {
           const empresa = await this.empresaRepository.findOne({ where: { id: user.id_empresa } });
           if (empresa) {
+            configStatus = empresa.configStatus
             apiUrl = `${process.env.ENV === "dev" ? "http" : "https"}://${process.env.VIRTUAL_HOST?.replace("app", empresa?.db_name)}`
           }
         }
@@ -79,6 +81,7 @@ export class AuthService {
         return {
           ...newUser,
           apiUrl: apiUrl,
+          configStatus
         }
       }
 
