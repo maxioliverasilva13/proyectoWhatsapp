@@ -28,7 +28,7 @@ export class EmpresaService {
     private usuarioRepository: Repository<Usuario>,
     @Inject(forwardRef(() => TenantConnectionService))
     private tenantService: TenantConnectionService,
-  ) {}
+  ) { }
 
   async create(createEmpresaDto: CreateEmpresaDto) {
     // TODO: agregar libreria para validar DTO
@@ -39,56 +39,56 @@ export class EmpresaService {
 
       if (process.env.ENV !== 'dev') {
         const dbName = getDbName(createEmpresaDto.nombre);
-          const empresaExistsWithThisDbName = await this.empresaRepository?.findOne({ where: { db_name: dbName } });
-          if (empresaExistsWithThisDbName) {
-            throw new Error("Ya existe una emrpesa con este nombre")
-          }
-
-          const newEmpresa = new Empresa();
-          newEmpresa.nombre = createEmpresaDto.nombre;
-          newEmpresa.db_name = dbName;
-
-          if (!isValidTimeFormat(createEmpresaDto?.hora_apertura) || isValidTimeFormat(createEmpresaDto?.hora_cierre)) {
-            throw new Error('Hora de apertur y cierre invalidos');
-          }
-          newEmpresa.hora_apertura = createEmpresaDto.hora_apertura;
-          newEmpresa.hora_cierre = createEmpresaDto.hora_cierre
-          newEmpresa.logo = createEmpresaDto.logo;
-          newEmpresa.descripcion = createEmpresaDto.descripcion;
-          newEmpresa.menu = createEmpresaDto.menu;
-
-          const existsTipoServicio = await this.tipoServicioRepository.findOne({ where: { id: Number(createEmpresaDto?.tipoServicioId) } });
-          if (!existsTipoServicio) {
-            throw new Error('El tipo de servicio es invalido');
-          }
-
-          const userExistsWithThisEmail = await this.usuarioRepository.findOne({ where: { correo: createEmpresaDto?.userEmail } });
-          if (!userExistsWithThisEmail) {
-            throw new Error('Ya existe un usuario con el correo ingresado');
-          }
-          const empresaCreated = await this.empresaRepository.save(newEmpresa);
-          const hashedPassword = await bcrypt.hash(createEmpresaDto?.password, 10);
-          const user = this.usuarioRepository.create({
-            activo: true,
-            nombre: '',
-            correo: createEmpresaDto?.userEmail,
-            apellido: '',
-            id_empresa: empresaCreated?.id,
-            // admin empresa
-            id_rol: 1,
-            password: hashedPassword,
-          });
-
-          // send email
-
-          return {
-            ok: true,
-            statusCode: 200,
-            message: 'Empresa creada exitosamente',
-          };
-        } else {
-          throw new Error('No se pudo crear la empresa');
+        const empresaExistsWithThisDbName = await this.empresaRepository?.findOne({ where: { db_name: dbName } });
+        if (empresaExistsWithThisDbName) {
+          throw new Error("Ya existe una emrpesa con este nombre")
         }
+
+        const newEmpresa = new Empresa();
+        newEmpresa.nombre = createEmpresaDto.nombre;
+        newEmpresa.db_name = dbName;
+
+        if (!isValidTimeFormat(createEmpresaDto?.hora_apertura) || isValidTimeFormat(createEmpresaDto?.hora_cierre)) {
+          throw new Error('Hora de apertur y cierre invalidos');
+        }
+        newEmpresa.hora_apertura = createEmpresaDto.hora_apertura;
+        newEmpresa.hora_cierre = createEmpresaDto.hora_cierre
+        newEmpresa.logo = createEmpresaDto.logo;
+        newEmpresa.descripcion = createEmpresaDto.descripcion;
+        newEmpresa.menu = createEmpresaDto.menu;
+
+        const existsTipoServicio = await this.tipoServicioRepository.findOne({ where: { id: Number(createEmpresaDto?.tipoServicioId) } });
+        if (!existsTipoServicio) {
+          throw new Error('El tipo de servicio es invalido');
+        }
+
+        const userExistsWithThisEmail = await this.usuarioRepository.findOne({ where: { correo: createEmpresaDto?.userEmail } });
+        if (!userExistsWithThisEmail) {
+          throw new Error('Ya existe un usuario con el correo ingresado');
+        }
+        const empresaCreated = await this.empresaRepository.save(newEmpresa);
+        const hashedPassword = await bcrypt.hash(createEmpresaDto?.password, 10);
+        const user = this.usuarioRepository.create({
+          activo: true,
+          nombre: '',
+          correo: createEmpresaDto?.userEmail,
+          apellido: '',
+          id_empresa: empresaCreated?.id,
+          // admin empresa
+          id_rol: 1,
+          password: hashedPassword,
+        });
+
+        // send email
+
+        return {
+          ok: true,
+          statusCode: 200,
+          message: 'Empresa creada exitosamente',
+        };
+      } else {
+        throw new Error('No se pudo crear la empresa');
+      }
     } catch (error: any) {
       throw new BadRequestException({
         ok: false,
@@ -120,10 +120,39 @@ export class EmpresaService {
     return `This action removes a #${id} empresa`;
   }
 
+  async configured(id: number) {
+    try {
+      const existEmpresa = await this.empresaRepository.findOne({ where: { id } });
+      if (existEmpresa.configStatus) {
+        return {
+          ok: true,
+          statusCode: 200,
+          message: 'Empresa ya fue configutada',
+        };
+      }
+
+      existEmpresa.configStatus = true;
+      await this.empresaRepository.save(existEmpresa)
+
+      return {
+        ok: true,
+        statusCode: 201,
+        message: 'Empresa ya fue configutada',
+      };
+    } catch (error) {
+      throw new BadRequestException({
+        ok: false,
+        statusCode: 400,
+        message: error?.message,
+        error: 'Bad Request',
+      });
+    }
+  }
+
   // @Interval(1000) 
   // mensjae() {
   //   console.log("hola");
   // }
 
-  
+
 }
