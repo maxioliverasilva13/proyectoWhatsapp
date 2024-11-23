@@ -47,6 +47,12 @@ export class Empresa extends BaseEntity {
   @Column({ default: false })
   configStatus: boolean;
 
+  @Column({ default: false })
+  greenApiConfigured: boolean;
+
+  @Column({ nullable: true, })
+  direccion: string
+
   @ManyToOne(() => Plan, (plan) => plan.empresas)
   plan: Plan;
 
