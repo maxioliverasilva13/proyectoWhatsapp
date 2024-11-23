@@ -16,6 +16,9 @@ export class Plan extends BaseEntity {
     @Column()
     diasDuracion: number;
 
+    @Column()
+    fecha_inicio: Date;
+
     @OneToMany(() => Empresa, (empresa) => empresa.plan)
     empresas: Empresa[];
 }
