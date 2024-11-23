@@ -82,7 +82,6 @@ export class AppModule {
     // APP ROUTES
     consumer
       .apply(AppWithoutSubdomainMiddleware)
-      .exclude({ path: "/auth/me", method: RequestMethod.ALL })
       .forRoutes(EmpresaController, AuthController);
 
     // EMPRESA ROUTES
@@ -92,7 +91,6 @@ export class AppModule {
         ProductoController,
         GrenApiController,
         NumeroConfianzaController,
-        { path: "/auth/me", method: RequestMethod.ALL }
       );
 
     //JWT MIDDLEWARE
