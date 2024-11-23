@@ -68,7 +68,7 @@ export class AuthService {
     if (!user) {
       throw new HttpException("Invalid user", 400);
     }
-    let userConfigured = user.nombre && user.apellido
+    let userConfigured = user.nombre != null && user.apellido != null
     let configStatus;
     let paymentMade = false;
     let apiUrl = "";
