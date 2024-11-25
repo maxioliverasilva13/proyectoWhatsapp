@@ -21,6 +21,7 @@ export class PlanService {
       planNuevo.costoUSD = createPlanDto.costoUSD
       planNuevo.diasDuracion = createPlanDto.diasDuracion
       planNuevo.nombre = createPlanDto.nombre
+      planNuevo.adventages = createPlanDto.adventages
       if(createPlanDto.mostPopular) {
         planNuevo.mostPoppular = createPlanDto.mostPopular
       }
