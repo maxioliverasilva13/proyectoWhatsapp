@@ -19,6 +19,9 @@ export class Plan extends BaseEntity {
     @Column({default:false})
     mostPoppular: boolean;
 
+    @Column() 
+    adventages : string;
+
     @OneToMany(()=> PlanEmpresa, (planEmpresa)=> planEmpresa.plan)
     planEmpresa : PlanEmpresa[]
 }
