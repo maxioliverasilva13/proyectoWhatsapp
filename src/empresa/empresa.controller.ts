@@ -54,13 +54,6 @@ export class EmpresaController {
     return this.empresaService.remove(+id);
   }
 
-  @Get('configSuccessfully/:id')
-  @Roles(TypeRol.SUPER_ADMIN)
-  @UseGuards(RolesGuard)
-  configOk(@Param('id') id: number) {
-    return this.empresaService.configured(+id);
-  }
-
   @Get('/qr/:id')
   @Roles(TypeRol.SUPER_ADMIN)
   @UseGuards(RolesGuard)

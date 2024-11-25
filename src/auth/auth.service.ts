@@ -8,16 +8,20 @@ import { RegisterDTO } from './dto/register.dto';
 import { handleGetGlobalConnection } from 'src/utils/dbConnection';
 import { Empresa } from 'src/empresa/entities/empresa.entity';
 import { Plan } from 'src/plan/entities/plan.entity';
+import { PlanEmpresa } from 'src/planEmpresa/entities/planEmpresa.entity';
 
 @Injectable()
 export class AuthService {
   private empresaRepository: Repository<Empresa>
   private planesRepository: Repository<Plan>
+  private planesEmpresaRepository: Repository<PlanEmpresa>
+
 
   async onModuleInit() {
     const globalConnection = await handleGetGlobalConnection();
     this.empresaRepository = globalConnection.getRepository(Empresa);
-    this.planesRepository = globalConnection.getRepository(Plan)
+    this.planesEmpresaRepository = globalConnection.getRepository(PlanEmpresa);
+    this.planesRepository = globalConnection.getRepository(Plan);
   }
 
   constructor(
@@ -80,15 +84,17 @@ export class AuthService {
         greenApiConfigured = empresa.greenApiConfigured
         apiUrl = `${process.env.ENV === "dev" ? "http" : "https"}://${process.env.VIRTUAL_HOST?.replace("app", empresa?.db_name)}`
       }
-      
-      const lastPlan = await this.planesRepository.findOne({
-        where: { empresas: empresa },
+
+      const lastPlan = await this.planesEmpresaRepository.findOne({
+        where: { id_empresa: empresa.id },
         order: { fecha_inicio: "DESC" }, 
       });
 
+      const plan = await this.planesRepository.findOne({where:{id: lastPlan.id_plan}})
+
       if (lastPlan) {
         const planExpiryDate = new Date(lastPlan.fecha_inicio);
-        planExpiryDate.setDate(planExpiryDate.getDate() + lastPlan.diasDuracion);
+        planExpiryDate.setDate(planExpiryDate.getDate() + plan.diasDuracion);
 
         paymentMade = now <= planExpiryDate;
       }

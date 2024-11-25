@@ -7,9 +7,10 @@ import { TenantConnectionService } from 'src/tenant-connection-service/tenant-co
 import { ScheduleModule } from '@nestjs/schedule';
 import { Tiposervicio } from 'src/tiposervicio/entities/tiposervicio.entity';
 import { Usuario } from 'src/usuario/entities/usuario.entity';
+import { PlanEmpresa } from 'src/planEmpresa/entities/planEmpresa.entity';
 
 @Module({
-  imports: [ScheduleModule.forRoot(), TypeOrmModule.forFeature([Empresa]), TypeOrmModule.forFeature([Tiposervicio]), TypeOrmModule.forFeature([Usuario])],
+  imports: [ScheduleModule.forRoot(), TypeOrmModule.forFeature([Empresa,Tiposervicio,Usuario, PlanEmpresa])],
   controllers: [EmpresaController],
   providers: [EmpresaService, TenantConnectionService],
   exports: [EmpresaService, TypeOrmModule],

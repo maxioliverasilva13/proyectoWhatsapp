@@ -35,6 +35,7 @@ import { CierreProvisorioModule } from "./cierreProvisorio/cierreProvisorio.modu
 import { EmailQueueModule } from "./emailqueue/emailqueue.module";
 import { EmailModule } from "./emailqueue/nodemailer.module";
 import { BullModule } from "@nestjs/bull";
+import { PlanEmpresaModule } from "./planEmpresa/planEmpresa.module";
 
 ConfigModule.forRoot();
 
@@ -73,6 +74,7 @@ const connection = handleGetConnection();
     NumeroConfianzaModule,
     AuthModule,
     CierreProvisorioModule,
+    PlanEmpresaModule
   ],
   controllers: [AppController],
   providers: [AppService],
