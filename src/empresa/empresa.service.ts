@@ -112,33 +112,31 @@ export class EmpresaService {
     return `This action returns all empresa`;
   }
 
-  update(id: number, updateEmpresaDto: UpdateEmpresaDto) {
-    console.log('updateEmpresaDto', updateEmpresaDto);
-    return `This action updates a #${id} empresa`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} empresa`;
-  }
-
-  async configured(id: number) {
+  async update(id: number, updateEmpresaDto: UpdateEmpresaDto) {
     try {
-      const existEmpresa = await this.empresaRepository.findOne({ where: { id } });
-      if (existEmpresa.configStatus) {
-        return {
-          ok: false,
-          statusCode: 200,
-          message: 'Empresa ya fue configutada',
-        };
+      // Buscar la empresa por ID
+      const empresa = await this.empresaRepository.findOne({ where: { id } });
+      if (!empresa) {
+        throw new BadRequestException('La empresa no existe');
       }
-
-      existEmpresa.configStatus = true;
-      await this.empresaRepository.save(existEmpresa)
-
+  
+      Object.keys(updateEmpresaDto).forEach((key) => {
+        if (updateEmpresaDto[key] !== undefined) {
+          if (key in empresa) {
+            (empresa as any)[key] = updateEmpresaDto[key];
+          } else {
+            throw new BadRequestException(`El campo ${key} no es válido`);
+          }
+        }
+      });
+      
+      await this.empresaRepository.save(empresa);
+  
       return {
         ok: true,
-        statusCode: 201,
-        message: 'Empresa configutada correctamente',
+        statusCode: 200,
+        message: 'Empresa actualizada exitosamente',
+        data: empresa,
       };
     } catch (error) {
       throw new BadRequestException({
@@ -148,6 +146,10 @@ export class EmpresaService {
         error: 'Bad Request',
       });
     }
+  }
+
+  remove(id: number) {
+    return `This action removes a #${id} empresa`;
   }
 
   async getLink(id:number, phoneNumber) {

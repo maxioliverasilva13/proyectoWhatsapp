@@ -1,4 +1,4 @@
-import { Empresa } from "src/empresa/entities/empresa.entity";
+import { PlanEmpresa } from "src/planEmpresa/entities/planEmpresa.entity";
 import { BaseEntity, Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity('plan')
@@ -16,9 +16,9 @@ export class Plan extends BaseEntity {
     @Column()
     diasDuracion: number;
 
-    @Column()
-    fecha_inicio: Date;
+    @Column({default:false})
+    mostPoppular: boolean;
 
-    @OneToMany(() => Empresa, (empresa) => empresa.plan)
-    empresas: Empresa[];
+    @OneToMany(()=> PlanEmpresa, (planEmpresa)=> planEmpresa.plan)
+    planEmpresa : PlanEmpresa[]
 }

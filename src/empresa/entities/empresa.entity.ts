@@ -1,6 +1,7 @@
 import { CierreProvisorio } from 'src/cierreProvisorio/entities/cierreProvisorio.entitty';
 import { NumeroConfianza } from 'src/numerosConfianza/entities/numeroConfianza.entity';
 import { Plan } from 'src/plan/entities/plan.entity';
+import { PlanEmpresa } from 'src/planEmpresa/entities/planEmpresa.entity';
 import { Tiposervicio } from 'src/tiposervicio/entities/tiposervicio.entity';
 import { BaseEntity } from 'src/utils/base.entity';
 import { Entity, Column, PrimaryGeneratedColumn, Unique, ManyToOne, OneToMany } from 'typeorm';
@@ -53,9 +54,6 @@ export class Empresa extends BaseEntity {
   @Column({ nullable: true, })
   direccion: string
 
-  @ManyToOne(() => Plan, (plan) => plan.empresas)
-  plan: Plan;
-
   @ManyToOne(() => Tiposervicio, (cmbe) => cmbe.empresas)
   tipoServicioId: Tiposervicio;
 
@@ -64,4 +62,7 @@ export class Empresa extends BaseEntity {
 
   @OneToMany(()=> CierreProvisorio, (CierreProvisorio)=> CierreProvisorio.empresa)
   cierre_provisorio: CierreProvisorio[];
+
+  @OneToMany(()=> PlanEmpresa, (planEmpresa)=> planEmpresa.empresa)
+  planEmpresa : PlanEmpresa[]
 }
