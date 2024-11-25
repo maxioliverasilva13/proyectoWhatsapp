@@ -90,9 +90,9 @@ export class AuthService {
         order: { fecha_inicio: "DESC" }, 
       });
 
-      const plan = await this.planesRepository.findOne({where:{id: lastPlan.id_plan}})
-
       if (lastPlan) {
+        const plan = await this.planesRepository.findOne({where:{id: lastPlan.id_plan}})
+
         const planExpiryDate = new Date(lastPlan.fecha_inicio);
         planExpiryDate.setDate(planExpiryDate.getDate() + plan.diasDuracion);
 
