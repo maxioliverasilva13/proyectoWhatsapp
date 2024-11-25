@@ -76,7 +76,7 @@ export class EmpresaService {
           apellido: '',
           id_empresa: empresaCreated?.id,
           // admin empresa
-          id_rol: 1,
+          id_rol: 2,
           password: hashedPassword,
         });
 
