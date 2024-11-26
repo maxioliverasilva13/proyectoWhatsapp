@@ -152,7 +152,7 @@ export class EmpresaService {
     return `This action removes a #${id} empresa`;
   }
 
-  async getLink(id:number, phoneNumber) {
+  async getAuthCode(id:number, phoneNumber) {
     try {
       const existEmpresa = await this.empresaRepository.findOne({ where: { id } });
       if (!existEmpresa) {
@@ -165,7 +165,7 @@ export class EmpresaService {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          phoneNumber: phoneNumber
+          phoneNumber: parseInt(phoneNumber)
         }),
       });
 
