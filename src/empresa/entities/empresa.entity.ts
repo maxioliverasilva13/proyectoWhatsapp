@@ -46,7 +46,7 @@ export class Empresa extends BaseEntity {
   greenApiInstanceToken: string;
 
   @Column({ default: false })
-  configStatus: boolean;
+  apiConfigured: boolean;
 
   @Column({ default: false })
   greenApiConfigured: boolean;
