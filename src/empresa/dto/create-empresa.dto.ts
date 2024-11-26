@@ -10,7 +10,7 @@ export class CreateEmpresaDto {
   userEmail: string; // text
   password: string; // text
   direction? : string;
-  configStatus?: boolean;
+  apiConfigured?: boolean;
   greenApiConfigured?: boolean;
   greenApiInstance?: string;
   greenApiInstanceToken? : string;

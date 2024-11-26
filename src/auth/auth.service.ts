@@ -73,14 +73,14 @@ export class AuthService {
       throw new HttpException("Invalid user", 400);
     }
     let userConfigured = user.nombre != null && user.apellido != null
-    let configStatus;
+    let apiConfigured;
     let paymentMade = false;
     let apiUrl = "";
     let greenApiConfigured = false
     if (user.id_empresa) {
       const empresa = await this.empresaRepository.findOne({ where: { id: user.id_empresa } });
       if (empresa) {
-        configStatus = empresa.configStatus
+        apiConfigured = empresa.apiConfigured
         greenApiConfigured = empresa.greenApiConfigured
         apiUrl = `${process.env.ENV === "dev" ? "http" : "https"}://${process.env.VIRTUAL_HOST?.replace("app", empresa?.db_name)}`
       }
@@ -105,11 +105,11 @@ export class AuthService {
     return {
       ...newUser,
       apiUrl: apiUrl,
-      configStatus,
+      apiConfigured,
       paymentMade,
       userConfigured,
       greenApiConfigured,
-      globalConfig: greenApiConfigured && userConfigured && paymentMade && configStatus
+      globalConfig: greenApiConfigured && userConfigured && paymentMade && apiConfigured
     }
   }
 
