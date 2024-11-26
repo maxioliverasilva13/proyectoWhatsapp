@@ -9,10 +9,10 @@ export class Usuario extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({nullable: true })
+    @Column()
     nombre: string;
 
-    @Column({nullable: true })
+    @Column()
     apellido: string;
 
     @Column()
