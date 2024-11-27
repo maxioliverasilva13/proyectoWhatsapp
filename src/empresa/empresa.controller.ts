@@ -62,7 +62,7 @@ export class EmpresaController {
   @Get('/authCode/:id/:numberPhone')
   @Roles(TypeRol.SUPER_ADMIN)
   @UseGuards(RolesGuard)
-  getAuthCode(@Param('id') @Param('numberPhone') id: number, numberPhone: number) {
+  getAuthCode(@Param('id') id: number, @Param('numberPhone') numberPhone: number) {
     return this.empresaService.getAuthCode(+id, +numberPhone );
   }
   

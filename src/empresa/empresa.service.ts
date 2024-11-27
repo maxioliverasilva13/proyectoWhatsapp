@@ -152,21 +152,22 @@ export class EmpresaService {
     return `This action removes a #${id} empresa`;
   }
 
-  async getAuthCode(id:number, phoneNumber) {
+  async getAuthCode(id:number, phoneNumber : number) {
     try {
       const existEmpresa = await this.empresaRepository.findOne({ where: { id } });
       if (!existEmpresa) {
         throw new BadRequestException('La empresa no existe')
       }
-
+      
       const authCode = await fetch(`https://7103.api.greenapi.com/waInstance${existEmpresa.greenApiInstance}/getAuthorizationCode/${existEmpresa.greenApiInstanceToken}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          phoneNumber: parseInt(phoneNumber)
+          phoneNumber: phoneNumber,
         }),
+      
       });
 
       const resAuth = await authCode.json()
