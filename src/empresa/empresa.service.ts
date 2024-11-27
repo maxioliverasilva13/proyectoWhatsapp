@@ -16,6 +16,7 @@ import { isValidTimeFormat } from 'src/utils/time';
 import { Tiposervicio } from 'src/tiposervicio/entities/tiposervicio.entity';
 import { Usuario } from 'src/usuario/entities/usuario.entity';
 import * as bcrypt from 'bcryptjs';
+import { METHODS } from 'http';
 
 @Injectable()
 export class EmpresaService {
@@ -75,7 +76,7 @@ export class EmpresaService {
           apellido: '',
           id_empresa: empresaCreated?.id,
           // admin empresa
-          id_rol: 1,
+          id_rol: 2,
           password: hashedPassword,
         });
 
@@ -111,34 +112,98 @@ export class EmpresaService {
     return `This action returns all empresa`;
   }
 
-  update(id: number, updateEmpresaDto: UpdateEmpresaDto) {
-    console.log('updateEmpresaDto', updateEmpresaDto);
-    return `This action updates a #${id} empresa`;
+  async update(id: number, updateEmpresaDto: UpdateEmpresaDto) {
+    try {
+      // Buscar la empresa por ID
+      const empresa = await this.empresaRepository.findOne({ where: { id } });
+      if (!empresa) {
+        throw new BadRequestException('La empresa no existe');
+      }
+  
+      Object.keys(updateEmpresaDto).forEach((key) => {
+        if (updateEmpresaDto[key] !== undefined) {
+          if (key in empresa) {
+            (empresa as any)[key] = updateEmpresaDto[key];
+          } else {
+            throw new BadRequestException(`El campo ${key} no es válido`);
+          }
+        }
+      });
+      
+      await this.empresaRepository.save(empresa);
+  
+      return {
+        ok: true,
+        statusCode: 200,
+        message: 'Empresa actualizada exitosamente',
+        data: empresa,
+      };
+    } catch (error) {
+      throw new BadRequestException({
+        ok: false,
+        statusCode: 400,
+        message: error?.message,
+        error: 'Bad Request',
+      });
+    }
   }
 
   remove(id: number) {
     return `This action removes a #${id} empresa`;
   }
 
-  async configured(id: number) {
+  async getAuthCode(id:number, phoneNumber : number) {
     try {
       const existEmpresa = await this.empresaRepository.findOne({ where: { id } });
-      if (existEmpresa.configStatus) {
-        return {
-          ok: true,
-          statusCode: 200,
-          message: 'Empresa ya fue configutada',
-        };
+      if (!existEmpresa) {
+        throw new BadRequestException('La empresa no existe')
+      }
+      
+      const authCode = await fetch(`https://7103.api.greenapi.com/waInstance${existEmpresa.greenApiInstance}/getAuthorizationCode/${existEmpresa.greenApiInstanceToken}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          phoneNumber: phoneNumber,
+        }),
+      
+      });
+
+      const resAuth = await authCode.json()
+      
+      return {
+        statusCode:200,
+        ok: true,
+        resAuth:resAuth
       }
 
-      existEmpresa.configStatus = true;
-      await this.empresaRepository.save(existEmpresa)
+    } catch (error) {
+      throw new BadRequestException({
+        ok: false,
+        statusCode: 400,
+        message: error?.message,
+        error: 'Bad Request',
+      });
+    }
+  }
+
+  async getQR(id: number) {
+    try {
+      const existEmpresa = await this.empresaRepository.findOne({ where: { id } });
+      if (!existEmpresa) {
+        throw new BadRequestException('La empresa no existe')
+      }
+      const myQr = await fetch(`https://7103.api.greenapi.com/waInstance${existEmpresa.greenApiInstance}/qr/${existEmpresa.greenApiInstanceToken}`)      
+
+      const res = await myQr.json();
 
       return {
+        statusCode:200,
         ok: true,
-        statusCode: 201,
-        message: 'Empresa ya fue configutada',
-      };
+        qr: res,
+      }
+
     } catch (error) {
       throw new BadRequestException({
         ok: false,

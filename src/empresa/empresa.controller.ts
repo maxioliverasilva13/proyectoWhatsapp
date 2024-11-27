@@ -7,7 +7,6 @@ import {
   Param,
   Delete,
   UseGuards,
-  Req,
 } from '@nestjs/common';
 import { EmpresaService } from './empresa.service';
 import { CreateEmpresaDto } from './dto/create-empresa.dto';
@@ -15,7 +14,6 @@ import { UpdateEmpresaDto } from './dto/update-empresa.dto';
 import { Roles } from 'src/guards/roles.decorator';
 import { RolesGuard } from 'src/guards/role.guard';
 import { TypeRol } from 'src/enums/rol';
-import { Request } from 'express';
 
 @Controller('empresa')
 export class EmpresaController {
@@ -54,10 +52,18 @@ export class EmpresaController {
     return this.empresaService.remove(+id);
   }
 
-  @Get('configSuccessfully/:id')
+  @Get('/qr/:id')
   @Roles(TypeRol.SUPER_ADMIN)
   @UseGuards(RolesGuard)
-  configOk(@Param('id') id: number) {
-    return this.empresaService.configured(id);
+  getQr(@Param('id') id: number) {
+    return this.empresaService.getQR(+id);
   }
+
+  @Get('/authCode/:id/:numberPhone')
+  @Roles(TypeRol.SUPER_ADMIN)
+  @UseGuards(RolesGuard)
+  getAuthCode(@Param('id') id: number, @Param('numberPhone') numberPhone: number) {
+    return this.empresaService.getAuthCode(+id, +numberPhone );
+  }
+  
 }

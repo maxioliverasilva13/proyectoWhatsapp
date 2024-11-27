@@ -5,38 +5,39 @@ import { EmpresaController } from './empresa/empresa.controller';
 import {
   AppWithoutSubdomainMiddleware,
   SubdomainMiddleware,
-} from './middleware/subdomain.middleware';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { EmpresaModule } from './empresa/empresa.module';
-import { ProductoModule } from './producto/producto.module';
-import { ProductoController } from './producto/producto.controller';
-import { PedidoModule } from './pedido/pedido.module';
-import { ChatModule } from './chat/chat.module';
-import { MensajeModule } from './mensaje/mensaje.module';
-import { EstadoModule } from './estado/estado.module';
-import { CambioestadopedidoModule } from './cambioestadopedido/cambioestadopedido.module';
-import { UsuarioModule } from './usuario/usuario.module';
-import { ClienteModule } from './cliente/cliente.module';
-import { RolesModule } from './roles/roles.module';
-import { PlanModule } from './plan/plan.module';
-import { TiposervicioModule } from './tiposervicio/tiposervicio.module';
-import { ProductopedidoModule } from './productopedido/productopedido.module';
-import { GreenApiModule } from './greenApi/GreenApi.module';
-import { ChatGptThreadsModule } from './chatGptThreads/chatGptThreads.module';
-import { GrenApiController } from './greenApi/GreenApi.controller';
-import { NumeroConfianzaModule } from './numerosConfianza/numeroConfianza.module';
-import { NumeroConfianzaController } from './numerosConfianza/numeroConfianza.controller';
-import { ScheduleModule } from '@nestjs/schedule';
-import { AuthModule } from './auth/auth.module';
-import { JwtMiddleware } from './middleware/jwt.middleware';
-import { AuthController } from './auth/auth.controller';
-import { CierreProvisorioModule } from './cierreProvisorio/cierreProvisorio.module';
-import { EmailQueueModule } from './emailqueue/emailqueue.module';
-import { EmailModule } from './emailqueue/nodemailer.module';
-import { BullModule } from '@nestjs/bull';
-import { EmailService } from './emailqueue/email.service';
+} from "./middleware/subdomain.middleware";
+import { AppController } from "./app.controller";
+import { AppService } from "./app.service";
+import { EmpresaModule } from "./empresa/empresa.module";
+import { ProductoModule } from "./producto/producto.module";
+import { ProductoController } from "./producto/producto.controller";
+import { PedidoModule } from "./pedido/pedido.module";
+import { ChatModule } from "./chat/chat.module";
+import { MensajeModule } from "./mensaje/mensaje.module";
+import { EstadoModule } from "./estado/estado.module";
+import { CambioestadopedidoModule } from "./cambioestadopedido/cambioestadopedido.module";
+import { UsuarioModule } from "./usuario/usuario.module";
+import { ClienteModule } from "./cliente/cliente.module";
+import { RolesModule } from "./roles/roles.module";
+import { PlanModule } from "./plan/plan.module";
+import { TiposervicioModule } from "./tiposervicio/tiposervicio.module";
+import { ProductopedidoModule } from "./productopedido/productopedido.module";
+import { GreenApiModule } from "./greenApi/GreenApi.module";
+import { ChatGptThreadsModule } from "./chatGptThreads/chatGptThreads.module";
+import { GrenApiController } from "./greenApi/GreenApi.controller";
+import { NumeroConfianzaModule } from "./numerosConfianza/numeroConfianza.module";
+import { NumeroConfianzaController } from "./numerosConfianza/numeroConfianza.controller";
+import { ScheduleModule } from "@nestjs/schedule";
+import { AuthModule } from "./auth/auth.module";
+import { JwtMiddleware } from "./middleware/jwt.middleware";
+import { AuthController } from "./auth/auth.controller";
+import { CierreProvisorioModule } from "./cierreProvisorio/cierreProvisorio.module";
+import { EmailQueueModule } from "./emailqueue/emailqueue.module";
+import { EmailModule } from "./emailqueue/nodemailer.module";
+import { BullModule } from "@nestjs/bull";
+import { PlanEmpresaModule } from "./planEmpresa/planEmpresa.module";
 import { EmailCOntroller } from './emailqueue/email.controller';
+import { EmailService } from './emailqueue/email.service';
 
 ConfigModule.forRoot();
 
@@ -75,6 +76,7 @@ const connection = handleGetConnection();
     NumeroConfianzaModule,
     AuthModule,
     CierreProvisorioModule,
+    PlanEmpresaModule
   ],
   controllers: [
     AppController,

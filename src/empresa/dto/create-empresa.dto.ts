@@ -9,4 +9,9 @@ export class CreateEmpresaDto {
   tipoServicioId: string; //dropdown
   userEmail: string; // text
   password: string; // text
+  direction? : string;
+  apiConfigured?: boolean;
+  greenApiConfigured?: boolean;
+  greenApiInstance?: string;
+  greenApiInstanceToken? : string;
 }

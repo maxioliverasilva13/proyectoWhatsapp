@@ -15,6 +15,7 @@ import { ProductoPedido } from "src/productopedido/entities/productopedido.entit
 import { ChatGptThreads } from "src/chatGptThreads/entities/chatGpThreads.entity";
 import { NumeroConfianza } from "src/numerosConfianza/entities/numeroConfianza.entity";
 import { CierreProvisorio } from "src/cierreProvisorio/entities/cierreProvisorio.entitty";
+import { PlanEmpresa } from "src/planEmpresa/entities/planEmpresa.entity";
 
 
 export const ENTITIES_TO_MAP_GLOBAL_DB = [
@@ -25,7 +26,8 @@ export const ENTITIES_TO_MAP_GLOBAL_DB = [
   Role,
   Cliente,
   Usuario,
-  NumeroConfianza
+  NumeroConfianza,
+  PlanEmpresa
 ];
 
 export const ENTITIES_TO_MAP_EMPRESA_DB = [
