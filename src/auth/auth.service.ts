@@ -7,6 +7,7 @@ import * as bcrypt from 'bcryptjs';
 import { RegisterDTO } from './dto/register.dto';
 import { handleGetGlobalConnection } from 'src/utils/dbConnection';
 import { Empresa } from 'src/empresa/entities/empresa.entity';
+import { EmailService } from 'src/emailqueue/email.service';
 
 @Injectable()
 export class AuthService {
@@ -15,13 +16,14 @@ export class AuthService {
     async onModuleInit() {
       const globalConnection = await handleGetGlobalConnection();
       this.empresaRepository = globalConnection.getRepository(Empresa); 
-
+      
     }
 
     constructor(
         private jwtService: JwtService,
         @InjectRepository(Usuario)
         private usuarioRepository: Repository<Usuario>,
+        private readonly emailService: EmailService
       ) {}
     
       async validateUser(correo: string, password: string): Promise<any> {
@@ -54,6 +56,7 @@ export class AuthService {
           activo: true,
           password: hashedPassword,
         });
+        this.emailService.sendEmail(user.correo, "Bienvenido", 'welcome')
         // delete user.password;
         return this.usuarioRepository.save(user);
       }

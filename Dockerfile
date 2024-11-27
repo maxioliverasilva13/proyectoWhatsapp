@@ -4,11 +4,15 @@ WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm install
+RUN npm install -- force
 
 COPY . .
 
-RUN npm install -g @nestjs/cli
+RUN npm install -g @nestjs/cli --force
+
+RUN npm install @css-inline/css-inline-linux-arm64-musl --save --force
+
+RUN npm install @nestjs-modules/mailer@latest @css-inline/css-inline@latest
 
 RUN npm run build
 

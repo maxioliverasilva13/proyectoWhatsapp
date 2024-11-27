@@ -8,15 +8,17 @@ export class EmailProcessor {
 
   @Process('sendEmail')
   async handleSendEmail(job: Job) {
-    const { to, subject, text } = job.data;
+    const { to, subject, template, context } = job.data;
 
     try {
-      await this.mailerService.sendMail({
+      const resp = await this.mailerService.sendMail({
         to,
         subject,
-        text,
+        template,
+        context,
       });
       console.log(`Correo enviado a ${to}`);
+      console.log("resp", resp)
     } catch (error) {
       console.error(`Error al enviar correo: ${error.message}`);
     }
