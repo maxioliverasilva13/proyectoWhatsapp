@@ -58,7 +58,9 @@ const connection = handleGetConnection();
           EmailModule,
           EmailQueueModule,
         ]
-      : []),
+      : [
+        WebSocketModule
+      ]),
     ScheduleModule.forRoot(),
     EmpresaModule,
     ProductoModule,
@@ -80,7 +82,6 @@ const connection = handleGetConnection();
     CierreProvisorioModule,
     PlanEmpresaModule,
     InfolineModule,
-    WebSocketModule,
   ],
   controllers: [
     AppController,
