@@ -1,4 +1,4 @@
-FROM node:18-alpine3.18 AS builder
+FROM node:18-alpine AS builder
 
 WORKDIR /app
 
@@ -9,8 +9,6 @@ RUN npm install -- force
 COPY . .
 
 RUN npm install -g @nestjs/cli --force
-
-RUN npm install @css-inline/css-inline-linux-arm64-musl --save --force
 
 RUN npm install @nestjs-modules/mailer@latest @css-inline/css-inline@latest --force
 
