@@ -20,7 +20,6 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
       },
       template: {
         dir: join(__dirname, '../templates'),
-        adapter: new HandlebarsAdapter(undefined, { inlineCssEnabled: false }),
         options: {
           strict: true,
         },
