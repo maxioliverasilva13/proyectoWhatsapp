@@ -39,6 +39,7 @@ import { PlanEmpresaModule } from "./planEmpresa/planEmpresa.module";
 import { EmailCOntroller } from './emailqueue/email.controller';
 import { EmailService } from './emailqueue/email.service';
 import { InfolineModule } from './infoline/infoline.module';
+import { WebSocketModule } from './websocket/websocket.module';
 
 ConfigModule.forRoot();
 
@@ -78,7 +79,8 @@ const connection = handleGetConnection();
     AuthModule,
     CierreProvisorioModule,
     PlanEmpresaModule,
-    InfolineModule
+    InfolineModule,
+    WebSocketModule,
   ],
   controllers: [
     AppController,
