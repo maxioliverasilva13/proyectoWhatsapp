@@ -10,8 +10,6 @@ COPY . .
 
 RUN npm install -g @nestjs/cli --force
 
-RUN npm install @nestjs-modules/mailer@latest @css-inline/css-inline@latest --force
-
 RUN npm run build
 
 FROM node:18-alpine
