@@ -21,7 +21,6 @@
   },
   "dependencies": {
     "@css-inline/css-inline": "^0.14.3",
-    "@css-inline/css-inline-linux-arm64-musl": "^0.14.3",
     "@faker-js/faker": "^9.2.0",
     "@green-api/whatsapp-api-client": "^0.3.39",
     "@nestjs-modules/mailer": "^2.0.2",
