@@ -1,7 +1,7 @@
-import { MiddlewareConsumer, Module, RequestMethod } from "@nestjs/common";
-import { ConfigModule } from "@nestjs/config"; // <--- Importa ConfigModule
-import { handleGetConnection } from "./utils/dbConnection";
-import { EmpresaController } from "./empresa/empresa.controller";
+import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config'; // <--- Importa ConfigModule
+import { handleGetConnection } from './utils/dbConnection';
+import { EmpresaController } from './empresa/empresa.controller';
 import {
   AppWithoutSubdomainMiddleware,
   SubdomainMiddleware,
@@ -36,6 +36,9 @@ import { EmailQueueModule } from "./emailqueue/emailqueue.module";
 import { EmailModule } from "./emailqueue/nodemailer.module";
 import { BullModule } from "@nestjs/bull";
 import { PlanEmpresaModule } from "./planEmpresa/planEmpresa.module";
+import { EmailCOntroller } from './emailqueue/email.controller';
+import { EmailService } from './emailqueue/email.service';
+import { InfolineModule } from './infoline/infoline.module';
 
 ConfigModule.forRoot();
 
@@ -43,11 +46,11 @@ const connection = handleGetConnection();
 @Module({
   imports: [
     connection,
-    ...(process.env.SUBDOMAIN === "app"
+    ...(process.env.SUBDOMAIN === 'app'
       ? [
           BullModule.forRoot({
             redis: {
-              host: process.env.REDIS_HOST || "localhost",
+              host: process.env.REDIS_HOST || 'localhost',
               port: parseInt(process.env.REDIS_PORT, 10) || 6379,
             },
           }),
@@ -74,10 +77,17 @@ const connection = handleGetConnection();
     NumeroConfianzaModule,
     AuthModule,
     CierreProvisorioModule,
-    PlanEmpresaModule
+    PlanEmpresaModule,
+    InfolineModule
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [
+    AppController,
+    ...(process.env.SUBDOMAIN === 'app' ? [EmailCOntroller] : []),
+  ],
+  providers: [
+    AppService,
+    ...(process.env.SUBDOMAIN === 'app' ? [EmailService] : []),
+  ],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
@@ -99,10 +109,10 @@ export class AppModule {
     consumer
       .apply(JwtMiddleware)
       .exclude(
-        { path: "/auth/login", method: RequestMethod.ALL },
-        { path: "/auth/register", method: RequestMethod.ALL },
-        { path: "/webhooks", method: RequestMethod.ALL }
+        { path: '/auth/login', method: RequestMethod.ALL },
+        { path: '/auth/register', method: RequestMethod.ALL },
+        { path: '/webhooks', method: RequestMethod.ALL },
       )
-      .forRoutes("*");
+      .forRoutes('*');
   }
 }

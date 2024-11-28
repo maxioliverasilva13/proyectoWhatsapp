@@ -16,6 +16,7 @@ import { ChatGptThreads } from "src/chatGptThreads/entities/chatGpThreads.entity
 import { NumeroConfianza } from "src/numerosConfianza/entities/numeroConfianza.entity";
 import { CierreProvisorio } from "src/cierreProvisorio/entities/cierreProvisorio.entitty";
 import { PlanEmpresa } from "src/planEmpresa/entities/planEmpresa.entity";
+import { Infoline } from "src/infoline/entities/infoline.entity";
 
 
 export const ENTITIES_TO_MAP_GLOBAL_DB = [
@@ -38,7 +39,8 @@ export const ENTITIES_TO_MAP_EMPRESA_DB = [
   ProductoPedido,
   Estado,
   Mensaje,
-  ChatGptThreads
+  ChatGptThreads,
+  Infoline
 ];
 
 export const SEEDERS_TO_MAP_GLOBAL_DB = 'src/database/seeders/app/*{.ts,.js}'

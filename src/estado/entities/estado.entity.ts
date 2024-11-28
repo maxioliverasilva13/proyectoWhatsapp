@@ -17,7 +17,6 @@ export class Estado extends BaseEntity {
     @OneToMany(() => Cambioestadopedido, (cmbe) => cmbe.estado)
     cambioEstados: Cambioestadopedido[];
 
-
     @OneToMany(() => Pedido, (pedido) => pedido.estado)
     pedidos: Pedido[];
 

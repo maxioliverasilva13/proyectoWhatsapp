@@ -20,6 +20,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@css-inline/css-inline": "^0.14.3",
+    "@css-inline/css-inline-linux-arm64-musl": "^0.14.3",
     "@faker-js/faker": "^9.2.0",
     "@green-api/whatsapp-api-client": "^0.3.39",
     "@nestjs-modules/mailer": "^2.0.2",
@@ -40,7 +42,9 @@
     "child_process": "^1.0.2",
     "dockerode": "^4.0.2",
     "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
     "fs": "^0.0.1-security",
+    "handlebars": "^4.7.8",
     "ioredis": "^5.4.1",
     "nodemailer": "^6.9.16",
     "openai": "^4.68.1",

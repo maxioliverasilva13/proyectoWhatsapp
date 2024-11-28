@@ -58,6 +58,8 @@ function createEnvFileApp() {
       POSTGRES_DB=${process.env.POSTGRES_DB_GLOBAL}
       VIRTUAL_HOST=app.whatsproy.com
       EMAIL_USER=${process.env.EMAIL_USER}
+      EMAIL_HOST=${process.env.EMAIL_HOST}
+      EMAIL_PORT=${process.env.EMAIL_PORT}
       EMAIL_PASS=${process.env.EMAIL_PASS}
       REDIS_HOST=${process.env.REDIS_HOST}
       REDIS_PORT=${process.env.REDIS_PORT}
