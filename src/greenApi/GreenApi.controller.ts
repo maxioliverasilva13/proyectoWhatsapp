@@ -14,8 +14,11 @@ export class GrenApiController {
 
     @Post('/webhooks')
     async handleWebhook(@Req() request: Request, @Body() body: any) {
+        console.log('xd1', body);
         if(body.stateInstance) {
+        console.log('xd2', body.stateInstance);
             const greenApiStatus = body.stateInstance;
+            console.log("greenApiStatus", greenApiStatus)
             if (greenApiStatus) {
                 console.log('La API de Green está configurada');
                 this.WebSocket.sendGreenApiStatus();
