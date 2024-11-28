@@ -38,6 +38,7 @@ import { BullModule } from "@nestjs/bull";
 import { PlanEmpresaModule } from "./planEmpresa/planEmpresa.module";
 import { EmailCOntroller } from './emailqueue/email.controller';
 import { EmailService } from './emailqueue/email.service';
+import { InfolineModule } from './infoline/infoline.module';
 
 ConfigModule.forRoot();
 
@@ -76,7 +77,8 @@ const connection = handleGetConnection();
     NumeroConfianzaModule,
     AuthModule,
     CierreProvisorioModule,
-    PlanEmpresaModule
+    PlanEmpresaModule,
+    InfolineModule
   ],
   controllers: [
     AppController,
