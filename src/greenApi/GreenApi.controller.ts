@@ -2,17 +2,27 @@ import { Controller, Post, Body, Get, Req } from '@nestjs/common';
 import { GreenApiService } from './GreenApi.service';
 import { Request } from 'express';
 import { NumeroConfianzaService } from 'src/numerosConfianza/numeroConfianza.service';
+import { WebsocketGateway } from 'src/websocket/websocket.gatewat';
 
 @Controller()
 export class GrenApiController {
     constructor(
         private readonly greenApi: GreenApiService,
         private readonly numeroConfianza: NumeroConfianzaService,
+        private readonly WebSocket: WebsocketGateway,
     ) { }
 
     @Post('/webhooks')
     async handleWebhook(@Req() request: Request, @Body() body: any) {
-        if (!body.stateInstance) {
+        if(body.stateInstance) {
+            const greenApiStatus = body.stateInstance;
+            if (greenApiStatus) {
+                console.log('La API de Green está configurada');
+                this.WebSocket.sendGreenApiStatus();
+            } else {
+                console.log('Hubo un problema con la configuración de la API');
+            }
+        }else {
             const empresaId = request["empresaId"];
             const empresaType = request["empresaType"];
             const { typeWebhook, messageData, senderData } = body;
@@ -44,8 +54,6 @@ export class GrenApiController {
 
             }
 
-        } else {
-            console.log('La instancia está iniciando.');
         }
     }
 
