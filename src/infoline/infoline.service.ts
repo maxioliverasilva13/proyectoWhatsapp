@@ -46,6 +46,20 @@ export class InfolineService {
     return item;
   }
 
+  async findAllFormatedText () {
+    try {
+      const allInfoLines = await this.infoLineRepository.find()
+      let text = ""
+
+      allInfoLines.map((infoLine)=> {
+        text += `\n${infoLine.nombre}`
+      })
+      return text
+    } catch (error) {
+      console.log('error', error);
+    }
+  }
+
   async remove(id: number) {
     try {
       const infoLine = await this.infoLineRepository.findOne({ where: { id: id } })

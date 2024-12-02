@@ -52,7 +52,7 @@ export class Empresa extends BaseEntity {
   greenApiConfigured: boolean;
 
   @Column({ nullable: true, })
-  direccion: string
+  direccion: string;
 
   @ManyToOne(() => Tiposervicio, (cmbe) => cmbe.empresas)
   tipoServicioId: Tiposervicio;

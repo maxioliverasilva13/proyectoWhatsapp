@@ -3,6 +3,7 @@ export class CreatePedidoDto {
     tipo_servicioId: number;
     clienteId:number;
     estadoId:number;
-    productos: any[];
+    responseJSON: string;
+    products:any[]
     fecha? : Date
 }

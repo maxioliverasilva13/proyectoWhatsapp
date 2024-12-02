@@ -71,7 +71,6 @@ services:
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       ENV: ${ENV}
       SUBDOMAIN: works
-      GREEN_API_TOKEN: ${GREEN_API_TOKEN}
       ID_INSTANCE: ${ID_INSTANCE}
       API_TOKEN_INSTANCE: ${API_TOKEN_INSTANCE}
     networks:

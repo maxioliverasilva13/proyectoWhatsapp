@@ -19,7 +19,7 @@ export class PedidoController {
 
   @Get('aviableDate')
   disponible(@Query('date') date: Date) {
-    return this.pedidoService.consultarHorarioxd(date, "xd");
+    return this.pedidoService.consultarHorario(date, "xd");
   }
 
   @Get(':id')

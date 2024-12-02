@@ -1,7 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { InfolineService } from './infoline.service';
 import { CreateInfolineDto } from './dto/create-infoline.dto';
-import { UpdateInfolineDto } from './dto/update-infoline.dto';
 
 @Controller('infoline')
 export class InfolineController {
@@ -15,6 +14,11 @@ export class InfolineController {
   @Get()
   findAll() {
     return this.infolineService.findAll();
+  }
+
+  @Get('/fomatedText')
+  findAllFormatedText() {
+    return this.infolineService.findAllFormatedText();
   }
 
   @Get(':id')

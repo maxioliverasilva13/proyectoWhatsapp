@@ -16,6 +16,8 @@ export class SubdomainMiddleware implements NestMiddleware {
     const subdomain = process.env.SUBDOMAIN || host.split('.')[0];
 
     if (subdomain === 'app') {
+      console.log('entro aqui 1');
+      
       throw new BadRequestException('Subdominio invalido.');
     }
     const connection = await handleGetGlobalConnection();
@@ -27,6 +29,8 @@ export class SubdomainMiddleware implements NestMiddleware {
     });
 
     if (!empresaExists) {
+      console.log("entro aqui 2");
+      
       throw new BadRequestException('Subdominio invalido');
     }
     req['subdomain'] = subdomain;
@@ -42,10 +46,12 @@ export class AppWithoutSubdomainMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction) {
     const host = req.headers.host;
     const subdomain = host.split('.')[0];
-
-    if (subdomain !== 'app' && subdomain !== 'localhost') {
-      throw new BadRequestException('Subdominio invalido.');
-    }
+    
+    // if (subdomain !== 'app' && subdomain !== 'localhost') {
+    //   console.log("entro aqui 3");
+      
+    //   throw new BadRequestException('Subdominio invalido.');
+    // }
     next();
   }
 }

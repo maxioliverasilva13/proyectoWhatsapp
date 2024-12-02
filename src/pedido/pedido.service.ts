@@ -35,15 +35,16 @@ export class PedidoService {
       newPedido.estado = estado;
       newPedido.tipo_servicio_id = createPedidoDto.tipo_servicioId,
       newPedido.fecha = createPedidoDto.fecha? createPedidoDto.fecha : new Date()
+      newPedido.infoLinesJson = createPedidoDto.responseJSON
 
       await this.pedidoRepository.save(newPedido);
 
       // ahora creamoos los productos.servicio:
       await Promise.all(
-        createPedidoDto.productos.map((prod) => 
+        createPedidoDto.products.map((prod) => 
           this.productoPedidoService.create({
             cantidad: prod.cantidad,
-            productoId: prod.producto,
+            productoId: prod.productoId,
             pedidoId: newPedido.id,
             detalle: prod.detalle,
           })
@@ -65,26 +66,20 @@ export class PedidoService {
     }
   }
 
-  async consultarHorarioxd(hora, productId) {
-
-    let date = new Date();
-    let options = { timeZone: 'America/Montevideo' };
-    let timeString = date.toLocaleString('en-US', options); 
-    
-    
-    const nowUtc = new Date();
+  async consultarHorario(hora, productos) {
     const allServices = await this.pedidoRepository.find({
       relations: ['pedidosprod', 'pedidosprod.producto'],
     });
     
+    let duracionMinutos;
     let isAviable = true;
-    const producto = await this.productoRespitory.findOne({where:{id:productId}})
-    const duracionMinutos = producto.plazoDuracionEstimadoMinutos; 
+    productos.map(async(prod)=> {
+      const producto = await this.productoRespitory.findOne({where:{id:prod.id}})
+      duracionMinutos += producto.plazoDuracionEstimadoMinutos; 
+    })
     const horaFormated = new Date(hora);  
     const horaFinSolicitadad = new Date(horaFormated)
-    horaFinSolicitadad.setMinutes(horaFinSolicitadad.getMinutes() + duracionMinutos)
-    console.log(horaFinSolicitadad);
-    
+    horaFinSolicitadad.setMinutes(horaFinSolicitadad.getMinutes() + duracionMinutos)    
 
     for( const service of allServices ) {
       const fechaInicial = new Date(service.fecha);  

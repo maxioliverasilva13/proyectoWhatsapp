@@ -8,9 +8,10 @@ import { ClienteModule } from 'src/cliente/cliente.module';
 import { ProductoModule } from 'src/producto/producto.module';
 import { NumeroConfianzaModule } from 'src/numerosConfianza/numeroConfianza.module';
 import { WebSocketModule } from 'src/websocket/websocket.module';
+import { InfolineModule } from 'src/infoline/infoline.module';
 
 @Module({
-  imports:[ ChatGptThreadsModule, PedidoModule, ClienteModule, ProductoModule, NumeroConfianzaModule, WebSocketModule],
+  imports:[ ChatGptThreadsModule, PedidoModule, ClienteModule, ProductoModule, NumeroConfianzaModule, WebSocketModule, InfolineModule],
   controllers: [GrenApiController],
   providers: [GreenApiService , TenantConnectionService],
   exports: [GreenApiService],

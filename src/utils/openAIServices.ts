@@ -34,7 +34,10 @@ export const askAssistant = async (question, instrucciones) => {
     }
 };
 
-export async function createThread(products) {
+export async function createThread(products, infoLines) {
+    
+    const formatedText = `INFO-LINES: ${infoLines}.\nLISTA-PRODUCTOS: \n ${products}.`
+    
     const response = await fetch(`https://api.openai.com/v1/threads`, {
         method: "POST",
         headers: {
@@ -44,7 +47,7 @@ export async function createThread(products) {
         },
         body: JSON.stringify({
             messages: [
-                {role: "user",content: `LISTA-PRODUCTOS: /n ${products || 'No hay productos'}`}
+                {role: "assistant",content: formatedText}
             ]
         }),    
     });
@@ -83,7 +86,7 @@ export async function sendMessageToThread(threadId, text, tipoEmpresa) {
         method: "POST",
         headers,
         body: JSON.stringify({
-            assistant_id: tipoEmpresa === "DELIVERY" ? process.env.DELIVERY_ASSISTANT : process.env.RESERVA_ASSISTANT,
+            assistant_id: process.env.ASSISTANT_ID
         })
     });
 
