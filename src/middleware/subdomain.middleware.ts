@@ -46,12 +46,16 @@ export class AppWithoutSubdomainMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction) {
     const host = req.headers.host;
     const subdomain = host.split('.')[0];
+
+    if (subdomain !== 'app' && subdomain !== 'localhost') {
+      throw new BadRequestException('Subdominio invalido.');
+    }
     
-    // if (subdomain !== 'app' && subdomain !== 'localhost') {
-    //   console.log("entro aqui 3");
+    if (subdomain !== 'app' && subdomain !== 'localhost') {
+      console.log("entro aqui 3");
       
-    //   throw new BadRequestException('Subdominio invalido.');
-    // }
+      throw new BadRequestException('Subdominio invalido.');
+    }
     next();
   }
 }
