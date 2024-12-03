@@ -88,14 +88,10 @@ export class AuthService {
           apiUrl = `${process.env.ENV === "dev" ? "http" : "https"}://${process.env.VIRTUAL_HOST?.replace("app", empresa?.db_name)}`
         }
 
-        if(!process.env.ID_INSTANCE || !process.env.API_TOKEN_INSTANCE) {
-          throw new BadRequestException('No hay credenciales de green api')
-        }
-        const res = await fetch(`https://api.green-api.com/waInstance${process.env.ID_INSTANCE}/getStateInstance/${process.env.API_TOKEN_INSTANCE}`)
+        const res = await fetch(`https://api.green-api.com/waInstance${empresa.greenApiInstance}/getStateInstance/${empresa.greenApiInstanceToken}`)
         const resFormated = await res.json()
-        const resFormatedText = JSON.parse(resFormated);
 
-        greenApiConfigured = resFormatedText.stateInstance === 'authorized'
+        greenApiConfigured = resFormated.stateInstance === 'authorized'
 
         const lastPlan = await this.planesEmpresaRepository.findOne({
           where: { id_empresa: empresa.id },
@@ -129,7 +125,6 @@ export class AuthService {
         statusCode: 400,
         message: error?.message || 'Error al obtener el numero',
         error: 'Bad Request',
-        greenApiCredentials : process.env.ID_INSTANCE + "" + process.env.API_TOKEN_INSTANCE
       });
     }
   }
