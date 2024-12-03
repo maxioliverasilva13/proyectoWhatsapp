@@ -1,49 +1,57 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { UpdatePedidoDto } from './dto/update-pedido.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MoreThanOrEqual, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Pedido } from './entities/pedido.entity';
 import { Estado } from 'src/estado/entities/estado.entity';
 import { CreatePedidoDto } from './dto/create-pedido.dto';
 import { ProductopedidoService } from 'src/productopedido/productopedido.service';
-import { ProductoPedido } from 'src/productopedido/entities/productopedido.entity';
 import { Producto } from 'src/producto/entities/producto.entity';
-import { ProductoService } from 'src/producto/producto.service';
+import { Tiposervicio } from 'src/tiposervicio/entities/tiposervicio.entity';
+import { handleGetGlobalConnection } from 'src/utils/dbConnection';
 
 @Injectable()
 export class PedidoService {
+  private tipoServicioRepository : Repository<Tiposervicio>
+
   constructor(
     @InjectRepository(Pedido)
     private pedidoRepository: Repository<Pedido>,
     @InjectRepository(Estado)
     private estadoRepository: Repository<Estado>,
-    private readonly productoPedidoService : ProductopedidoService,
+    private readonly productoPedidoService: ProductopedidoService,
     @InjectRepository(Producto)
-    private readonly productoRespitory : Repository<Producto>
-  ) {}
+    private readonly productoRespitory: Repository<Producto>,
+  ) { }
 
-  async create(createPedidoDto : CreatePedidoDto) {
-    try {      
-      const estado = await this.estadoRepository.findOne({where:{id:createPedidoDto.estadoId}})
+  async onModuleInit() {
+    const globalConnection = await handleGetGlobalConnection();
+    this.tipoServicioRepository = globalConnection.getRepository(Tiposervicio);
+  }
 
-      if(!estado) throw new BadRequestException("no existe un estado con ese id")
+  async create(createPedidoDto: CreatePedidoDto) {
+    try {
+      const estado = await this.estadoRepository.findOne({ where: { id: createPedidoDto.estadoId } })
 
-      const newPedido = new Pedido; 
+      if (!estado) throw new BadRequestException("no existe un estado con ese id")
+
+      const newPedido = new Pedido;
 
       newPedido.confirmado = createPedidoDto.confirmado
       newPedido.cliente_id = createPedidoDto.clienteId
       newPedido.estado = estado;
       newPedido.tipo_servicio_id = createPedidoDto.tipo_servicioId,
-      newPedido.fecha = createPedidoDto.fecha? createPedidoDto.fecha : new Date()
+        newPedido.fecha = createPedidoDto.fecha ? createPedidoDto.fecha : new Date()
+      newPedido.infoLinesJson = createPedidoDto.responseJSON
 
       await this.pedidoRepository.save(newPedido);
 
       // ahora creamoos los productos.servicio:
       await Promise.all(
-        createPedidoDto.productos.map((prod) => 
+        createPedidoDto.products.map((prod) =>
           this.productoPedidoService.create({
             cantidad: prod.cantidad,
-            productoId: prod.producto,
+            productoId: prod.productoId,
             pedidoId: newPedido.id,
             detalle: prod.detalle,
           })
@@ -65,54 +73,66 @@ export class PedidoService {
     }
   }
 
-  async consultarHorarioxd(hora, productId) {
-
-    let date = new Date();
-    let options = { timeZone: 'America/Montevideo' };
-    let timeString = date.toLocaleString('en-US', options); 
-    
-    
-    const nowUtc = new Date();
+  async consultarHorario(hora, productos) {
     const allServices = await this.pedidoRepository.find({
       relations: ['pedidosprod', 'pedidosprod.producto'],
     });
-    
+
+    let duracionMinutos;
     let isAviable = true;
-    const producto = await this.productoRespitory.findOne({where:{id:productId}})
-    const duracionMinutos = producto.plazoDuracionEstimadoMinutos; 
-    const horaFormated = new Date(hora);  
+    productos.map(async (prod) => {
+      const producto = await this.productoRespitory.findOne({ where: { id: prod.id } })
+      duracionMinutos += producto.plazoDuracionEstimadoMinutos;
+    })
+    const horaFormated = new Date(hora);
     const horaFinSolicitadad = new Date(horaFormated)
     horaFinSolicitadad.setMinutes(horaFinSolicitadad.getMinutes() + duracionMinutos)
-    console.log(horaFinSolicitadad);
-    
 
-    for( const service of allServices ) {
-      const fechaInicial = new Date(service.fecha);  
-    
-      for(const pedidoProd of service.pedidosprod ) {
-        
-        const fechaFinal = new Date(fechaInicial);  
-        fechaFinal.setMinutes(fechaFinal.getMinutes() + pedidoProd.producto.plazoDuracionEstimadoMinutos);  
-      
+    for (const service of allServices) {
+      const fechaInicial = new Date(service.fecha);
+
+      for (const pedidoProd of service.pedidosprod) {
+
+        const fechaFinal = new Date(fechaInicial);
+        fechaFinal.setMinutes(fechaFinal.getMinutes() + pedidoProd.producto.plazoDuracionEstimadoMinutos);
+
         if (
           (horaFormated < fechaFinal && horaFinSolicitadad > fechaInicial) ||
-          (horaFormated >= fechaInicial && horaFormated < fechaFinal) 
+          (horaFormated >= fechaInicial && horaFormated < fechaFinal)
         ) {
-          isAviable = false; 
-          break; 
+          isAviable = false;
+          break;
         }
       };
     };
-  
+
     return {
-      "ok":true,
-      "services":allServices,
+      "ok": true,
+      "services": allServices,
       "isAviable": isAviable
     }
   }
 
-  findAll() {
-    return `This action returns all pedido`;
+  async findAll(empresaType) {
+    try {      
+      const tipoServicio = await this.tipoServicioRepository.findOne({where:{tipo:empresaType}})      
+
+      const pedidos = await this.pedidoRepository.find({where:{tipo_servicio_id:tipoServicio.id}})
+
+      return {
+        ok:true,
+        statusCode:200,
+        data: pedidos
+      }
+
+    } catch (error) {
+      throw new BadRequestException({
+        ok: false,
+        statusCode: 400,
+        message: error?.message || 'Error al crear el pedido',
+        error: 'Bad Request',
+      });
+    }
   }
 
   findOne(id: number) {

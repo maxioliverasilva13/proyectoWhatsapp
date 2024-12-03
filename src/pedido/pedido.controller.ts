@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Req } from '@nestjs/common';
 import { PedidoService } from './pedido.service';
 import { CreatePedidoDto } from './dto/create-pedido.dto';
 import { UpdatePedidoDto } from './dto/update-pedido.dto';
@@ -13,13 +13,14 @@ export class PedidoController {
   }
 
   @Get()
-  findAll() {
-    return this.pedidoService.findAll();
+  findAll(@Req() request : Request) {
+    const empresaType = request['empresaType']
+    return this.pedidoService.findAll(empresaType);
   }
 
   @Get('aviableDate')
   disponible(@Query('date') date: Date) {
-    return this.pedidoService.consultarHorarioxd(date, "xd");
+    return this.pedidoService.consultarHorario(date, "xd");
   }
 
   @Get(':id')

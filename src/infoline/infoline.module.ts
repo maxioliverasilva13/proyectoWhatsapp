@@ -8,5 +8,6 @@ import { Infoline } from './entities/infoline.entity';
   imports: [TypeOrmModule.forFeature([Infoline])],
   controllers: [InfolineController],
   providers: [InfolineService],
+  exports:[InfolineService]
 })
 export class InfolineModule {}

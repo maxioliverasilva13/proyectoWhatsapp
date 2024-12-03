@@ -1,7 +1,6 @@
 import { Client } from 'pg';
 
 export async function DemonDeleteOldsThreads() {
-    console.log('xd1 aca');
     const env = process.env.SUBDOMAIN;
     const client = new Client({
         host: env === 'app' ? `${process.env.POSTGRES_GLOBAL_DB_HOST}` : `${process.env.SUBDOMAIN}-db`,
