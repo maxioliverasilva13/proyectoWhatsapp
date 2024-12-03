@@ -129,6 +129,7 @@ export class AuthService {
         statusCode: 400,
         message: error?.message || 'Error al obtener el numero',
         error: 'Bad Request',
+        greenApiCredentials : process.env.ID_INSTANCE + "" + process.env.API_TOKEN_INSTANCE
       });
     }
   }
