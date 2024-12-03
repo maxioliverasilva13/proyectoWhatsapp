@@ -87,10 +87,15 @@ export class AuthService {
           apiConfigured = empresa.apiConfigured
           apiUrl = `${process.env.ENV === "dev" ? "http" : "https"}://${process.env.VIRTUAL_HOST?.replace("app", empresa?.db_name)}`
         }
+
+        if(!process.env.ID_INSTANCE || !process.env.API_TOKEN_INSTANCE) {
+          throw new BadRequestException('No hay credenciales de green api')
+        }
         const res = await fetch(`https://api.green-api.com/waInstance${process.env.ID_INSTANCE}/getStateInstance/${process.env.API_TOKEN_INSTANCE}`)
         const resFormated = await res.json()
+        const resFormatedText = JSON.parse(resFormated);
 
-        greenApiConfigured = resFormated.stateInstance === 'authorized'
+        greenApiConfigured = resFormatedText.stateInstance === 'authorized'
 
         const lastPlan = await this.planesEmpresaRepository.findOne({
           where: { id_empresa: empresa.id },
