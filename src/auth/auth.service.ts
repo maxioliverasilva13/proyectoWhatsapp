@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Usuario } from 'src/usuario/entities/usuario.entity';
@@ -68,54 +68,63 @@ export class AuthService {
   }
 
   async currentUser(userId: any) {
-    const globalConnection = await handleGetGlobalConnection();
-    const userRepository = globalConnection.getRepository(Usuario);
-    const now = new Date()
-    const user = await userRepository.findOne({ where: { id: userId } });
-    if (!user) {
-      throw new HttpException("Invalid user", 400);
-    }
-    let userConfigured = !!user.nombre?.trim() && !!user.apellido?.trim();
-    let apiConfigured;
-    let paymentMade = false;
-    let apiUrl = "";
-    let greenApiConfigured = true
-    if (user.id_empresa) {
-      const empresa = await this.empresaRepository.findOne({ where: { id: user.id_empresa } });
-      if (empresa) {
-        apiConfigured = empresa.apiConfigured
-        apiUrl = `${process.env.ENV === "dev" ? "http" : "https"}://${process.env.VIRTUAL_HOST?.replace("app", empresa?.db_name)}`
+    try {
+      const globalConnection = await handleGetGlobalConnection();
+      const userRepository = globalConnection.getRepository(Usuario);
+      const now = new Date()
+      const user = await userRepository.findOne({ where: { id: userId } });
+      if (!user) {
+        throw new HttpException("Invalid user", 400);
       }
-      // const res = await fetch(`https://api.green-api.com/waInstance${process.env.ID_INSTANCE}/getStateInstance/${process.env.API_TOKEN_INSTANCE}`)
-      // const resFormated = await res.json()
+      let userConfigured = !!user.nombre?.trim() && !!user.apellido?.trim();
+      let apiConfigured;
+      let paymentMade = false;
+      let apiUrl = "";
+      let greenApiConfigured = true
+      if (user.id_empresa) {
+        const empresa = await this.empresaRepository.findOne({ where: { id: user.id_empresa } });
+        if (empresa) {
+          apiConfigured = empresa.apiConfigured
+          apiUrl = `${process.env.ENV === "dev" ? "http" : "https"}://${process.env.VIRTUAL_HOST?.replace("app", empresa?.db_name)}`
+        }
+        const res = await fetch(`https://api.green-api.com/waInstance${process.env.ID_INSTANCE}/getStateInstance/${process.env.API_TOKEN_INSTANCE}`)
+        const resFormated = await res.json()
 
-      // greenApiConfigured = resFormated.stateInstance === 'authorized'
+        greenApiConfigured = resFormated.stateInstance === 'authorized'
 
-      const lastPlan = await this.planesEmpresaRepository.findOne({
-        where: { id_empresa: empresa.id },
-        order: { fecha_inicio: "DESC" },
+        const lastPlan = await this.planesEmpresaRepository.findOne({
+          where: { id_empresa: empresa.id },
+          order: { fecha_inicio: "DESC" },
+        });
+
+        if (lastPlan) {
+          const plan = await this.planesRepository.findOne({ where: { id: lastPlan.id_plan } })
+
+          const planExpiryDate = new Date(lastPlan.fecha_inicio);
+          planExpiryDate.setDate(planExpiryDate.getDate() + plan.diasDuracion);
+
+          paymentMade = now <= planExpiryDate;
+        }
+      }
+
+      const newUser = { ...user }
+      delete newUser.password;
+      return {
+        ...newUser,
+        apiUrl: apiUrl,
+        apiConfigured,
+        paymentMade,
+        userConfigured,
+        greenApiConfigured,
+        globalConfig: greenApiConfigured && userConfigured && paymentMade && apiConfigured
+      }
+    } catch (error) {
+      throw new BadRequestException({
+        ok: false,
+        statusCode: 400,
+        message: error?.message || 'Error al obtener el numero',
+        error: 'Bad Request',
       });
-
-      if (lastPlan) {
-        const plan = await this.planesRepository.findOne({ where: { id: lastPlan.id_plan } })
-
-        const planExpiryDate = new Date(lastPlan.fecha_inicio);
-        planExpiryDate.setDate(planExpiryDate.getDate() + plan.diasDuracion);
-
-        paymentMade = now <= planExpiryDate;
-      }
-    }
-
-    const newUser = { ...user }
-    delete newUser.password;
-    return {
-      ...newUser,
-      apiUrl: apiUrl,
-      apiConfigured,
-      paymentMade,
-      userConfigured,
-      greenApiConfigured,
-      globalConfig: greenApiConfigured && userConfigured && paymentMade && apiConfigured
     }
   }
 
