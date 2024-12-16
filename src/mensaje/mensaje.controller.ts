@@ -12,9 +12,9 @@ export class MensajeController {
     return this.mensajeService.create(createMensajeDto);
   }
 
-  @Get()
-  findAll() {
-    return this.mensajeService.findAll();
+  @Get('pedido/:chatId')
+  findAll(@Param() chatId : number) {
+    return this.mensajeService.findAll(chatId);
   }
 
   @Get(':id')

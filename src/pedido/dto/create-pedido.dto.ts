@@ -4,6 +4,7 @@ export class CreatePedidoDto {
     clienteId:number;
     estadoId:number;
     responseJSON: string;
-    products:any[]
-    fecha? : Date
+    products:any[];
+    empresaType: string;
+    messages: any[];
 }

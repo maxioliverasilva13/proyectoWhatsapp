@@ -1,7 +1,7 @@
 import { Mensaje } from "src/mensaje/entities/mensaje.entity";
 import { Pedido } from "src/pedido/entities/pedido.entity";
 import { BaseEntity } from "src/utils/base.entity";
-import { Entity, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity('chat')
 export class Chat extends BaseEntity {
@@ -10,6 +10,9 @@ export class Chat extends BaseEntity {
     
     @OneToOne(() => Pedido, (pedido) => pedido.chat)
     pedido: Pedido;
+
+    @Column({default : new Date()})
+    createdAt: Date
 
     @OneToMany(() => Mensaje, (msg) => msg.chat)
     mensajes: Mensaje[];

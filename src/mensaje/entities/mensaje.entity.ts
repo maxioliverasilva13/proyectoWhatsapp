@@ -8,10 +8,14 @@ export class Mensaje extends BaseEntity {
     id: number;
 
     @Column()
-    contenido: string;
+    mensaje: string;
 
+    @Column({default : false})
+    isClient: boolean
+
+    @Column({default : new Date()})
+    time: Date
 
     @ManyToOne(() => Chat, (chat) => chat.mensajes)
     chat: Chat;
-
 }

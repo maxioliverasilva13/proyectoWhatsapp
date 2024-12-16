@@ -6,13 +6,22 @@ import { Infoline } from './entities/infoline.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Tiposervicio } from 'src/tiposervicio/entities/tiposervicio.entity';
 import { handleGetGlobalConnection } from 'src/utils/dbConnection';
+import { TipoPedido } from 'src/enums/tipopedido';
 
 @Injectable()
 export class InfolineService {
+  private tipoServicioRepository: Repository<Tiposervicio>
+
   constructor(
     @InjectRepository(Infoline)
     private infoLineRepository: Repository<Infoline>,
-  ) {}
+  ) { }
+
+  async onModuleInit() {
+    const globalConnection = await handleGetGlobalConnection();
+    this.tipoServicioRepository = globalConnection.getRepository(Tiposervicio);
+  }
+
 
   async create(createInfolineDto: CreateInfolineDto) {
     const idTipoServicio = createInfolineDto.id_tipo_servicio;
@@ -46,19 +55,31 @@ export class InfolineService {
     return item;
   }
 
-  async findAllFormatedText () {
+  async findAllFormatedText(empresaType: TipoPedido) {
     try {
-      const allInfoLines = await this.infoLineRepository.find()
+      const tipoServicioExist = await this.tipoServicioRepository.findOne({ where: { tipo: empresaType } })
+
+      if (!tipoServicioExist) {
+        throw new BadRequestException('no existe el tipo de servicio proporcionado');
+      }
+
+      const allInfoLines = await this.infoLineRepository.find({ where: { id_tipo_servicio: tipoServicioExist.id } })
       let text = ""
 
-      allInfoLines.map((infoLine)=> {
+      allInfoLines.map((infoLine) => {
         text += `\n${infoLine.nombre}`
       })
       return text
     } catch (error) {
       console.log('error', error);
+      throw new BadRequestException({
+        ok: false,
+        statusCode: 400,
+        message: error?.message,
+      });
     }
   }
+
 
   async remove(id: number) {
     try {

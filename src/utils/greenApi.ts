@@ -7,11 +7,10 @@ export async function connectToGreenApi(): Promise < void> {
             apiTokenInstance: process.env.API_TOKEN_INSTANCE
         }));
         await restAPI.settings.setSettings({
-            webhookUrl: `https://${process.env.VIRTUAL_HOST}/webhooks`
+            webhookUrl: `https://e066-190-135-111-247.ngrok-free.app/webhooks`
         });
         console.log('Conectado a Green API:');
     } catch(error) {
         console.error('Error al conectar con Green API:', JSON.stringify(error));
     }
 }
-

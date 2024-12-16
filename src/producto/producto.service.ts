@@ -14,7 +14,7 @@ export class ProductoService {
     @InjectRepository(ProductoPedido)
     private productoPedidoRepository: Repository<ProductoPedido>,
 
-    
+
   ) { }
 
   async create(

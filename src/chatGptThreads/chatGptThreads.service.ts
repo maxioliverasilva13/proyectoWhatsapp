@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ChatGptThreads } from './entities/chatGpThreads.entity';
 
-
 @Injectable()
 export class ChatGptThreadsService {
     constructor(
@@ -63,7 +62,6 @@ export class ChatGptThreadsService {
         }
     }
 
-    
     async updateThreadStatus(threadId: string) {
         try {
             const thread = await this.threadsRepository.findOne({ where: { threadId } });

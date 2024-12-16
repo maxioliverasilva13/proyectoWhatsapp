@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { InfolineService } from './infoline.service';
 import { CreateInfolineDto } from './dto/create-infoline.dto';
+import { TipoPedido } from 'src/enums/tipopedido';
 
 @Controller('infoline')
 export class InfolineController {
@@ -16,9 +17,9 @@ export class InfolineController {
     return this.infolineService.findAll();
   }
 
-  @Get('/fomatedText')
-  findAllFormatedText() {
-    return this.infolineService.findAllFormatedText();
+  @Post('/fomatedText')
+  findAllFormatedText(@Body() tipoServicioString : TipoPedido) {
+    return this.infolineService.findAllFormatedText(tipoServicioString);
   }
 
   @Get(':id')
