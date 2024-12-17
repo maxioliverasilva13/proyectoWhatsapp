@@ -20,6 +20,7 @@ services:
       API_TOKEN_INSTANCE: ${API_TOKEN_INSTANCE}
       OPEN_AI_TOKEN: ${OPEN_AI_TOKEN}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      ASSISTANT_ID: ${ASSISTANT_ID}
     labels:
       - traefik.enable=true
       - traefik.http.routers.${SUBDOMAIN}-router.rule=Host(`${VIRTUAL_HOST}`)
