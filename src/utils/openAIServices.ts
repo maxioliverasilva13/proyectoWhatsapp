@@ -63,10 +63,8 @@ export async function createThread(products, infoLines) {
     return threadData.id;
 }
 
-export async function sendMessageToThread(threadId, text, tipoEmpresa) {
-
-    console.log(tipoEmpresa);
-    
+export async function sendMessageToThread(threadId, text, isAdmin) {
+    const today = new Date().toLocaleDateString(); 
     const headers = {
         "Authorization": `Bearer ${process.env.OPEN_AI_TOKEN}`,
         "Content-Type": "application/json",
@@ -78,7 +76,7 @@ export async function sendMessageToThread(threadId, text, tipoEmpresa) {
         headers,
         body: JSON.stringify({
             role: "user",
-            content: text
+            content: `Admin:${isAdmin} \n Current_Time:${today} \n Message: ${text}`
         })
     });
 
@@ -141,7 +139,6 @@ export async function sendMessageToThread(threadId, text, tipoEmpresa) {
     if (!assistantMessage) {
         throw new Error("No se encontró una respuesta del asistente.");
     }    
-
     return assistantMessage;
 }
 
@@ -168,5 +165,3 @@ export async function closeThread(threadId) {
     console.log(`Thread ${threadId} cerrado exitosamente.`);
     return await response.json();
 }
-
-

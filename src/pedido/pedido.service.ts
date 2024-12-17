@@ -9,10 +9,12 @@ import { ProductopedidoService } from 'src/productopedido/productopedido.service
 import { Producto } from 'src/producto/entities/producto.entity';
 import { Tiposervicio } from 'src/tiposervicio/entities/tiposervicio.entity';
 import { handleGetGlobalConnection } from 'src/utils/dbConnection';
+import { ChatService } from 'src/chat/chat.service';
+import { MensajeService } from 'src/mensaje/mensaje.service';
 
 @Injectable()
 export class PedidoService {
-  private tipoServicioRepository : Repository<Tiposervicio>
+  private tipoServicioRepository: Repository<Tiposervicio>
 
   constructor(
     @InjectRepository(Pedido)
@@ -22,6 +24,8 @@ export class PedidoService {
     private readonly productoPedidoService: ProductopedidoService,
     @InjectRepository(Producto)
     private readonly productoRespitory: Repository<Producto>,
+    private readonly chatServices: ChatService,
+    private readonly mensajesService : MensajeService
   ) { }
 
   async onModuleInit() {
@@ -31,38 +35,77 @@ export class PedidoService {
 
   async create(createPedidoDto: CreatePedidoDto) {
     try {
-      const estado = await this.estadoRepository.findOne({ where: { id: createPedidoDto.estadoId } })
+      const estado = await this.estadoRepository.findOne({
+        where: { id: createPedidoDto.estadoId },
+      });
 
-      if (!estado) throw new BadRequestException("no existe un estado con ese id")
+      const tipoServicio = await this.tipoServicioRepository.findOne({
+        where: { id: createPedidoDto.tipo_servicioId },
+      });
 
-      const newPedido = new Pedido;
+      if (!estado) {
+        throw new BadRequestException('No existe un estado con ese id');
+      }
 
-      newPedido.confirmado = createPedidoDto.confirmado
-      newPedido.cliente_id = createPedidoDto.clienteId
-      newPedido.estado = estado;
-      newPedido.tipo_servicio_id = createPedidoDto.tipo_servicioId,
-        newPedido.fecha = createPedidoDto.fecha ? createPedidoDto.fecha : new Date()
-      newPedido.infoLinesJson = createPedidoDto.responseJSON
+      if (!tipoServicio) {
+        throw new BadRequestException('No existe un tipo de servicio con ese id');
+      }
+   
+      const crearNuevoPedido = async (products) => {
+        const newPedido = new Pedido();
+        newPedido.confirmado = createPedidoDto.confirmado;
+        newPedido.cliente_id = createPedidoDto.clienteId;
+        newPedido.estado = estado;
+        newPedido.tipo_servicio_id = createPedidoDto.tipo_servicioId;
+        newPedido.infoLinesJson = JSON.stringify(products);
+        newPedido.fecha = createPedidoDto.empresaType === "RESERVA" ? products[0].fecha : new Date() 
+        
+        const savedPedido = await this.pedidoRepository.save(newPedido);
+        
+        await Promise.all(
+          products.map((product) =>
+            this.productoPedidoService.create({
+              cantidad: product.cantidad,
+              productoId: product.productoId,
+              pedidoId: savedPedido.id,
+              detalle: product.detalle,
+            })
+          )
+        );
 
-      await this.pedidoRepository.save(newPedido);
+        const {data : newchat} = await this.chatServices.create({pedidoId:newPedido.id})
 
-      // ahora creamoos los productos.servicio:
-      await Promise.all(
-        createPedidoDto.products.map((prod) =>
-          this.productoPedidoService.create({
-            cantidad: prod.cantidad,
-            productoId: prod.productoId,
-            pedidoId: newPedido.id,
-            detalle: prod.detalle,
-          })
-        )
-      );
+        //crear mensasjes
+        await Promise.all(
+          createPedidoDto.messages.map((messasge) =>
+            this.mensajesService.create({
+              chat: newchat.id,
+              isClient: messasge.isClient,
+              mensaje: messasge.text
+            })
+          )
+        );
+        return savedPedido;
+      };
+
+      if(tipoServicio.tipo === 'RESERVA')  {
+        if (createPedidoDto.products.length > 1) {
+          for (const product of createPedidoDto.products) {
+            await crearNuevoPedido([product]); 
+          }
+        } else {
+          await crearNuevoPedido(createPedidoDto.products);
+        }
+      } else {
+
+      }
 
       return {
         statusCode: 200,
         ok: true,
         message: 'Pedido creado exitosamente',
-      };
+      }
+      
     } catch (error) {
       throw new BadRequestException({
         ok: false,
@@ -72,30 +115,28 @@ export class PedidoService {
       });
     }
   }
+  
 
-  async consultarHorario(hora, productos) {
+  async consultarHorario(hora, producto) {
     const allServices = await this.pedidoRepository.find({
       relations: ['pedidosprod', 'pedidosprod.producto'],
     });
 
     let duracionMinutos;
     let isAviable = true;
-    productos.map(async (prod) => {
-      const producto = await this.productoRespitory.findOne({ where: { id: prod.id } })
-      duracionMinutos += producto.plazoDuracionEstimadoMinutos;
-    })
+
+    const productoBD = await this.productoRespitory.findOne({ where: { id: producto.productoId } })
+    duracionMinutos += productoBD.plazoDuracionEstimadoMinutos;
+
     const horaFormated = new Date(hora);
     const horaFinSolicitadad = new Date(horaFormated)
     horaFinSolicitadad.setMinutes(horaFinSolicitadad.getMinutes() + duracionMinutos)
 
     for (const service of allServices) {
       const fechaInicial = new Date(service.fecha);
-
       for (const pedidoProd of service.pedidosprod) {
-
         const fechaFinal = new Date(fechaInicial);
         fechaFinal.setMinutes(fechaFinal.getMinutes() + pedidoProd.producto.plazoDuracionEstimadoMinutos);
-
         if (
           (horaFormated < fechaFinal && horaFinSolicitadad > fechaInicial) ||
           (horaFormated >= fechaInicial && horaFormated < fechaFinal)
@@ -107,21 +148,20 @@ export class PedidoService {
     };
 
     return {
-      "ok": true,
-      "services": allServices,
+      "ok": isAviable ? true : false,
       "isAviable": isAviable
     }
   }
 
   async findAll(empresaType) {
-    try {      
-      const tipoServicio = await this.tipoServicioRepository.findOne({where:{tipo:empresaType}})      
+    try {
+      const tipoServicio = await this.tipoServicioRepository.findOne({ where: { tipo: empresaType } })
 
-      const pedidos = await this.pedidoRepository.find({where:{tipo_servicio_id:tipoServicio.id}})
+      const pedidos = await this.pedidoRepository.find({ where: { tipo_servicio_id: tipoServicio.id } })
 
       return {
-        ok:true,
-        statusCode:200,
+        ok: true,
+        statusCode: 200,
         data: pedidos
       }
 
