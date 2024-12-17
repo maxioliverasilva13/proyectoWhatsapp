@@ -43,6 +43,7 @@ function createEnvFile(empresa) {
     API_TOKEN_INSTANCE=${empresa?.greenApiInstanceToken}
     OPEN_AI_TOKEN=${process.env.OPEN_AI_TOKEN}
     JWT_SECRET_KEY=${process.env.JWT_SECRET_KEY}
+    ASSISTANT_ID=${process.env.ASSISTANT_ID}
     ENV=qa
     DOCKER_BUILDKIT=1
     SUBDOMAIN=${empresa.db_name}
