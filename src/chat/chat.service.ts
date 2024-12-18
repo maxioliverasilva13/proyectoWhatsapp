@@ -19,33 +19,41 @@ export class ChatService {
 
   async create(createChatDto: CreateChatDto) {
     try {
-      const pedidoExist = await this.pedidoRepository.findOne({ where: { id: createChatDto.pedidoId } })
+      const pedidoExist = await this.pedidoRepository.findOne({
+        where: { id: createChatDto.pedidoId },
+        relations: ['chat'],
+      });
 
       if (!pedidoExist) {
-        throw new BadRequestException('no existe pedido con ese id')
+        throw new BadRequestException('No existe pedido con ese id');
       }
 
-      const chat = new Chat()
-      chat.pedido = pedidoExist
+      if (pedidoExist.chat) {
+        throw new BadRequestException('El pedido ya tiene un chat asociado');
+      }
+      const newChat = new Chat();
+      newChat.pedido = pedidoExist; 
 
-      await this.chatRepository.save(chat)
+      const savedChat = await this.chatRepository.save(newChat);
 
       return {
         ok: true,
         statusCode: 200,
-        message: 'pedido creado exitosamente',
-        data: chat
-      }
-
+        message: 'Chat creado exitosamente',
+        data: savedChat,
+      };
     } catch (error) {
+      console.error(error);
       throw new BadRequestException({
         ok: false,
         statusCode: 400,
-        message: error?.message,
+        message: error?.message || 'Error al crear el chat',
         error: 'Bad Request',
       });
     }
   }
+
+
 
   findAll() {
     const allChats = this.chatRepository.find()

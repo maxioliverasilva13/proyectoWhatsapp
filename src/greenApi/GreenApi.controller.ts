@@ -14,9 +14,7 @@ export class GrenApiController {
 
     @Post('/webhooks')
     async handleWebhook(@Req() request: Request, @Body() body: any) {
-        console.log('xd1', body);
         if(body.stateInstance) {
-        console.log('xd2', body.stateInstance);
             const greenApiStatus = body.stateInstance;
             console.log("greenApiStatus", greenApiStatus)
             if (greenApiStatus) {
@@ -25,13 +23,12 @@ export class GrenApiController {
             } else {
                 console.log('Hubo un problema con la configuración de la API');
             }
-        }else {
+        } else {
             const empresaId = request["empresaId"];
             const empresaType = request["empresaType"];
             const { typeWebhook, messageData, senderData } = body;
             const { sender } = senderData;
             const numberSender = sender.match(/^\d+/)[0];
-            console.log(numberSender);
             
             // Valido si el número es un número de confianza o no
             const numberExist = await this.numeroConfianza.getOne(numberSender, empresaId);

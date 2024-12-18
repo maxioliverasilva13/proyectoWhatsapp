@@ -26,7 +26,6 @@ export const askAssistant = async (question, instrucciones) => {
         }
 
         const data = await response.json();
-        console.log("Respuesta del asistente:", data.choices[0].message.content);
         return data.choices[0].message.content;
 
     } catch (error) {
@@ -35,8 +34,8 @@ export const askAssistant = async (question, instrucciones) => {
 };
 
 export async function createThread(products, infoLines) {
-    
-    const formatedText = `INFO-LINES: ${infoLines}.\nLISTA-PRODUCTOS: \n ${products}.`
+        
+    const formatedText = `INFO-LINES: ${infoLines}.` + `\n` + `LISTA-PRODUCTOS: ${products}.`
     
     const response = await fetch(`https://api.openai.com/v1/threads`, {
         method: "POST",
@@ -64,6 +63,7 @@ export async function createThread(products, infoLines) {
 }
 
 export async function sendMessageToThread(threadId, text, isAdmin) {
+
     const today = new Date().toLocaleDateString(); 
     const headers = {
         "Authorization": `Bearer ${process.env.OPEN_AI_TOKEN}`,
@@ -79,7 +79,6 @@ export async function sendMessageToThread(threadId, text, isAdmin) {
             content: `Admin:${isAdmin} \n Current_Time:${today} \n Message: ${text}`
         })
     });
-
     const response = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs`, {
         method: "POST",
         headers,
@@ -87,6 +86,7 @@ export async function sendMessageToThread(threadId, text, isAdmin) {
             assistant_id: process.env.ASSISTANT_ID
         })
     });
+
 
     if (!response.ok) {
         const errorData = await response.json();
