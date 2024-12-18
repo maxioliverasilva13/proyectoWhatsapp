@@ -24,36 +24,40 @@ export class GreenApiService {
         }
     }
 
-    async handleMessagetText(textMessage, senderData, empresaType) {
+    async handleMessagetText(textMessage, numberSender, empresaType) {
         
-        const { threadId, statusRun } = await this.chatGptThreadsService.getLastThreads(senderData);
-        const { clienteId } = await this.clienteService.createOrReturnExistClient({ empresaId: 1, nombre: "rodri", telefono: senderData })
+        const { threadId, statusRun } = await this.chatGptThreadsService.getLastThreads(numberSender);
+        
+        const { clienteId } = await this.clienteService.createOrReturnExistClient({ empresaId: 1, nombre: "rodri", telefono: numberSender })
 
         let currentThreadId = threadId;
         if (!threadId) {
             // cargo los productos
             const textProducts = await this.productoService.findAllInText()
-            const textInfoLines = await this.infoLineService.findAllFormatedText(empresaType)
-
+            const textInfoLines = await this.infoLineService.findAllFormatedText(empresaType)            
             currentThreadId = await createThread(textProducts, textInfoLines);
             await this.chatGptThreadsService.createThreads({
-                numberPhone: senderData,
+                numberPhone: numberSender,
                 threadId: currentThreadId,
             });
         }
 
         const openAIResponse = await sendMessageToThread(currentThreadId, textMessage, false);
-        
 
+        
         const cleanJSON = (jsonString: string) => {
             return jsonString
+                .replace(/```json/g, '')       
+                .replace(/```/g, '')          
                 .replace(/[\u2028\u2029]/g, '') 
                 .replace(/[“”]/g, '"')         
-                .trim();                      
+                .trim();                       
         };
+        
         let openAIResponseFormatted;
-        try {
-            const openAIResponseRaw = openAIResponse.content[0].text.value;
+        try {            
+            const openAIResponseRaw = openAIResponse.content[0].text.value;            
+            
             openAIResponseFormatted = JSON.parse(cleanJSON(openAIResponseRaw));            
         } catch (error) {
             console.error('Error al parsear el JSON:', error);
@@ -65,7 +69,7 @@ export class GreenApiService {
                 for(const items of openAIResponseFormatted.data) {
                     const res = await this.pedidoService.consultarHorario(items.fecha, items);
                     if(res.ok === false) {
-                        console.log(`para el producto ${items.nombre} la fecha ${items.fecha} no se encuentra disponible`)
+                        (`para el producto ${items.nombre} la fecha ${items.fecha} no se encuentra disponible`)
                         await sendMessageToThread(currentThreadId, `lo siento, vuelveme a solicitar la fecha para el producto ${items.nombre} ya que la fecha ${items.fecha} no se encuentra disponible`, true);
                         status = false
                         break;
@@ -74,16 +78,14 @@ export class GreenApiService {
                 if (status === false) {
                     return;
                 }
-            }
-            console.log('Hare el pedido.');
-            
-            await this.hacerPedido(currentThreadId, clienteId, openAIResponseFormatted, empresaType);
+            } else {
+                await this.hacerPedido(currentThreadId, clienteId, openAIResponseFormatted, empresaType);
+            }            
         } else {
-            console.log(openAIResponseFormatted.message);
+            console.log(openAIResponseFormatted);
         }
 
-        // actualizamos el last_updated del thread  
-        if (openAIResponseFormatted.status != 4) {
+        if (!openAIResponseFormatted?.placeOrder) {
             await this.chatGptThreadsService.updateThreadStatus(threadId)
         }
     }
@@ -101,6 +103,5 @@ export class GreenApiService {
         })
         await closeThread(currentThreadId);
         await this.chatGptThreadsService.deleteThread(currentThreadId)
-
     }
 }

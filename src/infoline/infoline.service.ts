@@ -68,7 +68,7 @@ export class InfolineService {
 
       allInfoLines.map((infoLine) => {
         text += `\n${infoLine.nombre}`
-      })
+      })      
       return text
     } catch (error) {
       console.log('error', error);

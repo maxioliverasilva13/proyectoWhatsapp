@@ -50,8 +50,8 @@ export class PedidoService {
       if (!tipoServicio) {
         throw new BadRequestException('No existe un tipo de servicio con ese id');
       }
-   
       const crearNuevoPedido = async (products) => {
+
         const newPedido = new Pedido();
         newPedido.confirmado = createPedidoDto.confirmado;
         newPedido.cliente_id = createPedidoDto.clienteId;
@@ -61,30 +61,46 @@ export class PedidoService {
         newPedido.fecha = createPedidoDto.empresaType === "RESERVA" ? products[0].fecha : new Date() 
         
         const savedPedido = await this.pedidoRepository.save(newPedido);
+
+        try {
+          await Promise.all(
+            products.map((product) =>
+              this.productoPedidoService.create({
+                cantidad: product.cantidad,
+                productoId: product.productoId,
+                pedidoId: savedPedido.id,
+                detalle: product.detalle,
+              })
+            )
+          );
+          console.log('productos creados correctamente');
+        } catch (error) {
+          console.error('Error al crear productos:', error);
+        }
         
-        await Promise.all(
-          products.map((product) =>
-            this.productoPedidoService.create({
-              cantidad: product.cantidad,
-              productoId: product.productoId,
-              pedidoId: savedPedido.id,
-              detalle: product.detalle,
-            })
-          )
-        );
-
-        const {data : newchat} = await this.chatServices.create({pedidoId:newPedido.id})
-
-        //crear mensasjes
-        await Promise.all(
-          createPedidoDto.messages.map((messasge) =>
-            this.mensajesService.create({
-              chat: newchat.id,
-              isClient: messasge.isClient,
-              mensaje: messasge.text
-            })
-          )
-        );
+        try {
+          
+          const { data } = await this.chatServices.create({ pedidoId: savedPedido.id });
+          console.log('nuevo chat creado');
+          
+          try {
+            await Promise.all(
+              createPedidoDto.messages.map((message) =>
+                this.mensajesService.create({
+                  chat: data.id,
+                  isClient: message.isClient,
+                  mensaje: message.text,
+                })
+              )
+            );
+            console.log('mensajes creados correctamente');
+          } catch (error) {
+            console.error('Error al crear mensajes:', error);
+          }
+        } catch (error) {
+          console.error('Error al crear chat:', error);
+        }
+        
         return savedPedido;
       };
 
@@ -97,8 +113,9 @@ export class PedidoService {
           await crearNuevoPedido(createPedidoDto.products);
         }
       } else {
-
+        await crearNuevoPedido(createPedidoDto.products);
       }
+
 
       return {
         statusCode: 200,

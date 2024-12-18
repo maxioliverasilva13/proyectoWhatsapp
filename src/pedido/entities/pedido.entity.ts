@@ -3,7 +3,7 @@ import { Chat } from "src/chat/entities/chat.entity";
 import { Estado } from "src/estado/entities/estado.entity";
 import { ProductoPedido } from "src/productopedido/entities/productopedido.entity";
 import { BaseEntity } from "src/utils/base.entity";
-import { Column, Entity, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity('pedido')
 export class Pedido extends BaseEntity {
@@ -35,6 +35,7 @@ export class Pedido extends BaseEntity {
     fecha : Date
 
     @OneToOne(() => Chat, (chat) => chat.pedido)
+    @JoinColumn() 
     chat: Chat;
 
     @OneToMany(() => ProductoPedido, (prod) => prod.pedido)
