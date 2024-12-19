@@ -81,9 +81,12 @@ export class AuthService {
       let paymentMade = false;
       let apiUrl = "";
       let greenApiConfigured = true
+      let tipo_servicio;
+
       if (user.id_empresa) {
         const empresa = await this.empresaRepository.findOne({ where: { id: user.id_empresa } });
         if (empresa) {
+          tipo_servicio = empresa.tipoServicioId
           apiConfigured = empresa.apiConfigured
           apiUrl = `${process.env.ENV === "dev" ? "http" : "https"}://${process.env.VIRTUAL_HOST?.replace("app", empresa?.db_name)}`
         }
@@ -114,10 +117,11 @@ export class AuthService {
         ...newUser,
         apiUrl: apiUrl,
         apiConfigured,
+        tipo_servicio: tipo_servicio,
         paymentMade,
         userConfigured,
         greenApiConfigured,
-        globalConfig: greenApiConfigured && userConfigured && paymentMade && apiConfigured
+        globalConfig: greenApiConfigured && userConfigured && paymentMade && apiConfigured,
       }
     } catch (error) {
       throw new BadRequestException({
