@@ -7,3 +7,4 @@ export class CreateInfolineDto {
     id_tipo_servicio: number;
     tipo: TipoInfoLine;
 }
+
