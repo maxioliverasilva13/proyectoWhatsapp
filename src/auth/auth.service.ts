@@ -10,13 +10,13 @@ import { Empresa } from 'src/empresa/entities/empresa.entity';
 import { EmailService } from 'src/emailqueue/email.service';
 import { Plan } from 'src/plan/entities/plan.entity';
 import { PlanEmpresa } from 'src/planEmpresa/entities/planEmpresa.entity';
+import { Tiposervicio } from 'src/tiposervicio/entities/tiposervicio.entity';
 
 @Injectable()
 export class AuthService {
   private empresaRepository: Repository<Empresa>
   private planesRepository: Repository<Plan>
   private planesEmpresaRepository: Repository<PlanEmpresa>
-
 
   async onModuleInit() {
     const globalConnection = await handleGetGlobalConnection();
@@ -81,12 +81,16 @@ export class AuthService {
       let paymentMade = false;
       let apiUrl = "";
       let greenApiConfigured = true
-      let tipo_servicio;
+      let tipo_servicio = 0;
+      let tipo_servicioNombre = '';
+
 
       if (user.id_empresa) {
-        const empresa = await this.empresaRepository.findOne({ where: { id: user.id_empresa } });
+        const empresa = await this.empresaRepository.findOne({ where: { id: user.id_empresa }, relations:['tipoServicioId'] });
         if (empresa) {
-          tipo_servicio = empresa.tipoServicioId
+          tipo_servicio = empresa.tipoServicioId.id
+          tipo_servicioNombre = empresa.tipoServicioId.nombre
+
           apiConfigured = empresa.apiConfigured
           apiUrl = `${process.env.ENV === "dev" ? "http" : "https"}://${process.env.VIRTUAL_HOST?.replace("app", empresa?.db_name)}`
         }
@@ -117,7 +121,8 @@ export class AuthService {
         ...newUser,
         apiUrl: apiUrl,
         apiConfigured,
-        tipo_servicio: tipo_servicio,
+        tipo_servicio,
+        tipo_servicioNombre,
         paymentMade,
         userConfigured,
         greenApiConfigured,
