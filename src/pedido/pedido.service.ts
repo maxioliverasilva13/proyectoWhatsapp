@@ -11,11 +11,12 @@ import { Tiposervicio } from 'src/tiposervicio/entities/tiposervicio.entity';
 import { handleGetGlobalConnection } from 'src/utils/dbConnection';
 import { ChatService } from 'src/chat/chat.service';
 import { MensajeService } from 'src/mensaje/mensaje.service';
+import { WebsocketGateway } from 'src/websocket/websocket.gatewat';
 
 @Injectable()
 export class PedidoService {
   private tipoServicioRepository: Repository<Tiposervicio>
-
+  
   constructor(
     @InjectRepository(Pedido)
     private pedidoRepository: Repository<Pedido>,
@@ -25,7 +26,8 @@ export class PedidoService {
     @InjectRepository(Producto)
     private readonly productoRespitory: Repository<Producto>,
     private readonly chatServices: ChatService,
-    private readonly mensajesService : MensajeService
+    private readonly mensajesService : MensajeService,
+    private readonly webSocketService : WebsocketGateway
   ) { }
 
   async onModuleInit() {
@@ -101,6 +103,7 @@ export class PedidoService {
           console.error('Error al crear chat:', error);
         }
         
+        this.webSocketService.sendOrder(savedPedido)
         return savedPedido;
       };
 

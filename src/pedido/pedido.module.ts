@@ -9,11 +9,11 @@ import { Producto } from 'src/producto/entities/producto.entity';
 import { Tiposervicio } from 'src/tiposervicio/entities/tiposervicio.entity';
 import { ChatModule } from 'src/chat/chat.module';
 import { MensajeModule } from 'src/mensaje/mensaje.module';
+import { WebSocketModule } from 'src/websocket/websocket.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Pedido, Estado, Producto, Tiposervicio]),ProductopedidoModule, ChatModule, MensajeModule
-  ],  
+    TypeOrmModule.forFeature([Pedido, Estado, Producto, Tiposervicio]),ProductopedidoModule, ChatModule, MensajeModule, WebSocketModule],  
   controllers: [PedidoController],
   providers: [PedidoService],
   exports:[PedidoService]
