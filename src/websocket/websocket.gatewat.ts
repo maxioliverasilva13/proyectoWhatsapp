@@ -16,10 +16,15 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
 
     }
 
-    @SubscribeMessage('greenApiSttus')
+    @SubscribeMessage('greenApiStatus')
     async sendGreenApiStatus() {
         const greenApiStatus = { status:true, timestamp: new Date() };
 
         this.server.emit('greenApiStatusResponse', greenApiStatus);
+    }
+
+    @SubscribeMessage('sendOrder')
+    async sendOrder(body : any) {
+        this.server.emit('sendOrderRealTime', body);
     }
 }   
