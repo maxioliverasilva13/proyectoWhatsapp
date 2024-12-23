@@ -213,6 +213,34 @@ export class PedidoService {
     }
   }
 
+  async confirmOrder(id) {
+    try {
+      const pedido = await this.pedidoRepository.findOne({ where: { id } })
+
+      if(!pedido) {
+       throw new BadRequestException('There is no order with that ID')
+      }
+
+      pedido.confirmado = true
+
+      await this.pedidoRepository.save(pedido)
+
+      return {
+        ok: true,
+        statusCode: 200,
+        data: pedido
+      }
+
+    } catch (error) {
+      throw new BadRequestException({
+        ok: false,
+        statusCode: 400,
+        message: error?.message || 'Error al crear el pedido',
+        error: 'Bad Request',
+      });
+    }
+  }
+
   findOne(id: number) {
     return `This action returns a #${id} pedido 1`;
   }

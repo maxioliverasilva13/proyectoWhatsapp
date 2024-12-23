@@ -29,6 +29,11 @@ export class PedidoController {
     return this.pedidoService.consultarHorario(date,producto);
   }
 
+  @Get('/confirm/:id')
+  confirmOrder(@Param('id') id: number ) {
+    return this.pedidoService.confirmOrder(id);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.pedidoService.findOne(+id);
