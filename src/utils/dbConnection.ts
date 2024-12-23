@@ -16,10 +16,9 @@ export const handleGetConnectionValuesToCreateEmpresaDb = () => {
 
 export const handleGetConnection = async () => {
   const env = process.env.SUBDOMAIN;
-  const host = env === 'app' ? `${process.env.POSTGRES_GLOBAL_DB_HOST}` : `${env}-db`;
   const params = {
     type: 'postgres',
-    host: host,
+    host: `${process.env.POSTGRES_GLOBAL_DB_HOST}`,
     port: env === 'app' ? Number(process.env.POSTGRES_GLOBAL_DB_PORT || 5432) : 5432,
     entities:
       env === 'app' ? ENTITIES_TO_MAP_GLOBAL_DB : ENTITIES_TO_MAP_EMPRESA_DB,
