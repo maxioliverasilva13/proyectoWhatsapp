@@ -28,8 +28,6 @@ services:
       - traefik.http.services.${SUBDOMAIN}-service.loadbalancer.server.port=3000
       - traefik.http.routers.${SUBDOMAIN}-router.tls=true
       - traefik.http.routers.${SUBDOMAIN}-router.tls.certresolver=myresolver
-    depends_on:
-      - db
     networks:
       - app-network
     restart: always
