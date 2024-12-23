@@ -15,14 +15,17 @@ import { WebsocketGateway } from 'src/websocket/websocket.gatewat';
 import { Cambioestadopedido } from 'src/cambioestadopedido/entities/cambioestadopedido.entity';
 import { Chat } from 'src/chat/entities/chat.entity';
 import { ProductoPedido } from 'src/productopedido/entities/productopedido.entity';
+import { Mensaje } from 'src/mensaje/entities/mensaje.entity';
 
 @Injectable()
 export class PedidoService {
   private tipoServicioRepository: Repository<Tiposervicio>
-
+  
   constructor(
     @InjectRepository(Pedido)
     private pedidoRepository: Repository<Pedido>,
+    @InjectRepository(Mensaje)
+    private mensajeRepository: Repository<Mensaje>,
     @InjectRepository(Estado)
     private estadoRepository: Repository<Estado>,
     @InjectRepository(Cambioestadopedido)
@@ -262,7 +265,7 @@ export class PedidoService {
     try {
       const pedidoExist = await this.pedidoRepository.findOne({
         where: { id: id },
-        relations: ['cambioEstados', 'chat', 'pedidosprod'], 
+        relations: ['cambioEstados', 'chat', 'chat.mensajes', 'pedidosprod'],
       });
   
       if (!pedidoExist) {
@@ -272,6 +275,12 @@ export class PedidoService {
       if (pedidoExist.cambioEstados.length > 0) {
         await this.cambioEstadoRepository.delete({
           pedido: { id: pedidoExist.id },
+        });
+      }
+  
+      if (pedidoExist.chat?.mensajes.length > 0) {
+        await this.mensajeRepository.delete({
+          chat: { id: pedidoExist.chat.id },
         });
       }
   
