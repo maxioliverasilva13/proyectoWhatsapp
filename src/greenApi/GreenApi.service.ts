@@ -80,7 +80,7 @@ export class GreenApiService {
                 }
             } else {
                 await this.hacerPedido(currentThreadId, clienteId, openAIResponseFormatted, empresaType);
-            }            
+            }
         } else {
             console.log(openAIResponseFormatted);
         }
