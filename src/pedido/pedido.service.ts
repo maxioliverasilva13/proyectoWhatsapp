@@ -16,7 +16,7 @@ import { WebsocketGateway } from 'src/websocket/websocket.gatewat';
 @Injectable()
 export class PedidoService {
   private tipoServicioRepository: Repository<Tiposervicio>
-  
+
   constructor(
     @InjectRepository(Pedido)
     private pedidoRepository: Repository<Pedido>,
@@ -26,8 +26,8 @@ export class PedidoService {
     @InjectRepository(Producto)
     private readonly productoRespitory: Repository<Producto>,
     private readonly chatServices: ChatService,
-    private readonly mensajesService : MensajeService,
-    private readonly webSocketService : WebsocketGateway
+    private readonly mensajesService: MensajeService,
+    private readonly webSocketService: WebsocketGateway
   ) { }
 
   async onModuleInit() {
@@ -60,8 +60,8 @@ export class PedidoService {
         newPedido.estado = estado;
         newPedido.tipo_servicio_id = createPedidoDto.tipo_servicioId;
         newPedido.infoLinesJson = JSON.stringify(products);
-        newPedido.fecha = createPedidoDto.empresaType === "RESERVA" ? products[0].fecha : new Date() 
-        
+        newPedido.fecha = createPedidoDto.empresaType === "RESERVA" ? products[0].fecha : new Date()
+
         const savedPedido = await this.pedidoRepository.save(newPedido);
 
         try {
@@ -79,12 +79,12 @@ export class PedidoService {
         } catch (error) {
           console.error('Error al crear productos:', error);
         }
-        
+
         try {
-          
+
           const { data } = await this.chatServices.create({ pedidoId: savedPedido.id });
           console.log('nuevo chat creado');
-          
+
           try {
             await Promise.all(
               createPedidoDto.messages.map((message) =>
@@ -102,15 +102,15 @@ export class PedidoService {
         } catch (error) {
           console.error('Error al crear chat:', error);
         }
-        
+
         this.webSocketService.sendOrder(savedPedido)
         return savedPedido;
       };
 
-      if(tipoServicio.tipo === 'RESERVA')  {
+      if (tipoServicio.tipo === 'RESERVA') {
         if (createPedidoDto.products.length > 1) {
           for (const product of createPedidoDto.products) {
-            await crearNuevoPedido([product]); 
+            await crearNuevoPedido([product]);
           }
         } else {
           await crearNuevoPedido(createPedidoDto.products);
@@ -125,7 +125,7 @@ export class PedidoService {
         ok: true,
         message: 'Pedido creado exitosamente',
       }
-      
+
     } catch (error) {
       throw new BadRequestException({
         ok: false,
@@ -135,7 +135,7 @@ export class PedidoService {
       });
     }
   }
-  
+
 
   async consultarHorario(hora, producto) {
     const allServices = await this.pedidoRepository.find({
@@ -173,11 +173,33 @@ export class PedidoService {
     }
   }
 
-  async findAll(empresaType) {
+  async findAllPedning(empresaType) {
     try {
       const tipoServicio = await this.tipoServicioRepository.findOne({ where: { tipo: empresaType } })
 
-      const pedidos = await this.pedidoRepository.find({ where: { tipo_servicio_id: tipoServicio.id } })
+      const pedidos = await this.pedidoRepository.find({ where: { tipo_servicio_id: tipoServicio.id, confirmado: false } })
+
+      return {
+        ok: true,
+        statusCode: 200,
+        data: pedidos
+      }
+
+    } catch (error) {
+      throw new BadRequestException({
+        ok: false,
+        statusCode: 400,
+        message: error?.message || 'Error al crear el pedido',
+        error: 'Bad Request',
+      });
+    }
+  }
+
+  async findAllFinish(empresaType) {
+    try {
+      const tipoServicio = await this.tipoServicioRepository.findOne({ where: { tipo: empresaType } })
+
+      const pedidos = await this.pedidoRepository.find({ where: { tipo_servicio_id: tipoServicio.id, confirmado: true } })
 
       return {
         ok: true,
@@ -203,7 +225,28 @@ export class PedidoService {
     return `This action updates a #${id} pedido 2`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} pedido 3`;
+  async remove(id: number) {
+    try {
+      const pedidoExist = await this.pedidoRepository.findOne({where:{id:id}})
+      if(!pedidoExist) {
+        throw new BadRequestException('There is no order with that id')
+      } 
+
+      await this.pedidoRepository.delete({id:id})
+
+      return {
+        ok: true,
+        message: "Order deleted successfully",
+        statusCode: 200
+      }
+
+    } catch (error) {
+      throw new BadRequestException({
+        ok: false,
+        statusCode: 400,
+        message: error?.message || 'Error al crear el pedido',
+        error: 'Bad Request',
+      });
+    }
   }
 }
