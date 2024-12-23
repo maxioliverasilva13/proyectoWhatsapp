@@ -7,7 +7,7 @@ import { runSeeders } from 'typeorm-extension';
 export const handleGetConnectionValuesToCreateEmpresaDb = () => {
   return {
     host: 'db-global',
-    port: 5432,
+    port: Number(process.env.POSTGRES_GLOBAL_DB_PORT || 5432),
     database: process.env.DB_DATABASE || 'postgres',
     user: process.env.POSTGRES_USER,
     password: process.env.POSTGRES_PASSWORD,
@@ -19,7 +19,7 @@ export const handleGetConnection = async () => {
   const params = {
     type: 'postgres',
     host: `${process.env.POSTGRES_GLOBAL_DB_HOST}`,
-    port: env === 'app' ? Number(process.env.POSTGRES_GLOBAL_DB_PORT || 5432) : 5432,
+    port: Number(process.env.POSTGRES_GLOBAL_DB_PORT || 5432) || 5432,
     entities:
       env === 'app' ? ENTITIES_TO_MAP_GLOBAL_DB : ENTITIES_TO_MAP_EMPRESA_DB,
     synchronize: true,
