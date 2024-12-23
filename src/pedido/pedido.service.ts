@@ -12,6 +12,9 @@ import { handleGetGlobalConnection } from 'src/utils/dbConnection';
 import { ChatService } from 'src/chat/chat.service';
 import { MensajeService } from 'src/mensaje/mensaje.service';
 import { WebsocketGateway } from 'src/websocket/websocket.gatewat';
+import { Cambioestadopedido } from 'src/cambioestadopedido/entities/cambioestadopedido.entity';
+import { Chat } from 'src/chat/entities/chat.entity';
+import { ProductoPedido } from 'src/productopedido/entities/productopedido.entity';
 
 @Injectable()
 export class PedidoService {
@@ -22,6 +25,12 @@ export class PedidoService {
     private pedidoRepository: Repository<Pedido>,
     @InjectRepository(Estado)
     private estadoRepository: Repository<Estado>,
+    @InjectRepository(Cambioestadopedido)
+    private cambioEstadoRepository : Repository<Cambioestadopedido>,
+    @InjectRepository(Chat)
+    private chatRepository : Repository<Chat>,
+    @InjectRepository(ProductoPedido)
+    private productoPedidoRepository : Repository<ProductoPedido>,
     private readonly productoPedidoService: ProductopedidoService,
     @InjectRepository(Producto)
     private readonly productoRespitory: Repository<Producto>,
@@ -251,26 +260,46 @@ export class PedidoService {
 
   async remove(id: number) {
     try {
-      const pedidoExist = await this.pedidoRepository.findOne({where:{id:id}})
-      if(!pedidoExist) {
-        throw new BadRequestException('There is no order with that id')
-      } 
-
-      await this.pedidoRepository.delete({id:id})
-
+      const pedidoExist = await this.pedidoRepository.findOne({
+        where: { id: id },
+        relations: ['cambioEstados', 'chat', 'pedidosprod'], 
+      });
+  
+      if (!pedidoExist) {
+        throw new BadRequestException('There is no order with that id');
+      }
+  
+      if (pedidoExist.cambioEstados.length > 0) {
+        await this.cambioEstadoRepository.delete({
+          pedido: { id: pedidoExist.id },
+        });
+      }
+  
+      if (pedidoExist.chat) {
+        await this.chatRepository.delete({ id: pedidoExist.chat.id });
+      }
+  
+      if (pedidoExist.pedidosprod.length > 0) {
+        await this.productoPedidoRepository.delete({
+          pedido: { id: pedidoExist.id },
+        });
+      }
+  
+      await this.pedidoRepository.delete({ id: id });
+  
       return {
         ok: true,
-        message: "Order deleted successfully",
-        statusCode: 200
-      }
-
+        message: 'Order deleted successfully',
+        statusCode: 200,
+      };
     } catch (error) {
       throw new BadRequestException({
         ok: false,
         statusCode: 400,
-        message: error?.message || 'Error al crear el pedido',
+        message: error?.message || 'Error while deleting the order',
         error: 'Bad Request',
       });
     }
   }
+  
 }
