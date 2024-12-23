@@ -199,7 +199,7 @@ export class PedidoService {
     try {
       const tipoServicio = await this.tipoServicioRepository.findOne({ where: { tipo: empresaType } })
 
-      const pedidos = await this.pedidoRepository.find({ where: { tipo_servicio_id: tipoServicio.id, confirmado: true } })
+      const pedidos = await this.pedidoRepository.find()
 
       return {
         ok: true,
