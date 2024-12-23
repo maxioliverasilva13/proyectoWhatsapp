@@ -88,6 +88,8 @@ export class AuthService {
       if (user.id_empresa) {
         const empresa = await this.empresaRepository.findOne({ where: { id: user.id_empresa }, relations:['tipoServicioId'] });
         if (empresa) {
+          console.log(empresa.tipoServicioId);
+          
           tipo_servicio = empresa.tipoServicioId.id
           tipo_servicioNombre = empresa.tipoServicioId.nombre
 

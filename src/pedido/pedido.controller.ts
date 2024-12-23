@@ -12,15 +12,26 @@ export class PedidoController {
     return this.pedidoService.create(createPedidoDto);
   }
 
-  @Get()
-  findAll(@Req() request : Request) {
+  @Get('/pending')
+  findAllPending(@Req() request : Request) {
     const empresaType = request['empresaType']
-    return this.pedidoService.findAll(empresaType);
+    return this.pedidoService.findAllPedning(empresaType);
+  }
+
+  @Get('/finished')
+  findAllFinish(@Req() request : Request) {
+    const empresaType = request['empresaType']
+    return this.pedidoService.findAllFinish(empresaType);
   }
 
   @Get('aviableDate')
-  disponible(@Query('date') date: Date) {
-    return this.pedidoService.consultarHorario(date, "xd");
+  disponible(@Query('date') date: Date, @Body() producto : any ) {
+    return this.pedidoService.consultarHorario(date,producto);
+  }
+
+  @Get('/confirm/:id')
+  confirmOrder(@Param('id') id: number ) {
+    return this.pedidoService.confirmOrder(id);
   }
 
   @Get(':id')
