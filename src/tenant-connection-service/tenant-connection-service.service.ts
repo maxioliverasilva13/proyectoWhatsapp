@@ -7,45 +7,45 @@ export class TenantConnectionService {
   constructor() {}
   async createInfraEmpresa(empresa_prefix: string) {
     try {
-      const dbName = `${empresa_prefix}_db`;
-      const containerName = `nest_${empresa_prefix}`;
-      const docker = new Docker();
+      // const dbName = `${empresa_prefix}_db`;
+      // const containerName = `nest_${empresa_prefix}`;
+      // const docker = new Docker();
 
-      await Docker.createContainer({
-        Image: 'postgres:13',
-        name: `${dbName}`,
-        Env: [
-          `POSTGRES_USER=${empresa_prefix}_user`,
-          `POSTGRES_PASSWORD=${empresa_prefix}_pass`,
-          `POSTGRES_DB=${dbName}`,
-        ],
-        HostConfig: {
-          NetworkMode: 'app-network',
-        },
-      });
+      // await Docker.createContainer({
+      //   Image: 'postgres:13',
+      //   name: `${dbName}`,
+      //   Env: [
+      //     `POSTGRES_USER=${empresa_prefix}_user`,
+      //     `POSTGRES_PASSWORD=${empresa_prefix}_pass`,
+      //     `POSTGRES_DB=${dbName}`,
+      //   ],
+      //   HostConfig: {
+      //     NetworkMode: 'app-network',
+      //   },
+      // });
 
-      await docker.createContainer({
-        Image: 'nest-backend-image',
-        name: containerName,
-        Env: [
-          `POSTGRES_USER=${process.env.POSTGRES_USER}`,
-          `POSTGRES_PASSWORD=${process.env.POSTGRES_PASSWORD}`,
-          `POSTGRES_DB=${process.env.POSTGRES_DB}`,
-          `POSTGRES_USER_GLOBAL=${process.env.POSTGRES_USER_GLOBAL}`,
-          `POSTGRES_PASSWORD_GLOBAL=${process.env.POSTGRES_PASSWORD_GLOBAL}`,
-          `POSTGRES_DB_GLOBAL: ${process.env.POSTGRES_DB_GLOBAL}`,
-          `SUBDOMAIN=${empresa_prefix}`,
-          `VIRTUAL_HOST=${empresa_prefix}.whatsproy.com`,
-          `NODE_ENV=prod`,
-        ],
-        HostConfig: {
-          NetworkMode: 'app-network',
-        },
-      });
+      // await docker.createContainer({
+      //   Image: 'nest-backend-image',
+      //   name: containerName,
+      //   Env: [
+      //     `POSTGRES_USER=${process.env.POSTGRES_USER}`,
+      //     `POSTGRES_PASSWORD=${process.env.POSTGRES_PASSWORD}`,
+      //     `POSTGRES_DB=${process.env.POSTGRES_DB}`,
+      //     `POSTGRES_USER_GLOBAL=${process.env.POSTGRES_USER_GLOBAL}`,
+      //     `POSTGRES_PASSWORD_GLOBAL=${process.env.POSTGRES_PASSWORD_GLOBAL}`,
+      //     `POSTGRES_DB_GLOBAL: ${process.env.POSTGRES_DB_GLOBAL}`,
+      //     `SUBDOMAIN=${empresa_prefix}`,
+      //     `VIRTUAL_HOST=${empresa_prefix}.whatsproy.com`,
+      //     `NODE_ENV=prod`,
+      //   ],
+      //   HostConfig: {
+      //     NetworkMode: 'app-network',
+      //   },
+      // });
 
       // Iniciar los contenedores
-      await docker.getContainer(dbName).start();
-      await docker.getContainer(containerName).start();
+      // await docker.getContainer(dbName).start();
+      // await docker.getContainer(containerName).start();
       return true;
     } catch (error: any) {
       console.log(`error creating infrasturcutre to ${empresa_prefix}`);
