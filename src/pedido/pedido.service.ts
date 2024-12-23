@@ -175,9 +175,7 @@ export class PedidoService {
 
   async findAllPedning(empresaType) {
     try {
-      const tipoServicio = await this.tipoServicioRepository.findOne({ where: { tipo: empresaType } })
-
-      const pedidos = await this.pedidoRepository.find({ where: { tipo_servicio_id: tipoServicio.id, confirmado: false } })
+      const pedidos = await this.pedidoRepository.find({ where: { confirmado: false } })
 
       return {
         ok: true,
@@ -197,9 +195,7 @@ export class PedidoService {
 
   async findAllFinish(empresaType) {
     try {
-      const tipoServicio = await this.tipoServicioRepository.findOne({ where: { tipo: empresaType } })
-
-      const pedidos = await this.pedidoRepository.find()
+      const pedidos = await this.pedidoRepository.find({ where: { confirmado: true } })
 
       return {
         ok: true,
