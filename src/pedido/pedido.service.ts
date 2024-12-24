@@ -12,6 +12,10 @@ import { handleGetGlobalConnection } from 'src/utils/dbConnection';
 import { ChatService } from 'src/chat/chat.service';
 import { MensajeService } from 'src/mensaje/mensaje.service';
 import { WebsocketGateway } from 'src/websocket/websocket.gatewat';
+import { Cambioestadopedido } from 'src/cambioestadopedido/entities/cambioestadopedido.entity';
+import { Chat } from 'src/chat/entities/chat.entity';
+import { ProductoPedido } from 'src/productopedido/entities/productopedido.entity';
+import { Mensaje } from 'src/mensaje/entities/mensaje.entity';
 
 @Injectable()
 export class PedidoService {
@@ -20,14 +24,22 @@ export class PedidoService {
   constructor(
     @InjectRepository(Pedido)
     private pedidoRepository: Repository<Pedido>,
+    @InjectRepository(Mensaje)
+    private mensajeRepository: Repository<Mensaje>,
     @InjectRepository(Estado)
     private estadoRepository: Repository<Estado>,
+    @InjectRepository(Cambioestadopedido)
+    private cambioEstadoRepository : Repository<Cambioestadopedido>,
+    @InjectRepository(Chat)
+    private chatRepository : Repository<Chat>,
+    @InjectRepository(ProductoPedido)
+    private productoPedidoRepository : Repository<ProductoPedido>,
     private readonly productoPedidoService: ProductopedidoService,
     @InjectRepository(Producto)
     private readonly productoRespitory: Repository<Producto>,
     private readonly chatServices: ChatService,
-    private readonly mensajesService : MensajeService,
-    private readonly webSocketService : WebsocketGateway
+    private readonly mensajesService: MensajeService,
+    private readonly webSocketService: WebsocketGateway
   ) { }
 
   async onModuleInit() {
@@ -60,8 +72,8 @@ export class PedidoService {
         newPedido.estado = estado;
         newPedido.tipo_servicio_id = createPedidoDto.tipo_servicioId;
         newPedido.infoLinesJson = JSON.stringify(products);
-        newPedido.fecha = createPedidoDto.empresaType === "RESERVA" ? products[0].fecha : new Date() 
-        
+        newPedido.fecha = createPedidoDto.empresaType === "RESERVA" ? products[0].fecha : new Date()
+
         const savedPedido = await this.pedidoRepository.save(newPedido);
 
         try {
@@ -79,12 +91,12 @@ export class PedidoService {
         } catch (error) {
           console.error('Error al crear productos:', error);
         }
-        
+
         try {
-          
+
           const { data } = await this.chatServices.create({ pedidoId: savedPedido.id });
           console.log('nuevo chat creado');
-          
+
           try {
             await Promise.all(
               createPedidoDto.messages.map((message) =>
@@ -102,15 +114,15 @@ export class PedidoService {
         } catch (error) {
           console.error('Error al crear chat:', error);
         }
-        
+
         this.webSocketService.sendOrder(savedPedido)
         return savedPedido;
       };
 
-      if(tipoServicio.tipo === 'RESERVA')  {
+      if (tipoServicio.tipo === 'RESERVA') {
         if (createPedidoDto.products.length > 1) {
           for (const product of createPedidoDto.products) {
-            await crearNuevoPedido([product]); 
+            await crearNuevoPedido([product]);
           }
         } else {
           await crearNuevoPedido(createPedidoDto.products);
@@ -125,7 +137,7 @@ export class PedidoService {
         ok: true,
         message: 'Pedido creado exitosamente',
       }
-      
+
     } catch (error) {
       throw new BadRequestException({
         ok: false,
@@ -135,7 +147,7 @@ export class PedidoService {
       });
     }
   }
-  
+
 
   async consultarHorario(hora, producto) {
     const allServices = await this.pedidoRepository.find({
@@ -173,16 +185,62 @@ export class PedidoService {
     }
   }
 
-  async findAll(empresaType) {
+  async findAllPedning(empresaType) {
     try {
-      const tipoServicio = await this.tipoServicioRepository.findOne({ where: { tipo: empresaType } })
-
-      const pedidos = await this.pedidoRepository.find({ where: { tipo_servicio_id: tipoServicio.id } })
+      const pedidos = await this.pedidoRepository.find({ where: { confirmado: false } })
 
       return {
         ok: true,
         statusCode: 200,
         data: pedidos
+      }
+
+    } catch (error) {
+      throw new BadRequestException({
+        ok: false,
+        statusCode: 400,
+        message: error?.message || 'Error al crear el pedido',
+        error: 'Bad Request',
+      });
+    }
+  }
+
+  async findAllFinish(empresaType) {
+    try {
+      const pedidos = await this.pedidoRepository.find({ where: { confirmado: true } })
+
+      return {
+        ok: true,
+        statusCode: 200,
+        data: pedidos
+      }
+
+    } catch (error) {
+      throw new BadRequestException({
+        ok: false,
+        statusCode: 400,
+        message: error?.message || 'Error al crear el pedido',
+        error: 'Bad Request',
+      });
+    }
+  }
+
+  async confirmOrder(id) {
+    try {
+      const pedido = await this.pedidoRepository.findOne({ where: { id } })
+
+      if(!pedido) {
+       throw new BadRequestException('There is no order with that ID')
+      }
+
+      pedido.confirmado = true
+
+      await this.pedidoRepository.save(pedido)
+
+      return {
+        ok: true,
+        statusCode: 200,
+        data: pedido
       }
 
     } catch (error) {
@@ -203,7 +261,54 @@ export class PedidoService {
     return `This action updates a #${id} pedido 2`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} pedido 3`;
+  async remove(id: number) {
+    try {
+      const pedidoExist = await this.pedidoRepository.findOne({
+        where: { id: id },
+        relations: ['cambioEstados', 'chat', 'chat.mensajes', 'pedidosprod'],
+      });
+  
+      if (!pedidoExist) {
+        throw new BadRequestException('There is no order with that id');
+      }
+  
+      if (pedidoExist.cambioEstados.length > 0) {
+        await this.cambioEstadoRepository.delete({
+          pedido: { id: pedidoExist.id },
+        });
+      }
+  
+      if (pedidoExist.chat?.mensajes.length > 0) {
+        await this.mensajeRepository.delete({
+          chat: { id: pedidoExist.chat.id },
+        });
+      }
+  
+      if (pedidoExist.chat) {
+        await this.chatRepository.delete({ id: pedidoExist.chat.id });
+      }
+  
+      if (pedidoExist.pedidosprod.length > 0) {
+        await this.productoPedidoRepository.delete({
+          pedido: { id: pedidoExist.id },
+        });
+      }
+  
+      await this.pedidoRepository.delete({ id: id });
+  
+      return {
+        ok: true,
+        message: 'Order deleted successfully',
+        statusCode: 200,
+      };
+    } catch (error) {
+      throw new BadRequestException({
+        ok: false,
+        statusCode: 400,
+        message: error?.message || 'Error while deleting the order',
+        error: 'Bad Request',
+      });
+    }
   }
+  
 }

@@ -30,8 +30,8 @@ async function getCompanies() {
 
 function createEnvFile(empresa) {
   const envContent = `
-    POSTGRES_USER=${empresa.db_name}_user
-    POSTGRES_PASSWORD=${empresa.db_name}_pass
+    POSTGRES_USER=${process.env.POSTGRES_USER_GLOBAL}
+    POSTGRES_PASSWORD=${process.env.POSTGRES_PASSWORD_GLOBAL}
     POSTGRES_DB=db_${empresa.db_name}
     VIRTUAL_HOST=${empresa.db_name}.whatsproy.com
     POSTGRES_USER_GLOBAL=${process.env.POSTGRES_USER_GLOBAL}

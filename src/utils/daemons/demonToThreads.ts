@@ -3,8 +3,8 @@ import { Client } from 'pg';
 export async function DemonDeleteOldsThreads() {
     const env = process.env.SUBDOMAIN;
     const client = new Client({
-        host: env === 'app' ? `${process.env.POSTGRES_GLOBAL_DB_HOST}` : `${process.env.SUBDOMAIN}-db`,
-        port: env === 'app' ? Number(process.env.POSTGRES_GLOBAL_DB_PORT || 5432) : 5432,
+        host: process.env.POSTGRES_GLOBAL_DB_HOST,
+        port: Number(process.env.POSTGRES_GLOBAL_DB_PORT || 5432),
         user: process.env.POSTGRES_USER,
         password: process.env.POSTGRES_PASSWORD,
         database: process.env.POSTGRES_DB,
