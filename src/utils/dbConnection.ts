@@ -16,9 +16,12 @@ export const handleGetConnectionValuesToCreateEmpresaDb = () => {
 
 export const handleGetConnection = async () => {
   const env = process.env.SUBDOMAIN;
+  const isDev = process.env.ENV === 'dev';
+
+  const host = isDev ? (env === "app" ? process.env.POSTGRES_GLOBAL_DB_HOST : `${env}-db`) : `${process.env.POSTGRES_GLOBAL_DB_HOST}`;
   const params = {
     type: 'postgres',
-    host: `${process.env.POSTGRES_GLOBAL_DB_HOST}`,
+    host: host,
     port: Number(process.env.POSTGRES_GLOBAL_DB_PORT || 5432) || 5432,
     entities:
       env === 'app' ? ENTITIES_TO_MAP_GLOBAL_DB : ENTITIES_TO_MAP_EMPRESA_DB,
@@ -26,7 +29,7 @@ export const handleGetConnection = async () => {
     username: process.env.POSTGRES_USER,
     password: process.env.POSTGRES_PASSWORD,
     database: process.env.POSTGRES_DB,
-    ...(process.env.ENV !== 'dev' ? {
+    ...(!isDev ? {
       ssl: {
         rejectUnauthorized: false,
       },
