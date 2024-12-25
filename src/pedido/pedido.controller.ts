@@ -34,6 +34,11 @@ export class PedidoController {
     return this.pedidoService.confirmOrder(id);
   }
 
+  @Get('/details/:id')
+  getDetailsOfOrder(@Param('id') id: number ) {
+    return this.pedidoService.getDetailsOfOrder(id);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.pedidoService.findOne(+id);

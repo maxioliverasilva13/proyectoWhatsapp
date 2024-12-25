@@ -14,10 +14,11 @@ import { Chat } from 'src/chat/entities/chat.entity';
 import { ProductoPedido } from 'src/productopedido/entities/productopedido.entity';
 import { Cambioestadopedido } from 'src/cambioestadopedido/entities/cambioestadopedido.entity';
 import { Mensaje } from 'src/mensaje/entities/mensaje.entity';
+import { Cliente } from 'src/cliente/entities/cliente.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Pedido, Estado, Producto, Tiposervicio, Chat, ProductoPedido, Cambioestadopedido, Mensaje]),ProductopedidoModule, ChatModule, MensajeModule, WebSocketModule],  
+    TypeOrmModule.forFeature([Pedido, Estado, Producto, Tiposervicio, Chat, ProductoPedido, Cambioestadopedido, Mensaje, Cliente]),ProductopedidoModule, ChatModule, MensajeModule, WebSocketModule],  
   controllers: [PedidoController],
   providers: [PedidoService],
   exports:[PedidoService]

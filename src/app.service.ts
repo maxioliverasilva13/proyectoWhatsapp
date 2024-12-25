@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Interval } from '@nestjs/schedule';
-import { DemonDeleteOldsThreads } from './utils/demonToThreads';
+import { DemonDeleteOldsThreads } from './utils/daemons/demonToThreads';
 import { OpenOrClose } from './utils/demonOpenOrClose';
 
 @Injectable()

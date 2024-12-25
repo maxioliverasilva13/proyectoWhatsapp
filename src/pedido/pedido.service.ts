@@ -16,11 +16,12 @@ import { Cambioestadopedido } from 'src/cambioestadopedido/entities/cambioestado
 import { Chat } from 'src/chat/entities/chat.entity';
 import { ProductoPedido } from 'src/productopedido/entities/productopedido.entity';
 import { Mensaje } from 'src/mensaje/entities/mensaje.entity';
+import { Cliente } from 'src/cliente/entities/cliente.entity';
 
 @Injectable()
 export class PedidoService {
   private tipoServicioRepository: Repository<Tiposervicio>
-  
+  private clienteRepository : Repository<Cliente>
   constructor(
     @InjectRepository(Pedido)
     private pedidoRepository: Repository<Pedido>,
@@ -29,11 +30,11 @@ export class PedidoService {
     @InjectRepository(Estado)
     private estadoRepository: Repository<Estado>,
     @InjectRepository(Cambioestadopedido)
-    private cambioEstadoRepository : Repository<Cambioestadopedido>,
+    private cambioEstadoRepository: Repository<Cambioestadopedido>,
     @InjectRepository(Chat)
-    private chatRepository : Repository<Chat>,
+    private chatRepository: Repository<Chat>,
     @InjectRepository(ProductoPedido)
-    private productoPedidoRepository : Repository<ProductoPedido>,
+    private productoPedidoRepository: Repository<ProductoPedido>,
     private readonly productoPedidoService: ProductopedidoService,
     @InjectRepository(Producto)
     private readonly productoRespitory: Repository<Producto>,
@@ -45,6 +46,7 @@ export class PedidoService {
   async onModuleInit() {
     const globalConnection = await handleGetGlobalConnection();
     this.tipoServicioRepository = globalConnection.getRepository(Tiposervicio);
+    this.clienteRepository = globalConnection.getRepository(Cliente)
   }
 
   async create(createPedidoDto: CreatePedidoDto) {
@@ -185,6 +187,61 @@ export class PedidoService {
     }
   }
 
+  async getDetailsOfOrder(id: number) {
+    try {
+      console.log(id);
+      
+      const pedidoExist = await this.pedidoRepository.findOne({where:{id: id}, relations: ['cambioEstados', 'chat', 'pedidosprod'] })
+      if(!pedidoExist) {
+        throw new BadRequestException("No existe un pedido con esse id")
+      }
+      const getClient  = await this.clienteRepository.findOne({where:{id: pedidoExist.cliente_id}})
+      let total = 0;
+      let estimateTime = 0; 
+      const pedidosProdFormated = await Promise.all(
+        pedidoExist.pedidosprod.map(async (data) => {
+          const productoInfo = await this.productoRespitory.findOne({ where: { id: data.productoId } });
+          total += productoInfo.precio
+          estimateTime += productoInfo.plazoDuracionEstimadoMinutos
+
+          return {
+            productoInfo,
+            pedidoId: data.pedidoId,
+            detalle: data.detalle,
+            cantidad: data.cantidad,
+          };
+        }),
+      );
+
+      return {
+        ok:true,
+        statusCode:200,
+        data:{
+          client: {
+            name: getClient.nombre,
+            phone: getClient.telefono,
+            id: getClient.id
+          },
+          products : pedidosProdFormated,
+          chatId: pedidoExist.chat,
+          date: pedidoExist.fecha,
+          confirm : pedidoExist.confirmado,
+          id: pedidoExist.id,
+          estimateTime,
+          total
+        }
+      }
+
+    } catch (error) {
+      throw new BadRequestException({
+        ok: false,
+        statusCode: 400,
+        message: error?.message || 'Error al crear el pedido',
+        error: 'Bad Request',
+      });
+    }
+  }
+
   async findAllPedning(empresaType) {
     try {
       const pedidos = await this.pedidoRepository.find({ where: { confirmado: false } })
@@ -229,8 +286,8 @@ export class PedidoService {
     try {
       const pedido = await this.pedidoRepository.findOne({ where: { id } })
 
-      if(!pedido) {
-       throw new BadRequestException('There is no order with that ID')
+      if (!pedido) {
+        throw new BadRequestException('There is no order with that ID')
       }
 
       pedido.confirmado = true
@@ -267,35 +324,35 @@ export class PedidoService {
         where: { id: id },
         relations: ['cambioEstados', 'chat', 'chat.mensajes', 'pedidosprod'],
       });
-  
+
       if (!pedidoExist) {
         throw new BadRequestException('There is no order with that id');
       }
-  
+
       if (pedidoExist.cambioEstados.length > 0) {
         await this.cambioEstadoRepository.delete({
           pedido: { id: pedidoExist.id },
         });
       }
-  
+
       if (pedidoExist.chat?.mensajes.length > 0) {
         await this.mensajeRepository.delete({
           chat: { id: pedidoExist.chat.id },
         });
       }
-  
+
       if (pedidoExist.chat) {
         await this.chatRepository.delete({ id: pedidoExist.chat.id });
       }
-  
+
       if (pedidoExist.pedidosprod.length > 0) {
         await this.productoPedidoRepository.delete({
           pedido: { id: pedidoExist.id },
         });
       }
-  
+
       await this.pedidoRepository.delete({ id: id });
-  
+
       return {
         ok: true,
         message: 'Order deleted successfully',
@@ -310,5 +367,5 @@ export class PedidoService {
       });
     }
   }
-  
+
 }
