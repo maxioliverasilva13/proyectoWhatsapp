@@ -40,4 +40,8 @@ export class Pedido extends BaseEntity {
 
     @OneToMany(() => ProductoPedido, (prod) => prod.pedido)
     pedidosprod: ProductoPedido[];
+
+    @Column({default:true})
+    available : boolean
+
 }

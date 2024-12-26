@@ -244,7 +244,7 @@ export class PedidoService {
 
   async findAllPedning(empresaType) {
     try {
-      const pedidos = await this.pedidoRepository.find({ where: { confirmado: false } })
+      const pedidos = await this.pedidoRepository.find({ where: { confirmado: false,  available:true } })
 
       return {
         ok: true,
@@ -264,7 +264,7 @@ export class PedidoService {
 
   async findAllFinish(empresaType) {
     try {
-      const pedidos = await this.pedidoRepository.find({ where: { confirmado: true } })
+      const pedidos = await this.pedidoRepository.find({ where: { confirmado: true, available:true } })
 
       return {
         ok: true,
@@ -325,33 +325,9 @@ export class PedidoService {
         relations: ['cambioEstados', 'chat', 'chat.mensajes', 'pedidosprod'],
       });
 
-      if (!pedidoExist) {
-        throw new BadRequestException('There is no order with that id');
-      }
+      pedidoExist.available = false
 
-      if (pedidoExist.cambioEstados.length > 0) {
-        await this.cambioEstadoRepository.delete({
-          pedido: { id: pedidoExist.id },
-        });
-      }
-
-      if (pedidoExist.chat?.mensajes.length > 0) {
-        await this.mensajeRepository.delete({
-          chat: { id: pedidoExist.chat.id },
-        });
-      }
-
-      if (pedidoExist.chat) {
-        await this.chatRepository.delete({ id: pedidoExist.chat.id });
-      }
-
-      if (pedidoExist.pedidosprod.length > 0) {
-        await this.productoPedidoRepository.delete({
-          pedido: { id: pedidoExist.id },
-        });
-      }
-
-      await this.pedidoRepository.delete({ id: id });
+      await this.pedidoRepository.save(pedidoExist)
 
       return {
         ok: true,
