@@ -17,11 +17,12 @@ import { Chat } from 'src/chat/entities/chat.entity';
 import { ProductoPedido } from 'src/productopedido/entities/productopedido.entity';
 import { Mensaje } from 'src/mensaje/entities/mensaje.entity';
 import { Cliente } from 'src/cliente/entities/cliente.entity';
+import { Infoline } from 'src/infoline/entities/infoline.entity';
 
 @Injectable()
 export class PedidoService {
   private tipoServicioRepository: Repository<Tiposervicio>
-  private clienteRepository : Repository<Cliente>
+  private clienteRepository: Repository<Cliente>
   constructor(
     @InjectRepository(Pedido)
     private pedidoRepository: Repository<Pedido>,
@@ -67,28 +68,40 @@ export class PedidoService {
         throw new BadRequestException('No existe un tipo de servicio con ese id');
       }
       const crearNuevoPedido = async (products) => {
-
+        let direccion = '';
+        let total = 0
         const newPedido = new Pedido();
         newPedido.confirmado = createPedidoDto.confirmado;
         newPedido.cliente_id = createPedidoDto.clienteId;
         newPedido.estado = estado;
         newPedido.tipo_servicio_id = createPedidoDto.tipo_servicioId;
-        newPedido.infoLinesJson = JSON.stringify(products);
         newPedido.fecha = createPedidoDto.empresaType === "RESERVA" ? products[0].fecha : new Date()
 
         const savedPedido = await this.pedidoRepository.save(newPedido);
+        const productIds = products.map((product) => product.productoId);
+
+        const existingProducts = await this.productoRespitory.findByIds(productIds);
 
         try {
           await Promise.all(
-            products.map((product) =>
-              this.productoPedidoService.create({
+            products.map((product) => {              
+              const productExist = existingProducts.find(p => p.id === product.productoId);
+
+              if (product.direccion) {
+                direccion += `${product.direccion}, `;
+              }
+              total += productExist.precio * product.cantidad;
+
+              return this.productoPedidoService.create({
                 cantidad: product.cantidad,
                 productoId: product.productoId,
                 pedidoId: savedPedido.id,
                 detalle: product.detalle,
+                infoLinesJson: product
               })
+            }
             )
-          );
+          )
           console.log('productos creados correctamente');
         } catch (error) {
           console.error('Error al crear productos:', error);
@@ -97,7 +110,6 @@ export class PedidoService {
         try {
 
           const { data } = await this.chatServices.create({ pedidoId: savedPedido.id });
-          console.log('nuevo chat creado');
 
           try {
             await Promise.all(
@@ -117,8 +129,16 @@ export class PedidoService {
           console.error('Error al crear chat:', error);
         }
 
-        this.webSocketService.sendOrder(savedPedido)
-        return savedPedido;
+        const formatToSendFrontend = {
+          clientName: createPedidoDto.clientName,
+          direccion: direccion,
+          numberSender: createPedidoDto.numberSender,
+          total,
+          orderId: savedPedido.id
+        }
+
+        this.webSocketService.sendOrder(formatToSendFrontend)
+        return formatToSendFrontend;
       };
 
       if (tipoServicio.tipo === 'RESERVA') {
@@ -189,15 +209,13 @@ export class PedidoService {
 
   async getDetailsOfOrder(id: number) {
     try {
-      console.log(id);
-      
-      const pedidoExist = await this.pedidoRepository.findOne({where:{id: id}, relations: ['cambioEstados', 'chat', 'pedidosprod'] })
-      if(!pedidoExist) {
+      const pedidoExist = await this.pedidoRepository.findOne({ where: { id: id }, relations: ['cambioEstados', 'chat', 'pedidosprod'] })
+      if (!pedidoExist) {
         throw new BadRequestException("No existe un pedido con esse id")
       }
-      const getClient  = await this.clienteRepository.findOne({where:{id: pedidoExist.cliente_id}})
+      const getClient = await this.clienteRepository.findOne({ where: { id: pedidoExist.cliente_id } })
       let total = 0;
-      let estimateTime = 0; 
+      let estimateTime = 0;
       const pedidosProdFormated = await Promise.all(
         pedidoExist.pedidosprod.map(async (data) => {
           const productoInfo = await this.productoRespitory.findOne({ where: { id: data.productoId } });
@@ -214,18 +232,18 @@ export class PedidoService {
       );
 
       return {
-        ok:true,
-        statusCode:200,
-        data:{
+        ok: true,
+        statusCode: 200,
+        data: {
           client: {
             name: getClient.nombre,
             phone: getClient.telefono,
             id: getClient.id
           },
-          products : pedidosProdFormated,
+          products: pedidosProdFormated,
           chatId: pedidoExist.chat,
           date: pedidoExist.fecha,
-          confirm : pedidoExist.confirmado,
+          confirm: pedidoExist.confirmado,
           id: pedidoExist.id,
           estimateTime,
           total
@@ -242,21 +260,53 @@ export class PedidoService {
     }
   }
 
-  async findAllPedning(empresaType) {
+  async findAllPending(empresaType) {
     try {
-      const pedidos = await this.pedidoRepository.find({ where: { confirmado: false,  available:true } })
+      const pedidos = await this.pedidoRepository.find({
+        where: { confirmado: false, available: true },
+        relations: ['pedidosprod', 'pedidosprod.producto'],
+      });
+      
+      const clienteIds = pedidos.map((pedido) => pedido.cliente_id);
+      const clientes = await this.clienteRepository.findByIds(clienteIds);
+
+      const clienteMap = new Map(clientes.map((cliente) => [cliente.id, cliente]));
+
+      const pedidosFinal = pedidos.map((pedido) => {
+        let direcciones: string[] = [];
+        let total = 0;
+        
+        pedido.pedidosprod.forEach((producto) => {
+          
+          const infoLines = JSON.parse(producto.infoLinesJson)
+
+          if (infoLines?.direccion) {
+            direcciones.push(...direcciones, infoLines.direccion)
+          }
+          total += producto.cantidad + producto.producto.precio
+        });
+
+        const clienteData = clienteMap.get(pedido.cliente_id);
+
+        return {
+          clientName: clienteData?.nombre || 'Desconocido',
+          direccion: direcciones,
+          numberSender: clienteData?.telefono || 'N/A',
+          total,
+          orderId: pedido.id,
+        };
+      });
 
       return {
         ok: true,
         statusCode: 200,
-        data: pedidos
-      }
-
+        data: pedidosFinal,
+      };
     } catch (error) {
       throw new BadRequestException({
         ok: false,
         statusCode: 400,
-        message: error?.message || 'Error al crear el pedido',
+        message: error?.message || 'Error al obtener los pedidos',
         error: 'Bad Request',
       });
     }
@@ -264,19 +314,51 @@ export class PedidoService {
 
   async findAllFinish(empresaType) {
     try {
-      const pedidos = await this.pedidoRepository.find({ where: { confirmado: true, available:true } })
+      const pedidos = await this.pedidoRepository.find({
+        where: { confirmado: true, available: true },
+        relations: ['pedidosprod', 'pedidosprod.producto'],
+      });
+      
+      const clienteIds = pedidos.map((pedido) => pedido.cliente_id);
+      const clientes = await this.clienteRepository.findByIds(clienteIds);
+
+      const clienteMap = new Map(clientes.map((cliente) => [cliente.id, cliente]));
+
+      const pedidosFinal = pedidos.map((pedido) => {
+        let direcciones: string[] = [];
+        let total = 0;
+        
+        pedido.pedidosprod.forEach((producto) => {
+          
+          const infoLines = JSON.parse(producto.infoLinesJson)
+
+          if (infoLines?.direccion) {
+            direcciones.push(...direcciones, infoLines.direccion)
+          }
+          total += producto.cantidad + producto.producto.precio
+        });
+
+        const clienteData = clienteMap.get(pedido.cliente_id);
+
+        return {
+          clientName: clienteData?.nombre || 'Desconocido',
+          direccion: direcciones,
+          numberSender: clienteData?.telefono || 'N/A',
+          total,
+          orderId: pedido.id,
+        };
+      });
 
       return {
         ok: true,
         statusCode: 200,
-        data: pedidos
-      }
-
+        data: pedidosFinal,
+      };
     } catch (error) {
       throw new BadRequestException({
         ok: false,
         statusCode: 400,
-        message: error?.message || 'Error al crear el pedido',
+        message: error?.message || 'Error al obtener los pedidos',
         error: 'Bad Request',
       });
     }

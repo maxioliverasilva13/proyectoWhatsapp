@@ -41,7 +41,8 @@ export class GrenApiController {
                     await this.greenApi.handleMessagetText(
                         message,
                         numberSender,
-                        empresaType
+                        empresaType,
+                        empresaId
                     );
                 }
                 else if (typeWebhook === 'incomingAudioReceived') {

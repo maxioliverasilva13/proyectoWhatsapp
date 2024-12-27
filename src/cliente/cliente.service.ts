@@ -27,6 +27,7 @@ export class ClienteService {
           ok: true,
           message: 'Cliente encontrado',
           clienteId: existClient.id,
+          clientName: existClient.nombre
         };
       }
 
