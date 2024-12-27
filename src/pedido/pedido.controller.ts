@@ -15,7 +15,7 @@ export class PedidoController {
   @Get('/pending')
   findAllPending(@Req() request : Request) {
     const empresaType = request['empresaType']
-    return this.pedidoService.findAllPedning(empresaType);
+    return this.pedidoService.findAllPending(empresaType);
   }
 
   @Get('/finished')

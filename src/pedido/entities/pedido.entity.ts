@@ -25,9 +25,6 @@ export class Pedido extends BaseEntity {
     @Column()
     tipo_servicio_id: number;
 
-    @Column({ nullable: true, length: 99999 })
-    infoLinesJson: string;
-
     @Column()
     cliente_id: number;
 

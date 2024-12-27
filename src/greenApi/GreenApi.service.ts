@@ -24,11 +24,11 @@ export class GreenApiService {
         }
     }
 
-    async handleMessagetText(textMessage, numberSender, empresaType) {
+    async handleMessagetText(textMessage, numberSender, empresaType, empresaId) {
         
         const { threadId, statusRun } = await this.chatGptThreadsService.getLastThreads(numberSender);
         
-        const { clienteId } = await this.clienteService.createOrReturnExistClient({ empresaId: 1, nombre: "rodri", telefono: numberSender })
+        const { clienteId, clientName } = await this.clienteService.createOrReturnExistClient({ empresaId: empresaId, nombre:numberSender, telefono: numberSender })
 
         let currentThreadId = threadId;
         if (!threadId) {
@@ -79,7 +79,7 @@ export class GreenApiService {
                     return;
                 }
             } else {
-                await this.hacerPedido(currentThreadId, clienteId, openAIResponseFormatted, empresaType);
+                await this.hacerPedido(currentThreadId, clienteId, openAIResponseFormatted, empresaType, clientName, numberSender);
             }
         } else {
             console.log(openAIResponseFormatted);
@@ -90,16 +90,18 @@ export class GreenApiService {
         }
     }
 
-    async hacerPedido(currentThreadId, clienteId, openAIResponse, empresaType) {
+    async hacerPedido(currentThreadId, clienteId, openAIResponse, empresaType ,clientName, numberSender) {
         await this.pedidoService.create({
             clienteId: clienteId,
+            clientName: clientName,
             confirmado: false,
             estadoId: 1,
             tipo_servicioId: 1,
             responseJSON: JSON.stringify(openAIResponse),
             products: openAIResponse.data,
             empresaType,
-            messages:openAIResponse.messages
+            messages:openAIResponse.messages,
+            numberSender
         })
         await closeThread(currentThreadId);
         await this.chatGptThreadsService.deleteThread(currentThreadId)
