@@ -96,7 +96,6 @@ export class GreenApiService {
             clientName: clientName,
             confirmado: false,
             estadoId: 1,
-            tipo_servicioId: 1,
             responseJSON: JSON.stringify(openAIResponse),
             products: openAIResponse.data,
             empresaType,
