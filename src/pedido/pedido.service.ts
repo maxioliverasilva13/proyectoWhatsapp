@@ -57,7 +57,7 @@ export class PedidoService {
       });
 
       const tipoServicio = await this.tipoServicioRepository.findOne({
-        where: { id: createPedidoDto.tipo_servicioId },
+        where: { tipo: createPedidoDto.empresaType },
       });
 
       if (!estado) {
@@ -74,7 +74,7 @@ export class PedidoService {
         newPedido.confirmado = createPedidoDto.confirmado;
         newPedido.cliente_id = createPedidoDto.clienteId;
         newPedido.estado = estado;
-        newPedido.tipo_servicio_id = createPedidoDto.tipo_servicioId;
+        newPedido.tipo_servicio_id = tipoServicio.id;
         newPedido.fecha = createPedidoDto.empresaType === "RESERVA" ? products[0].fecha : new Date()
 
         const savedPedido = await this.pedidoRepository.save(newPedido);
