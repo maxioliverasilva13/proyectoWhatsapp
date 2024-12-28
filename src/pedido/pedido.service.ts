@@ -68,6 +68,7 @@ export class PedidoService {
         throw new BadRequestException('No existe un tipo de servicio con ese id');
       }
       const crearNuevoPedido = async (products) => {
+        
         let direccion = '';
         let total = 0
         const newPedido = new Pedido();
@@ -84,24 +85,32 @@ export class PedidoService {
 
         try {
           await Promise.all(
-            products.map((product) => {              
-              const productExist = existingProducts.find(p => p.id === product.productoId);
-
-              if (product.direccion) {
-                direccion += `${product.direccion}, `;
+            products.map(async (product) => {
+              try {
+                const productExist = existingProducts.find(p => p.id === product.productoId);
+          
+                if (!productExist) {
+                  throw new Error(`Producto con ID ${product.productoId} no encontrado`);
+                }
+          
+                if (product.direccion) {
+                  direccion += `${product.direccion}, `;
+                }
+                total += productExist.precio * product.cantidad;
+          
+                // Asegúrate de esperar que el producto se cree antes de continuar con el siguiente
+                await this.productoPedidoService.create({
+                  cantidad: product.cantidad,
+                  productoId: product.productoId,
+                  pedidoId: savedPedido.id,
+                  detalle: product.detalle,
+                  infoLinesJson: product
+                });
+              } catch (error) {
+                console.error('Error al crear producto:', error);
               }
-              total += productExist.precio * product.cantidad;
-
-              return this.productoPedidoService.create({
-                cantidad: product.cantidad,
-                productoId: product.productoId,
-                pedidoId: savedPedido.id,
-                detalle: product.detalle,
-                infoLinesJson: product
-              })
-            }
-            )
-          )
+            })
+          );
           console.log('productos creados correctamente');
         } catch (error) {
           console.error('Error al crear productos:', error);
@@ -129,6 +138,7 @@ export class PedidoService {
           console.error('Error al crear chat:', error);
         }
 
+        
         const formatToSendFrontend = {
           clientName: createPedidoDto.clientName,
           direccion: direccion,
@@ -281,9 +291,9 @@ export class PedidoService {
           const infoLines = JSON.parse(producto.infoLinesJson)
 
           if (infoLines?.direccion) {
-            direcciones.push(...direcciones, infoLines.direccion)
+            direcciones.push(infoLines.direccion)
           }
-          total += producto.cantidad + producto.producto.precio
+          total += producto.producto.precio * producto.cantidad 
         });
 
         const clienteData = clienteMap.get(pedido.cliente_id);
@@ -333,9 +343,9 @@ export class PedidoService {
           const infoLines = JSON.parse(producto.infoLinesJson)
 
           if (infoLines?.direccion) {
-            direcciones.push(...direcciones, infoLines.direccion)
+            direcciones.push(infoLines.direccion)
           }
-          total += producto.cantidad + producto.producto.precio
+          total += producto.producto.precio * producto.cantidad 
         });
 
         const clienteData = clienteMap.get(pedido.cliente_id);
