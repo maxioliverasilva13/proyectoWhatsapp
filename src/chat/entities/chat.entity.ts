@@ -11,7 +11,7 @@ export class Chat extends BaseEntity {
     @OneToOne(() => Pedido, (pedido) => pedido.chat)
     pedido: Pedido;
 
-    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+    @Column({ type: 'timestamp with time zone', default: () => 'CURRENT_TIMESTAMP' })
     createdAt: Date
 
     @OneToMany(() => Mensaje, (msg) => msg.chat)

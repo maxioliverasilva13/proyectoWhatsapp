@@ -15,7 +15,6 @@ export const OpenOrClose = async () => {
         const seconds = now.getSeconds().toString().padStart(2, '0');
         
         const hoursFormated = `${hours}:${minutes}:${seconds}`
-        console.log(hoursFormated);
         
         const empresas = await repoEmpresa.find();
 
