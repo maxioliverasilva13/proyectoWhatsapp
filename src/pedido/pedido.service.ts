@@ -69,7 +69,7 @@ export class PedidoService {
       }
       const crearNuevoPedido = async (products) => {
         
-        let direccion = '';
+        let direccion = [];
         let total = 0
         const newPedido = new Pedido();
         newPedido.confirmado = createPedidoDto.confirmado;
@@ -94,7 +94,7 @@ export class PedidoService {
                 }
           
                 if (product.direccion) {
-                  direccion += `${product.direccion}, `;
+                  direccion.push(product.direccion)
                 }
                 total += productExist.precio * product.cantidad;
           
