@@ -45,6 +45,9 @@ export class Empresa extends BaseEntity {
   @Column({ nullable: true })
   greenApiInstanceToken: string;
 
+  @Column({ nullable: true, default: 2 })
+  remaindersHorsRemainder: number;
+
   @Column({ default: false })
   apiConfigured: boolean;
 

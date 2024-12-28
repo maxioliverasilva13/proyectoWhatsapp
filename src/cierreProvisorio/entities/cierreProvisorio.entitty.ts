@@ -7,11 +7,11 @@ export class CierreProvisorio extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ type: 'timestamp', nullable: false })
+    @Column({ type: 'timestamp with time zone', nullable: false })
     inicio: Date
 
 
-    @Column({ type: 'timestamp', nullable: false })
+    @Column({ type: 'timestamp with time zone', nullable: false })
     final: Date
 
     @ManyToOne(()=> Empresa, (empresa)=> empresa.cierre_provisorio)

@@ -4,6 +4,35 @@ import { DataSource } from 'typeorm';
 import { runSeeders } from 'typeorm-extension';
 
 
+export const handleGetCurrentConnection = async () => {
+  const env = process.env.SUBDOMAIN;
+  const isDev = process.env.ENV === 'dev';
+
+  const host = isDev ? (env === "app" ? process.env.POSTGRES_GLOBAL_DB_HOST : `${env}-db`) : `${process.env.POSTGRES_GLOBAL_DB_HOST}`;
+  const params = {
+    type: 'postgres',
+    host: host,
+    port: Number(process.env.POSTGRES_GLOBAL_DB_PORT || 5432) || 5432,
+    entities:
+      env === 'app' ? ENTITIES_TO_MAP_GLOBAL_DB : ENTITIES_TO_MAP_EMPRESA_DB,
+    synchronize: true,
+    username: process.env.POSTGRES_USER,
+    password: process.env.POSTGRES_PASSWORD,
+    database: process.env.POSTGRES_DB,
+    ...(!isDev ? {
+      ssl: {
+        rejectUnauthorized: false,
+      },
+    } : {})
+  } as any;
+
+  const empresaConnection = new DataSource(params);
+  if (!empresaConnection.isInitialized) {
+    await empresaConnection.initialize();
+  }
+  return empresaConnection;
+};
+
 export const handleGetConnectionValuesToCreateEmpresaDb = () => {
   return {
     host: 'db-global',
