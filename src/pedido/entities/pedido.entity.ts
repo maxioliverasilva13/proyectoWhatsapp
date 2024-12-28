@@ -31,7 +31,7 @@ export class Pedido extends BaseEntity {
     @Column()
     cliente_id: number;
 
-    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+    @Column({ type: 'timestamp with time zone', default: () => 'CURRENT_TIMESTAMP' })
     fecha : Date
 
     @OneToOne(() => Chat, (chat) => chat.pedido)
