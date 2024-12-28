@@ -229,7 +229,7 @@ export class PedidoService {
       const pedidosProdFormated = await Promise.all(
         pedidoExist.pedidosprod.map(async (data) => {
           const productoInfo = await this.productoRespitory.findOne({ where: { id: data.productoId } });
-          total += productoInfo.precio
+          total += productoInfo.precio * data.cantidad
           estimateTime += productoInfo.plazoDuracionEstimadoMinutos
 
           return {
