@@ -18,7 +18,6 @@ export class ProductopedidoService {
             pedido.productoId = productoPedidoDto.productoId;
             pedido.cantidad = productoPedidoDto.cantidad;
             pedido.detalle = productoPedidoDto.detalle;
-            pedido.infoLinesJson = productoPedidoDto.infoLinesJson
 
             await this.productoPedido.save(pedido)
 

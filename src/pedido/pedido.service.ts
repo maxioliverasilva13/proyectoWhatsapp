@@ -67,17 +67,20 @@ export class PedidoService {
       if (!tipoServicio) {
         throw new BadRequestException('No existe un tipo de servicio con ese id');
       }
-      const crearNuevoPedido = async (products) => {
-        
-        let direccion = [];
+
+      const crearNuevoPedido = async (products) => {        
+        let direccion;
         let total = 0
+        const infoLineToJson = JSON.stringify(createPedidoDto.infoLinesJson)
+
         const newPedido = new Pedido();
         newPedido.confirmado = createPedidoDto.confirmado;
         newPedido.cliente_id = createPedidoDto.clienteId;
         newPedido.estado = estado;
         newPedido.tipo_servicio_id = tipoServicio.id;
         newPedido.fecha = createPedidoDto.empresaType === "RESERVA" ? products[0].fecha : new Date()
-
+        newPedido.infoLinesJson = infoLineToJson
+        
         const savedPedido = await this.pedidoRepository.save(newPedido);
         const productIds = products.map((product) => product.productoId);
 
@@ -88,23 +91,19 @@ export class PedidoService {
             products.map(async (product) => {
               try {
                 const productExist = existingProducts.find(p => p.id === product.productoId);
-          
+
                 if (!productExist) {
                   throw new Error(`Producto con ID ${product.productoId} no encontrado`);
                 }
-          
-                if (product.direccion) {
-                  direccion.push(product.direccion)
-                }
+
                 total += productExist.precio * product.cantidad;
-          
+
                 // Asegúrate de esperar que el producto se cree antes de continuar con el siguiente
                 await this.productoPedidoService.create({
                   cantidad: product.cantidad,
                   productoId: product.productoId,
                   pedidoId: savedPedido.id,
                   detalle: product.detalle,
-                  infoLinesJson: product
                 });
               } catch (error) {
                 console.error('Error al crear producto:', error);
@@ -138,10 +137,10 @@ export class PedidoService {
           console.error('Error al crear chat:', error);
         }
 
-        
+
         const formatToSendFrontend = {
           clientName: createPedidoDto.clientName,
-          direccion: direccion,
+          direccion: createPedidoDto.infoLinesJson.direccion ? createPedidoDto.infoLinesJson.direccion : 'No hay direccion',
           numberSender: createPedidoDto.numberSender,
           total,
           orderId: savedPedido.id
@@ -179,7 +178,6 @@ export class PedidoService {
       });
     }
   }
-
 
   async consultarHorario(hora, producto) {
     const allServices = await this.pedidoRepository.find({
@@ -256,7 +254,8 @@ export class PedidoService {
           confirm: pedidoExist.confirmado,
           id: pedidoExist.id,
           estimateTime,
-          total
+          total,
+          infoLines: JSON.parse(pedidoExist.infoLinesJson)
         }
       }
 
@@ -276,24 +275,19 @@ export class PedidoService {
         where: { confirmado: false, available: true },
         relations: ['pedidosprod', 'pedidosprod.producto'],
       });
-      
+
       const clienteIds = pedidos.map((pedido) => pedido.cliente_id);
       const clientes = await this.clienteRepository.findByIds(clienteIds);
 
       const clienteMap = new Map(clientes.map((cliente) => [cliente.id, cliente]));
 
       const pedidosFinal = pedidos.map((pedido) => {
-        let direcciones: string[] = [];
+        const infoLinesJson = JSON.parse(pedido.infoLinesJson);
+        const direcciones = infoLinesJson?.direccion ? infoLinesJson.direccion : "No hay direccion"
         let total = 0;
-        
-        pedido.pedidosprod.forEach((producto) => {
-          
-          const infoLines = JSON.parse(producto.infoLinesJson)
 
-          if (infoLines?.direccion) {
-            direcciones.push(infoLines.direccion)
-          }
-          total += producto.producto.precio * producto.cantidad 
+        pedido.pedidosprod.forEach((producto) => {
+          total += producto.producto.precio * producto.cantidad
         });
 
         const clienteData = clienteMap.get(pedido.cliente_id);
@@ -328,24 +322,19 @@ export class PedidoService {
         where: { confirmado: true, available: true },
         relations: ['pedidosprod', 'pedidosprod.producto'],
       });
-      
+
       const clienteIds = pedidos.map((pedido) => pedido.cliente_id);
       const clientes = await this.clienteRepository.findByIds(clienteIds);
 
       const clienteMap = new Map(clientes.map((cliente) => [cliente.id, cliente]));
 
       const pedidosFinal = pedidos.map((pedido) => {
-        let direcciones: string[] = [];
+        const infoLinesJson = JSON.parse(pedido.infoLinesJson);
+        const direcciones = infoLinesJson.direccion ? infoLinesJson.direccion : "No hay direccion"
         let total = 0;
-        
-        pedido.pedidosprod.forEach((producto) => {
-          
-          const infoLines = JSON.parse(producto.infoLinesJson)
 
-          if (infoLines?.direccion) {
-            direcciones.push(infoLines.direccion)
-          }
-          total += producto.producto.precio * producto.cantidad 
+        pedido.pedidosprod.forEach((producto) => {
+          total += producto.producto.precio * producto.cantidad
         });
 
         const clienteData = clienteMap.get(pedido.cliente_id);

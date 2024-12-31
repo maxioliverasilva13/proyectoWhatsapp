@@ -13,7 +13,7 @@ export class GrenApiController {
     ) { }
 
     @Post('/webhooks')
-    async handleWebhook(@Req() request: Request, @Body() body: any) {
+    async handleWebhook(@Req() request: Request, @Body() body: any) {        
         if(body.stateInstance) {
             const greenApiStatus = body.stateInstance;
             console.log("greenApiStatus", greenApiStatus)
@@ -28,8 +28,9 @@ export class GrenApiController {
             const empresaType = request["empresaType"];
             const { typeWebhook, messageData, senderData } = body;
             const { sender } = senderData;
-            const numberSender = sender.match(/^\d+/)[0];
             
+            const numberSender = sender.match(/^\d+/)[0];
+            const senderName = sender.senderName
             // Valido si el número es un número de confianza o no
             const numberExist = await this.numeroConfianza.getOne(numberSender, empresaId);
 
@@ -42,7 +43,8 @@ export class GrenApiController {
                         message,
                         numberSender,
                         empresaType,
-                        empresaId
+                        empresaId,
+                        senderName
                     );
                 }
                 else if (typeWebhook === 'incomingAudioReceived') {

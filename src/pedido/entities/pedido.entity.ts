@@ -41,4 +41,7 @@ export class Pedido extends BaseEntity {
     @Column({default:true})
     available : boolean
 
+    @Column({ nullable: true, length: 99999 })
+    infoLinesJson: string;
+
 }

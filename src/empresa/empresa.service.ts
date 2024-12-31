@@ -77,6 +77,7 @@ export class EmpresaService {
           id_empresa: empresaCreated?.id,
           // admin empresa
           id_rol: 2,
+          firstUser: true,
           password: hashedPassword,
         });
 
