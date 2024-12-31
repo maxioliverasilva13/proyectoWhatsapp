@@ -9,5 +9,6 @@ export class CreatePedidoDto {
     products:any[];
     empresaType: TipoPedido;
     messages: any[];
-    numberSender : number
+    numberSender : number;
+    infoLinesJson: any
 }

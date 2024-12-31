@@ -29,4 +29,7 @@ export class Usuario extends BaseEntity {
     
     @Column({ nullable: true })
     activo: boolean;
+
+    @Column({ default: false })
+    firstUser: boolean;
 }

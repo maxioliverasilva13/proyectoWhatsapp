@@ -24,11 +24,11 @@ export class GreenApiService {
         }
     }
 
-    async handleMessagetText(textMessage, numberSender, empresaType, empresaId) {
+    async handleMessagetText(textMessage, numberSender, empresaType, empresaId, senderName) {
         
-        const { threadId, statusRun } = await this.chatGptThreadsService.getLastThreads(numberSender);
+        const { threadId } = await this.chatGptThreadsService.getLastThreads(numberSender);
         
-        const { clienteId, clientName } = await this.clienteService.createOrReturnExistClient({ empresaId: empresaId, nombre:numberSender, telefono: numberSender })
+        const { clienteId, clientName } = await this.clienteService.createOrReturnExistClient({ empresaId: empresaId, nombre:senderName, telefono: numberSender })
 
         let currentThreadId = threadId;
         if (!threadId) {
@@ -43,7 +43,6 @@ export class GreenApiService {
         }
 
         const openAIResponse = await sendMessageToThread(currentThreadId, textMessage, false);
-
         
         const cleanJSON = (jsonString: string) => {
             return jsonString
@@ -62,7 +61,7 @@ export class GreenApiService {
         } catch (error) {
             console.error('Error al parsear el JSON:', error);
         }
-        
+
         if (openAIResponseFormatted?.placeOrder) {        
             if (empresaType === "RESERVA") {
                 let status = true;
@@ -100,7 +99,8 @@ export class GreenApiService {
             products: openAIResponse.data,
             empresaType,
             messages:openAIResponse.messages,
-            numberSender
+            numberSender,
+            infoLinesJson: openAIResponse.infoLines
         })
         await closeThread(currentThreadId);
         await this.chatGptThreadsService.deleteThread(currentThreadId)

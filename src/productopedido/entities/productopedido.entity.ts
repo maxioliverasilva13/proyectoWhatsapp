@@ -22,7 +22,4 @@ export class ProductoPedido extends BaseEntity {
 
     @ManyToOne(() => Pedido, (ped) => ped.pedidosprod,)
     pedido: Pedido;
-
-    @Column({ nullable: true, length: 99999 })
-    infoLinesJson: string;
 }
