@@ -13,7 +13,7 @@ export class Mensaje extends BaseEntity {
     @Column({default : false})
     isClient: boolean
 
-    @Column({default : new Date()})
+    @Column({ type: 'timestamp with time zone', default : new Date()})
     time: Date
 
     @ManyToOne(() => Chat, (chat) => chat.mensajes)
