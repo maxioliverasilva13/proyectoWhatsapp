@@ -39,6 +39,5 @@ export class Pedido extends BaseEntity {
     pedidosprod: ProductoPedido[];
 
     @Column({default:true})
-    available : boolean
-
+    available : boolean;
 }
