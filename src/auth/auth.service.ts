@@ -61,6 +61,7 @@ export class AuthService {
       ...userData,
       activo: true,
       password: hashedPassword,
+      id_rol: 2
     });
     this.emailService.sendEmail(user.correo, "Bienvenido", 'welcome')
     // delete user.password;
