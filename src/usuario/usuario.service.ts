@@ -15,7 +15,7 @@ export class UsuarioService {
 
   async create(createUsuarioDto: CreateUsuarioDto) {
     try {
-      const existUser = await this.usuarioRepository.findOne({ where: { correo: createUsuarioDto.correo } })
+      const existUser = await this.usuarioRepository.findOne({ where: { correo: createUsuarioDto.correo, id_empresa:createUsuarioDto.id_empresa } })
 
       if (existUser) {
         throw new BadRequestException('There is already a user with that email')
@@ -49,28 +49,41 @@ export class UsuarioService {
     }
   }
 
-  async findAll() {
+  async findAll(empresaId: number) {
     try {
+      
       const allUsers = await this.usuarioRepository.find({
+        where: {
+          id_empresa: empresaId,
+        },
         select: [
           "createdAt", "id", "nombre", "apellido", "correo", "id_empresa", "id_rol", "activo", "firstUser",
-        ]
-      })
-
+        ],
+      });
+  
+      if (allUsers.length === 0) {
+        return {
+          ok: false,
+          statusCode: 404,
+          message: `No se encontraron usuarios para la empresa con ID ${empresaId}`,
+        };
+      }
+  
       return {
         ok: true,
         statusCode: 200,
-        data: allUsers
-      }
+        data: allUsers,
+      };
     } catch (error) {
       throw new BadRequestException({
         ok: false,
         statusCode: 400,
-        message: error?.message || 'Error al crear el pedido',
+        message: error?.message || 'Error al buscar los usuarios',
         error: 'Bad Request',
       });
     }
   }
+  
 
   async findOne(id: number) {
     try {
