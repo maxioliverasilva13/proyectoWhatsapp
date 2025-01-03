@@ -1,10 +1,11 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { Producto } from './entities/producto.entity';
 import { CreateProductoDto } from './dto/create-producto.dto';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UpdateProductoDto } from './dto/update-producto.dto';
 import { ProductoPedido } from 'src/productopedido/entities/productopedido.entity';
+import { GetProductsDTO } from './dto/get-product-search.dto';
 
 @Injectable()
 export class ProductoService {
@@ -36,6 +37,18 @@ export class ProductoService {
 
   async findAll(): Promise<Producto[]> {
     return this.productoRepository.find();
+  }
+
+  async findAllWithQuery(data: GetProductsDTO): Promise<Producto[]> {
+    const whereCondition: any = { disponible: true, };
+
+    if (data.query) {
+      whereCondition.nombre = ILike(`%${data.query}%`);
+    }
+
+    const products = await this.productoRepository.find({ where: whereCondition });
+
+    return products;
   }
 
   async findOne(id : number) {

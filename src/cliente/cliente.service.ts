@@ -2,8 +2,9 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateClienteDto } from './dto/create-cliente.dto';
 import { UpdateClienteDto } from './dto/update-cliente.dto';
 import { Cliente } from './entities/cliente.entity';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { handleGetGlobalConnection } from 'src/utils/dbConnection';
+import { GetEmpresaDTO } from './dto/get-empresa-.dto';
 
 @Injectable()
 export class ClienteService {
@@ -54,8 +55,16 @@ export class ClienteService {
     }
   }
 
-  findAll() {
-    return `This action returns all cliente`;
+  async findAll(data: GetEmpresaDTO) {
+    const { empresaId, query } = data;
+
+    const whereCondition: any = { empresa_id: empresaId };
+    if (query) {
+      whereCondition.nombre = ILike(`%${query}%`);
+    }
+
+    const clientes = await this.clienteRepository.find({ where: whereCondition });
+    return clientes;
   }
 
   findOne(id: number) {

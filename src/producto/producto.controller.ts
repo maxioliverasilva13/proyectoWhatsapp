@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Req, Put, Delete, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Req, Put, Delete, Param, Query } from '@nestjs/common';
 import { ProductoService } from './producto.service';
 import { CreateProductoDto } from './dto/create-producto.dto';
 import { Request } from 'express';
@@ -11,6 +11,13 @@ export class ProductoController {
   @Get()
   findAll(@Req() request : Request) {
     return this.productoService.findAll();
+  }
+
+  @Get('findWithQuery')
+  findWithQuery(@Query('query') query: string) {
+    return this.productoService.findAllWithQuery({
+      query: query,
+    });
   }
 
   @Get(':id')
