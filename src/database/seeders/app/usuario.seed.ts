@@ -7,8 +7,7 @@ export class UserSeeder implements Seeder {
   async run(dataSource: DataSource, factoryManager: SeederFactoryManager): Promise<void> {
     const userRepository = dataSource.getRepository(Usuario);
 
-
-    const password = await bcrypt.hash("abc123!", 10)
+    const password = await bcrypt.hash("abc123!", 10);
 
     const defaultUsers = [
       {
@@ -41,15 +40,16 @@ export class UserSeeder implements Seeder {
         correo: 'admin@admin.com',
         password: password,
         id_rol: 2,
+        id_empresa: 1, // Si id_empresa es obligatorio, añádelo
       },
     ];
 
-    const userExists = await userRepository.findOne({ where: { correo: 'user1@gmail.com' }});
-    if (userExists && userExists?.id) {
-      return;
+    for (const user of defaultUsers) {
+      const userExists = await userRepository.findOne({ where: { correo: user.correo } });
+
+      if (!userExists) {
+        await userRepository.save(user);
+      }
     }
-    await Promise.all(defaultUsers?.map(async (user) => {
-      return await userRepository.upsert(user, ['id', 'correo']);
-    }))
   }
 }
