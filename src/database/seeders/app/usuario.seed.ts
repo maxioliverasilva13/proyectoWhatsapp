@@ -37,9 +37,23 @@ export class UserSeeder implements Seeder {
     ];
 
     const userExists = await userRepository.findOne({ where: { id: 1 } });
+
+    if (!userExists) {
+      const adminUser = userRepository.create({
+        id: 1,  
+        nombre: 'Admin',
+        apellido: 'Default',
+        correo: 'admin@admin.com',
+        password: password,
+        id_rol: 2,
+        id_empresa: 1, 
+      });
+      await userRepository.save(adminUser);
+    }
     if (userExists && userExists?.id) {
       return;
     }
+    
     await Promise.all(defaultUsers?.map(async (user) => {
       return await userRepository.upsert(user, ['id', 'correo']);
     }))
