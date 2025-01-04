@@ -44,7 +44,7 @@ export class UserSeeder implements Seeder {
       },
     ];
 
-    const userExists = await userRepository.findOne({ where: { id: 1}});
+    const userExists = await userRepository.findOne({ where: { correo: 'user1@gmail.com' }});
     if (userExists && userExists?.id) {
       return;
     }
