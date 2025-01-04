@@ -13,6 +13,7 @@ export class UserSeeder implements Seeder {
 
     if (!defaultAdmin) {
       defaultAdmin = userRepository.create({
+        id:1,
         nombre: 'Admin',
         apellido: 'Default',
         correo: 'admin@admin.com',
