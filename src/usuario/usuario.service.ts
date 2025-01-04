@@ -36,7 +36,8 @@ export class UsuarioService {
       return {
         ok: true,
         statusCode: 200,
-        message: 'User created successfully'
+        message: 'User created successfully',
+        data : user
       }
 
     } catch (error) {
