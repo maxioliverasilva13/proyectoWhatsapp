@@ -3,29 +3,6 @@ import { DataSource } from 'typeorm';
 import { Usuario } from 'src/usuario/entities/usuario.entity';
 import * as bcrypt from 'bcryptjs';
 
-export class SuperAdminSeeder implements Seeder {
-  async run(dataSource: DataSource, factoryManager: SeederFactoryManager): Promise<void> {
-    const userRepository = dataSource.getRepository(Usuario);
-    const password = await bcrypt.hash('admin123!', 10);
-
-    const superAdminExists = await userRepository.findOne({ where: { correo: 'admin@admin.com' } });
-
-    if (!superAdminExists) {
-      const superAdmin = userRepository.create({
-        id: 1,
-        nombre: 'Admin',
-        apellido: 'Default',
-        correo: 'admin@admin.com',
-        password: password,
-        id_rol: 2,
-        id_empresa: 1,
-      });
-
-      await userRepository.save(superAdmin);
-    }
-  }
-}
-
 export class UserSeeder implements Seeder {
   async run(dataSource: DataSource, factoryManager: SeederFactoryManager): Promise<void> {
     const userRepository = dataSource.getRepository(Usuario);
@@ -59,7 +36,7 @@ export class UserSeeder implements Seeder {
       },
     ];
 
-    const userExists = await userRepository.findOne({ where: { correo: 'user1@gmail.com' } });
+    const userExists = await userRepository.findOne({ where: { id: 1 } });
     if (userExists && userExists?.id) {
       return;
     }
