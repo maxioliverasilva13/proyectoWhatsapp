@@ -3,17 +3,16 @@ import { DataSource } from 'typeorm';
 import { Usuario } from 'src/usuario/entities/usuario.entity';
 import * as bcrypt from 'bcryptjs';
 
-export class UserSeeder implements Seeder {
+export class SuperAdminSeeder implements Seeder {
   async run(dataSource: DataSource, factoryManager: SeederFactoryManager): Promise<void> {
     const userRepository = dataSource.getRepository(Usuario);
+    const password = await bcrypt.hash('admin123!', 10);
 
-    const password = await bcrypt.hash("abc123!", 10);
+    const superAdminExists = await userRepository.findOne({ where: { correo: 'admin@admin.com' } });
 
-    let defaultAdmin = await userRepository.findOne({ where: { id: 1 } });
-
-    if (!defaultAdmin) {
-      defaultAdmin = userRepository.create({
-        id:1,
+    if (!superAdminExists) {
+      const superAdmin = userRepository.create({
+        id: 1,
         nombre: 'Admin',
         apellido: 'Default',
         correo: 'admin@admin.com',
@@ -21,8 +20,17 @@ export class UserSeeder implements Seeder {
         id_rol: 2,
         id_empresa: 1,
       });
-      await userRepository.save(defaultAdmin);
+
+      await userRepository.save(superAdmin);
     }
+  }
+}
+
+export class UserSeeder implements Seeder {
+  async run(dataSource: DataSource, factoryManager: SeederFactoryManager): Promise<void> {
+    const userRepository = dataSource.getRepository(Usuario);
+
+    const password = await bcrypt.hash("abc123!", 10);
 
     const defaultUsers = [
       {
@@ -51,12 +59,12 @@ export class UserSeeder implements Seeder {
       },
     ];
 
-    for (const user of defaultUsers) {
-      const userExists = await userRepository.findOne({ where: { correo: user.correo } });
-
-      if (!userExists) {
-        await userRepository.save(user);
-      }
+    const userExists = await userRepository.findOne({ where: { correo: 'user1@gmail.com' } });
+    if (userExists && userExists?.id) {
+      return;
     }
+    await Promise.all(defaultUsers?.map(async (user) => {
+      return await userRepository.upsert(user, ['id', 'correo']);
+    }))
   }
 }
