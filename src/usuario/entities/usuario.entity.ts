@@ -32,4 +32,7 @@ export class Usuario extends BaseEntity {
 
     @Column({ default: false })
     firstUser: boolean;
+
+    @Column({ nullable: true })
+    photo: string;
 }
