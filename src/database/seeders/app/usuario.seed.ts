@@ -21,35 +21,14 @@ export class UserSeeder implements Seeder {
       {
         nombre: 'Some',
         apellido: "User 2",
-        correo: 'user2@gmail.com',
+        correo: 'admin@admin.com',
         password: password,
-        id_rol: 1,
-        id_empresa: 1,
-      },
-      {
-        nombre: 'Some User',
-        apellido: "User 3",
-        correo: 'user3@gmail.com',
-        password: password,
-        id_rol: 1,
+        id_rol: 2,
         id_empresa: 1,
       },
     ];
 
-    const userExists = await userRepository.findOne({ where: { id: 1 } });
-
-    if (!userExists) {
-      const adminUser = userRepository.create({
-        id: 1,  
-        nombre: 'Admin',
-        apellido: 'Default',
-        correo: 'admin@admin.com',
-        password: password,
-        id_rol: 2,
-        id_empresa: 1, 
-      });
-      await userRepository.save(adminUser);
-    }
+    const userExists = await userRepository.findOne({ where: { id: 1}});
     if (userExists && userExists?.id) {
       return;
     }
