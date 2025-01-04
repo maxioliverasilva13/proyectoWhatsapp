@@ -68,7 +68,7 @@ export class PedidoService {
         throw new BadRequestException('No existe un tipo de servicio con ese id');
       }
 
-      const crearNuevoPedido = async (products) => {        
+      const crearNuevoPedido = async (products) => {
         let direccion;
         let total = 0
         const infoLineToJson = JSON.stringify(createPedidoDto.infoLinesJson)
@@ -78,8 +78,9 @@ export class PedidoService {
         newPedido.cliente_id = createPedidoDto.clienteId;
         newPedido.estado = estado;
         newPedido.tipo_servicio_id = tipoServicio.id;
-        newPedido.fecha = createPedidoDto.empresaType === "RESERVA" ? products[0].fecha : new Date()
+        newPedido.fecha = createPedidoDto.empresaType === "RESERVA" ? createPedidoDto.fecha : new Date()
         newPedido.infoLinesJson = infoLineToJson
+        newPedido.detalle_pedido = createPedidoDto?.detalles ?? "";
         
         const savedPedido = await this.pedidoRepository.save(newPedido);
         const productIds = products.map((product) => product.productoId);

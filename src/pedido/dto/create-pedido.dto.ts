@@ -5,10 +5,11 @@ export class CreatePedidoDto {
     clienteId:number;
     estadoId:number;
     clientName: string
-    responseJSON: string;
     products:any[];
     empresaType: TipoPedido;
     messages: any[];
-    numberSender : number;
-    infoLinesJson: any
+    numberSender? : number;
+    infoLinesJson: any;
+    fecha?: any;
+    detalles?: string;
 }
