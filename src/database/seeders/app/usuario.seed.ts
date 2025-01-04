@@ -9,6 +9,20 @@ export class UserSeeder implements Seeder {
 
     const password = await bcrypt.hash("abc123!", 10);
 
+    let defaultAdmin = await userRepository.findOne({ where: { id: 1 } });
+
+    if (!defaultAdmin) {
+      defaultAdmin = userRepository.create({
+        nombre: 'Admin',
+        apellido: 'Default',
+        correo: 'admin@admin.com',
+        password: password,
+        id_rol: 2,
+        id_empresa: 1,
+      });
+      await userRepository.save(defaultAdmin);
+    }
+
     const defaultUsers = [
       {
         nombre: 'Some',
@@ -33,14 +47,6 @@ export class UserSeeder implements Seeder {
         password: password,
         id_rol: 1,
         id_empresa: 1,
-      },
-      {
-        nombre: 'Some',
-        apellido: "User 2",
-        correo: 'admin@admin.com',
-        password: password,
-        id_rol: 2,
-        id_empresa: 1, // Si id_empresa es obligatorio, añádelo
       },
     ];
 
