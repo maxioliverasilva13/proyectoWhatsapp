@@ -20,7 +20,7 @@ export class Pedido extends BaseEntity {
     estado: Estado;
 
     @Column({ nullable: true })
-    detalle_pedido: Date;
+    detalle_pedido: string;
 
     @Column()
     tipo_servicio_id: number;
