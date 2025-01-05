@@ -15,7 +15,7 @@ export async function DemonDeleteOldsThreads() {
         await client.query('DELETE FROM public."chatGptThreads" WHERE last_update <= NOW() - INTERVAL \'15 minute\';');
 
     } catch (error) {
-        console.error('Error ejecutando la consulta:', error);
+        console.error('Error ejecutando la consulta :', error);
     } finally {
         await client.end(); 
     }
