@@ -77,20 +77,20 @@ export class AuthService {
       if (!user) {
         throw new HttpException("Invalid user", 400);
       }
+
       let userConfigured = !!user.nombre?.trim() && !!user.apellido?.trim();
       let apiConfigured;
       let paymentMade = false;
       let apiUrl = "";
-      let greenApiConfigured = true
+      let greenApiConfigured = false
       let tipo_servicio = 0;
       let tipo_servicioNombre = '';
 
-
       if (user.id_empresa) {
-        const empresa = await this.empresaRepository.findOne({ where: { id: user.id_empresa }, relations:['tipoServicioId'] });
+        const empresa = await this.empresaRepository.findOne({ where: { id: user.id_empresa }, relations: ['tipoServicioId'] });
         if (empresa) {
           console.log(empresa.tipoServicioId);
-          
+
           tipo_servicio = empresa.tipoServicioId.id
           tipo_servicioNombre = empresa.tipoServicioId.nombre
 
@@ -98,10 +98,14 @@ export class AuthService {
           apiUrl = `${process.env.ENV === "dev" ? "http" : "https"}://${process.env.VIRTUAL_HOST?.replace("app", empresa?.db_name)}`
         }
 
-        const res = await fetch(`https://api.green-api.com/waInstance${empresa.greenApiInstance}/getStateInstance/${empresa.greenApiInstanceToken}`)
-        const resFormated = await res.json()
 
-        greenApiConfigured = resFormated.stateInstance === 'authorized'
+        if (empresa.greenApiInstance && empresa.greenApiInstanceToken) {
+          const res = await fetch(`https://api.green-api.com/waInstance${empresa.greenApiInstance}/getStateInstance/${empresa.greenApiInstanceToken}`)
+          const resFormated = await res.json()
+
+          greenApiConfigured = resFormated.stateInstance === 'authorized'
+
+        }
 
         const lastPlan = await this.planesEmpresaRepository.findOne({
           where: { id_empresa: empresa.id },
