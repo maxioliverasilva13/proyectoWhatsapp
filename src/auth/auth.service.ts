@@ -96,29 +96,27 @@ export class AuthService {
 
           apiConfigured = empresa.apiConfigured
           apiUrl = `${process.env.ENV === "dev" ? "http" : "https"}://${process.env.VIRTUAL_HOST?.replace("app", empresa?.db_name)}`
-        }
 
+          if (empresa.greenApiInstance && empresa.greenApiInstanceToken) {
+            const res = await fetch(`https://api.green-api.com/waInstance${empresa.greenApiInstance}/getStateInstance/${empresa.greenApiInstanceToken}`)
+            const resFormated = await res.json()
 
-        if (empresa.greenApiInstance && empresa.greenApiInstanceToken) {
-          const res = await fetch(`https://api.green-api.com/waInstance${empresa.greenApiInstance}/getStateInstance/${empresa.greenApiInstanceToken}`)
-          const resFormated = await res.json()
+            greenApiConfigured = resFormated.stateInstance === 'authorized'
+          }
 
-          greenApiConfigured = resFormated.stateInstance === 'authorized'
+          const lastPlan = await this.planesEmpresaRepository.findOne({
+            where: { id_empresa: empresa.id },
+            order: { fecha_inicio: "DESC" },
+          });
 
-        }
+          if (lastPlan) {
+            const plan = await this.planesRepository.findOne({ where: { id: lastPlan.id_plan } })
 
-        const lastPlan = await this.planesEmpresaRepository.findOne({
-          where: { id_empresa: empresa.id },
-          order: { fecha_inicio: "DESC" },
-        });
+            const planExpiryDate = new Date(lastPlan.fecha_inicio);
+            planExpiryDate.setDate(planExpiryDate.getDate() + plan.diasDuracion);
 
-        if (lastPlan) {
-          const plan = await this.planesRepository.findOne({ where: { id: lastPlan.id_plan } })
-
-          const planExpiryDate = new Date(lastPlan.fecha_inicio);
-          planExpiryDate.setDate(planExpiryDate.getDate() + plan.diasDuracion);
-
-          paymentMade = now <= planExpiryDate;
+            paymentMade = now <= planExpiryDate;
+          }
         }
       }
 
