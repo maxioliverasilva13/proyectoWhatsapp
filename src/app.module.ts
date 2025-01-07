@@ -41,6 +41,7 @@ import { EmailService } from './emailqueue/email.service';
 import { InfolineModule } from './infoline/infoline.module';
 import { WebSocketModule } from './websocket/websocket.module';
 import { PedidoController } from './pedido/pedido.controller';
+import { InfolineController } from './infoline/infoline.controller';
 
 ConfigModule.forRoot();
 
@@ -107,7 +108,8 @@ export class AppModule {
         ProductoController,
         GrenApiController,
         NumeroConfianzaController,
-        PedidoController
+        PedidoController,
+        InfolineController
       );
 
     //JWT MIDDLEWARE

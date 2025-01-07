@@ -115,8 +115,9 @@ export class EmpresaService {
 
   async update(id: number, updateEmpresaDto: UpdateEmpresaDto) {
     try {
-      // Buscar la empresa por ID
-      const empresa = await this.empresaRepository.findOne({ where: { id } });
+      const empresa = await this.empresaRepository.findOne({ where: { id }, relations: ['tipoServicioId'] });
+      console.log(empresa);
+      
       if (!empresa) {
         throw new BadRequestException('La empresa no existe');
       }

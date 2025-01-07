@@ -14,25 +14,36 @@ export class ProductoService {
     private productoRepository: Repository<Producto>,
     @InjectRepository(ProductoPedido)
     private productoPedidoRepository: Repository<ProductoPedido>,
-
-
   ) { }
 
   async create(
     createProduct: CreateProductoDto,
     empresaId: number,
-  ): Promise<Producto> {
-    console.log(empresaId);
+  ) {
+    try {
+      const product = new Producto();
+      product.nombre = createProduct.nombre;
+      product.precio = createProduct.precio;
+      product.empresa_id = empresaId;
+      product.descripcion = createProduct.descripcion;
+      product.plazoDuracionEstimadoMinutos = createProduct.plazoDuracionEstimadoMinutos;
+      product.disponible = createProduct.disponible;
+      const producto = this.productoRepository.create(product);
+      await this.productoRepository.save(producto);
 
-    const product = new Producto();
-    product.nombre = createProduct.nombre;
-    product.precio = createProduct.precio;
-    product.empresa_id = empresaId;
-    product.descripcion = createProduct.descripcion;
-    product.plazoDuracionEstimadoMinutos = createProduct.plazoDuracionEstimadoMinutos;
-    product.disponible = createProduct.disponible;
-    const producto = this.productoRepository.create(product);
-    return this.productoRepository.save(producto);
+      return {
+        ok: true,
+        statusCode: 200,
+        data: product
+      }
+    } catch (error) {
+      throw new BadRequestException({
+        ok: false,
+        statusCode: 400,
+        message: error?.message || 'Error al encontrar el producto',
+        error: 'Bad Request',
+      });
+    }
   }
 
   async findAll(): Promise<Producto[]> {
@@ -51,18 +62,18 @@ export class ProductoService {
     return products;
   }
 
-  async findOne(id : number) {
+  async findOne(id: number) {
     try {
-      const producto = await this.productoRepository.findOne({where: {id : id}});
-      if(!producto) { 
+      const producto = await this.productoRepository.findOne({ where: { id: id } });
+      if (!producto) {
         throw new BadRequestException('El producto no existe')
       }
-      return { 
-        ok:true,
-        statusCode:200,
+      return {
+        ok: true,
+        statusCode: 200,
         data: producto
       }
-      
+
     } catch (error) {
       throw new BadRequestException({
         ok: false,
@@ -74,7 +85,7 @@ export class ProductoService {
   }
 
   async findAllInText() {
-    const productsAll = await this.productoRepository.find();
+    const productsAll = await this.productoRepository.find({where: {disponible: true}});
 
     const productsFormated = productsAll.map((product) => {
       return `${product.id}-Procuto: ${product.nombre},Precio: ${product.precio}, Descripcion:${product.descripcion}$`;
@@ -83,13 +94,13 @@ export class ProductoService {
     return productsFormated;
   }
 
-  async updateProducto(id: number, updateProductoDto : UpdateProductoDto) {
+  async updateProducto(id: number, updateProductoDto: UpdateProductoDto) {
 
-    console.log(id,updateProductoDto);
-    
+    console.log(id, updateProductoDto);
+
     try {
       const existProduct = await this.productoRepository.findOne({ where: { id: id } })
-      
+
       if (!existProduct) {
         throw new BadRequestException('El producto no existe')
       }
@@ -100,11 +111,11 @@ export class ProductoService {
       }
 
       await this.productoRepository.save(existProduct)
-      
+
       return {
-        statusCode:200,
-        ok:true,
-        message:'Producto actualizado correctamente'
+        statusCode: 200,
+        ok: true,
+        message: 'Producto actualizado correctamente'
       }
 
     } catch (error) {
@@ -119,33 +130,33 @@ export class ProductoService {
 
   async deleteProducto(id: number) {
     try {
-        const existProduct = await this.productoRepository.findOne({
-            where: { id },
-            relations: ['pedidosprod']
-        });
-        if (!existProduct) {
-            throw new BadRequestException('El producto no existe');
-        }
+      const existProduct = await this.productoRepository.findOne({
+        where: { id },
+        relations: ['pedidosprod']
+      });
+      if (!existProduct) {
+        throw new BadRequestException('El producto no existe');
+      }
 
-        if (existProduct.pedidosprod.length > 0) {
-            await this.productoPedidoRepository.delete({ productoId: id });
-        }
+      if (existProduct.pedidosprod.length > 0) {
+        await this.productoPedidoRepository.delete({ productoId: id });
+      }
 
-        await this.productoRepository.delete(id);
+      await this.productoRepository.delete(id);
 
-        return {
-            statusCode:200,
-            ok: true,
-            message: 'Producto eliminado correctamente',
-        };
+      return {
+        statusCode: 200,
+        ok: true,
+        message: 'Producto eliminado correctamente',
+      };
     } catch (error) {
-        throw new BadRequestException({
-            ok: false,
-            statusCode: 400,
-            message: error?.message || 'Error al eliminar el producto',
-            error: 'Bad Request',
-        });
+      throw new BadRequestException({
+        ok: false,
+        statusCode: 400,
+        message: error?.message || 'Error al eliminar el producto',
+        error: 'Bad Request',
+      });
     }
-}
+  }
 
 }

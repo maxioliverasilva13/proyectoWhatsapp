@@ -18,6 +18,7 @@ import { ProductoPedido } from 'src/productopedido/entities/productopedido.entit
 import { Mensaje } from 'src/mensaje/entities/mensaje.entity';
 import { Cliente } from 'src/cliente/entities/cliente.entity';
 import { Infoline } from 'src/infoline/entities/infoline.entity';
+import getCurrentDate from 'src/utils/getCurrentDate';
 
 @Injectable()
 export class PedidoService {
@@ -69,96 +70,91 @@ export class PedidoService {
       }
 
       const crearNuevoPedido = async (products) => {
-        let direccion;
-        let total = 0
-        const infoLineToJson = JSON.stringify(createPedidoDto.infoLinesJson)
-
+        let total = 0;
+        const infoLineToJson = JSON.stringify(createPedidoDto.infoLinesJson);
+      
         const newPedido = new Pedido();
         newPedido.confirmado = createPedidoDto.confirmado;
         newPedido.cliente_id = createPedidoDto.clienteId;
         newPedido.estado = estado;
         newPedido.tipo_servicio_id = tipoServicio.id;
-        newPedido.fecha = createPedidoDto.empresaType === "RESERVA" ? createPedidoDto.fecha : new Date()
-        newPedido.infoLinesJson = infoLineToJson
+        newPedido.fecha =
+          createPedidoDto.empresaType === "RESERVA"
+            ? createPedidoDto.fecha || products[0].fecha
+            : getCurrentDate();
+        newPedido.infoLinesJson = infoLineToJson;
         newPedido.detalle_pedido = createPedidoDto?.detalles ?? "";
-        
+      
         const savedPedido = await this.pedidoRepository.save(newPedido);
         const productIds = products.map((product) => product.productoId);
-
         const existingProducts = await this.productoRespitory.findByIds(productIds);
-
+      
         try {
           await Promise.all(
             products.map(async (product) => {
-              try {
-                const productExist = existingProducts.find(p => p.id === product.productoId);
-
-                if (!productExist) {
-                  throw new Error(`Producto con ID ${product.productoId} no encontrado`);
-                }
-
-                total += productExist.precio * product.cantidad;
-
-                // Asegúrate de esperar que el producto se cree antes de continuar con el siguiente
-                await this.productoPedidoService.create({
-                  cantidad: product.cantidad,
-                  productoId: product.productoId,
-                  pedidoId: savedPedido.id,
-                  detalle: product.detalle,
-                });
-              } catch (error) {
-                console.error('Error al crear producto:', error);
+              const productExist = existingProducts.find(
+                (p) => p.id === product.productoId
+              );
+      
+              if (!productExist) {
+                throw new Error(`Producto con ID ${product.productoId} no encontrado`);
               }
+      
+              total += productExist.precio * product.cantidad;
+      
+              // Crear producto en el pedido
+              await this.productoPedidoService.create({
+                cantidad: product.cantidad,
+                productoId: product.productoId,
+                pedidoId: savedPedido.id,
+                detalle: product.detalle,
+              });
             })
           );
-          console.log('productos creados correctamente');
+      
+          console.log("Productos creados correctamente");
         } catch (error) {
-          console.error('Error al crear productos:', error);
+          console.error("Error al crear productos:", error);
         }
-
+      
+        // Crear chat y mensajes
         try {
-
           const { data } = await this.chatServices.create({ pedidoId: savedPedido.id });
-
-          try {
-            await Promise.all(
-              createPedidoDto.messages.map((message) =>
-                this.mensajesService.create({
-                  chat: data.id,
-                  isClient: message.isClient,
-                  mensaje: message.text,
-                })
-              )
-            );
-            console.log('mensajes creados correctamente');
-          } catch (error) {
-            console.error('Error al crear mensajes:', error);
-          }
+      
+          await Promise.all(
+            createPedidoDto.messages.map((message) =>
+              this.mensajesService.create({
+                chat: data.id,
+                isClient: message.isClient,
+                mensaje: message.text,
+              })
+            )
+          );
+      
+          console.log("Mensajes creados correctamente");
         } catch (error) {
-          console.error('Error al crear chat:', error);
+          console.error("Error al crear chat o mensajes:", error);
         }
-
-
+      
+        // Enviar datos al frontend
         const formatToSendFrontend = {
           clientName: createPedidoDto.clientName,
-          direccion: createPedidoDto.infoLinesJson.direccion ? createPedidoDto.infoLinesJson.direccion : 'No hay direccion',
+          direccion:
+            createPedidoDto.infoLinesJson.direccion || "No hay direccion",
           numberSender: createPedidoDto.numberSender,
           total,
-          orderId: savedPedido.id
-        }
-
-        this.webSocketService.sendOrder(formatToSendFrontend)
+          orderId: savedPedido.id,
+        };
+      
+        this.webSocketService.sendOrder(formatToSendFrontend);
         return formatToSendFrontend;
       };
-
-      if (tipoServicio.tipo === 'RESERVA') {
-        if (createPedidoDto.products.length > 1) {
-          for (const product of createPedidoDto.products) {
-            await crearNuevoPedido([product]);
-          }
-        } else {
-          await crearNuevoPedido(createPedidoDto.products);
-        }
+      
+      // Crear pedidos según el tipo de servicio
+      if (tipoServicio.tipo === "RESERVA") {
+        await Promise.all(
+          createPedidoDto.products.map((product) => crearNuevoPedido([product]))
+        );
       } else {
         await crearNuevoPedido(createPedidoDto.products);
       }

@@ -1,3 +1,4 @@
+import getCurrentDate from "./getCurrentDate";
 
 export const askAssistant = async (question, instrucciones) => {
     try {
@@ -33,9 +34,9 @@ export const askAssistant = async (question, instrucciones) => {
     }
 };
 
-export async function createThread(products, infoLines) {
+export async function createThread(products, infoLines, empresaType) {
         
-    const formatedText = `INFO-LINES: ${infoLines}.` + `\n` + `LISTA-PRODUCTOS: ${products}.`
+    const formatedText = `empresaType: ${empresaType}\nINFO-LINES: ${infoLines}\nLISTA-PRODUCTOS: ${products}\n CURRENT_TIME:${getCurrentDate()}`
     
     const response = await fetch(`https://api.openai.com/v1/threads`, {
         method: "POST",

@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Tiposervicio } from 'src/tiposervicio/entities/tiposervicio.entity';
 import { handleGetGlobalConnection } from 'src/utils/dbConnection';
 import { TipoPedido } from 'src/enums/tipopedido';
+import getCurrentDate from 'src/utils/getCurrentDate';
 
 @Injectable()
 export class InfolineService {
@@ -56,18 +57,19 @@ export class InfolineService {
   }
 
   async findAllFormatedText(empresaType: TipoPedido) {
-    try {
+    try {      
       const tipoServicioExist = await this.tipoServicioRepository.findOne({ where: { tipo: empresaType } })
-
+      console.log(tipoServicioExist);
+      
       if (!tipoServicioExist) {
         throw new BadRequestException('no existe el tipo de servicio proporcionado');
       }
 
       const allInfoLines = await this.infoLineRepository.find({ where: { id_tipo_servicio: tipoServicioExist.id } })
-      let text = ""
+      let text = []
 
       allInfoLines.map((infoLine) => {
-        text += `\n${infoLine.nombre}`
+        text.push(infoLine.nombre)
       })      
       return text
     } catch (error) {

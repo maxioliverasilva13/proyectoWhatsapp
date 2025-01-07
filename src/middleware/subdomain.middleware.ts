@@ -28,7 +28,7 @@ export class SubdomainMiddleware implements NestMiddleware {
 
     if (!empresaExists) {
       throw new BadRequestException('Subdominio invalido');
-    }
+    }    
     req['subdomain'] = subdomain;
     req['empresaId'] = empresaExists?.id;
     req['empresaType'] = empresaExists?.tipoServicioId?.tipo

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req } from '@nestjs/common';
 import { InfolineService } from './infoline.service';
 import { CreateInfolineDto } from './dto/create-infoline.dto';
 import { TipoPedido } from 'src/enums/tipopedido';
@@ -17,9 +17,10 @@ export class InfolineController {
     return this.infolineService.findAll();
   }
 
-  @Post('/fomatedText')
-  findAllFormatedText(@Body() tipoServicioString : TipoPedido) {
-    return this.infolineService.findAllFormatedText(tipoServicioString);
+  @Get('/fomatedText')
+  findAllFormatedText(@Req() request : Request) {
+    const empresaType = request['empresaType']
+    return this.infolineService.findAllFormatedText(empresaType);
   }
 
   @Get(':id')
