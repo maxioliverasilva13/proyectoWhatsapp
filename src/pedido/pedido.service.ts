@@ -343,7 +343,7 @@ export class PedidoService {
         const pedidoDate = moment.tz(JSON.stringify(pedido.fecha), "YYYY-MM-DD HH:mm:ss", "America/Montevideo");
         const nowMoment = moment.tz(now, "YYYY-MM-DD HH:mm:ss", "America/Montevideo");
 
-        const isLess = pedidoDate.isAfter(nowMoment);
+        const isOlder = pedidoDate.isAfter(nowMoment);
 
         const formatPedidoResponse = {
           id: pedido.id,
@@ -353,12 +353,11 @@ export class PedidoService {
           descProduct: pedidoProd?.producto?.descripcion,
           precio: pedidoProd?.cantidad * pedidoProd?.producto.precio,
           estimadoDuracionMinutos: pedidoProd?.cantidad * pedidoProd?.producto?.plazoDuracionEstimadoMinutos,
-          date: isLess
+          date: isOlder
             ? pedidoDate.format("LT")
             : pedidoDate.fromNow(),
-          isLess,
-          fechaOriginal: pedido.fecha
         }
+        
         if (formattedDate in dates) {
           dates[formattedDate].push(formatPedidoResponse)
         } else {
