@@ -1,7 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Req, ParseEnumPipe } from '@nestjs/common';
 import { PedidoService } from './pedido.service';
 import { CreatePedidoDto } from './dto/create-pedido.dto';
 import { UpdatePedidoDto } from './dto/update-pedido.dto';
+
+enum OrderStatus {
+  ALL = 'all',
+  PENDING = 'pending',
+  FINISHED = 'finished',
+}
 
 @Controller('pedido')
 export class PedidoController {
@@ -13,11 +19,18 @@ export class PedidoController {
   }
 
   @Get('/:orderStatus')
-  findAllFinish(@Param('orderStatus') orderStatus : 'all' | 'pending' | 'finished' ) {
+  findAllFinish(
+    @Param('orderStatus', new ParseEnumPipe(OrderStatus)) orderStatus: OrderStatus,
+  ) {
     return this.pedidoService.findOrders(orderStatus);
   }
+  
+  @Get('/calendar/formatCalendar')
+  getOrdersForCalendar( ) {
+    return this.pedidoService.getOrdersForCalendar();
+  }
 
-  @Get('aviableDate')
+  @Get('/aviableDate')
   disponible(@Query('date') date: Date, @Body() producto : any ) {
     return this.pedidoService.consultarHorario(date,producto);
   }

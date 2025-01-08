@@ -19,6 +19,7 @@ import { Mensaje } from 'src/mensaje/entities/mensaje.entity';
 import { Cliente } from 'src/cliente/entities/cliente.entity';
 import { Infoline } from 'src/infoline/entities/infoline.entity';
 import getCurrentDate from 'src/utils/getCurrentDate';
+import * as moment from 'moment';
 
 @Injectable()
 export class PedidoService {
@@ -72,7 +73,7 @@ export class PedidoService {
       const crearNuevoPedido = async (products) => {
         let total = 0;
         const infoLineToJson = JSON.stringify(createPedidoDto.infoLinesJson);
-      
+
         const newPedido = new Pedido();
         newPedido.confirmado = createPedidoDto.confirmado;
         newPedido.cliente_id = createPedidoDto.clienteId;
@@ -84,24 +85,24 @@ export class PedidoService {
             : getCurrentDate();
         newPedido.infoLinesJson = infoLineToJson;
         newPedido.detalle_pedido = createPedidoDto?.detalles ?? "";
-      
+
         const savedPedido = await this.pedidoRepository.save(newPedido);
         const productIds = products.map((product) => product.productoId);
         const existingProducts = await this.productoRespitory.findByIds(productIds);
-      
+
         try {
           await Promise.all(
             products.map(async (product) => {
               const productExist = existingProducts.find(
                 (p) => p.id === product.productoId
               );
-      
+
               if (!productExist) {
                 throw new Error(`Producto con ID ${product.productoId} no encontrado`);
               }
-      
+
               total += productExist.precio * product.cantidad;
-      
+
               // Crear producto en el pedido
               await this.productoPedidoService.create({
                 cantidad: product.cantidad,
@@ -111,16 +112,15 @@ export class PedidoService {
               });
             })
           );
-      
+
           console.log("Productos creados correctamente");
         } catch (error) {
           console.error("Error al crear productos:", error);
         }
-      
-        // Crear chat y mensajes
+
         try {
           const { data } = await this.chatServices.create({ pedidoId: savedPedido.id });
-      
+
           await Promise.all(
             createPedidoDto.messages.map((message) =>
               this.mensajesService.create({
@@ -130,13 +130,12 @@ export class PedidoService {
               })
             )
           );
-      
+
           console.log("Mensajes creados correctamente");
         } catch (error) {
           console.error("Error al crear chat o mensajes:", error);
         }
-      
-        // Enviar datos al frontend
+
         const formatToSendFrontend = {
           clientName: createPedidoDto.clientName,
           direccion:
@@ -146,12 +145,11 @@ export class PedidoService {
           orderId: savedPedido.id,
           fecha: savedPedido.fecha
         };
-      
+
         this.webSocketService.sendOrder(formatToSendFrontend);
         return formatToSendFrontend;
       };
-      
-      // Crear pedidos según el tipo de servicio
+
       if (tipoServicio.tipo === "RESERVA") {
         await Promise.all(
           createPedidoDto.products.map((product) => crearNuevoPedido([product]))
@@ -270,7 +268,7 @@ export class PedidoService {
   async findOrders(filter: 'all' | 'pending' | 'finished') {
     try {
 
-      if(!filter) {
+      if (!filter) {
         throw new BadRequestException('Please specify what type of order you wish to access')
       }
       const whereCondition: any = { available: true };
@@ -322,6 +320,64 @@ export class PedidoService {
         ok: false,
         statusCode: 400,
         message: error?.message || 'Error al obtener los pedidos',
+        error: 'Bad Request',
+      });
+    }
+  }
+
+  async getOrdersForCalendar() {
+    try {
+      const now = getCurrentDate()
+      const pedidos = await this.pedidoRepository.find({
+        where: { available: true },
+        relations: ['pedidosprod', 'pedidosprod.producto'],
+      });
+
+      const dates = {}
+
+      pedidos.map((pedido) => {
+
+        const formattedDate = moment(pedido.fecha).format("YYYY-MM-DD");
+        const pedidoProd = pedido.pedidosprod[0]
+
+        const pedidoDate = moment.tz(JSON.stringify(pedido.fecha), "YYYY-MM-DD HH:mm:ss", "America/Montevideo");
+        const nowMoment = moment.tz(now, "YYYY-MM-DD HH:mm:ss", "America/Montevideo");
+
+        const isLess = pedidoDate.isAfter(nowMoment);
+
+        const formatPedidoResponse = {
+          id: pedido.id,
+          confirmado: pedido.confirmado,
+          detalle: pedidoProd?.detalle ?? 'No hay detalles',
+          producto: pedidoProd?.producto.nombre,
+          descProduct: pedidoProd?.producto?.descripcion,
+          precio: pedidoProd?.cantidad * pedidoProd?.producto.precio,
+          estimadoDuracionMinutos: pedidoProd?.cantidad * pedidoProd?.producto?.plazoDuracionEstimadoMinutos,
+          date: isLess
+            ? pedidoDate.format("LT")
+            : pedidoDate.fromNow(),
+          isLess,
+          fechaOriginal: pedido.fecha
+        }
+        if (formattedDate in dates) {
+          dates[formattedDate].push(formatPedidoResponse)
+        } else {
+          dates[formattedDate] = [formatPedidoResponse]
+        }
+      })
+
+      return {
+        xd: 'xd',
+        data: dates,
+        statusCode: 200,
+        ok: true
+      }
+
+    } catch (error) {
+      throw new BadRequestException({
+        ok: false,
+        statusCode: 400,
+        message: error?.message || 'Error al crear el pedido',
         error: 'Bad Request',
       });
     }
