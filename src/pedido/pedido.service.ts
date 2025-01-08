@@ -144,6 +144,7 @@ export class PedidoService {
           numberSender: createPedidoDto.numberSender,
           total,
           orderId: savedPedido.id,
+          fecha: savedPedido.fecha
         };
       
         this.webSocketService.sendOrder(formatToSendFrontend);
@@ -266,10 +267,18 @@ export class PedidoService {
     }
   }
 
-  async findAllPending(empresaType) {
+  async findOrders(filter: 'all' | 'pending' | 'finished') {
     try {
+      const whereCondition: any = { available: true };
+
+      if (filter === 'pending') {
+        whereCondition.confirmado = false;
+      } else if (filter === 'finished') {
+        whereCondition.confirmado = true;
+      }
+
       const pedidos = await this.pedidoRepository.find({
-        where: { confirmado: false, available: true },
+        where: whereCondition,
         relations: ['pedidosprod', 'pedidosprod.producto'],
       });
 
@@ -279,12 +288,12 @@ export class PedidoService {
       const clienteMap = new Map(clientes.map((cliente) => [cliente.id, cliente]));
 
       const pedidosFinal = pedidos.map((pedido) => {
-        const infoLinesJson = JSON.parse(pedido.infoLinesJson);
-        const direcciones = infoLinesJson?.direccion ? infoLinesJson.direccion : "No hay direccion"
+        const infoLinesJson = JSON.parse(pedido.infoLinesJson || '{}');
+        const direcciones = infoLinesJson.direccion || 'No hay direccion';
         let total = 0;
 
         pedido.pedidosprod.forEach((producto) => {
-          total += producto.producto.precio * producto.cantidad
+          total += producto.producto.precio * producto.cantidad;
         });
 
         const clienteData = clienteMap.get(pedido.cliente_id);
@@ -295,53 +304,7 @@ export class PedidoService {
           numberSender: clienteData?.telefono || 'N/A',
           total,
           orderId: pedido.id,
-        };
-      });
-
-      return {
-        ok: true,
-        statusCode: 200,
-        data: pedidosFinal,
-      };
-    } catch (error) {
-      throw new BadRequestException({
-        ok: false,
-        statusCode: 400,
-        message: error?.message || 'Error al obtener los pedidos',
-        error: 'Bad Request',
-      });
-    }
-  }
-
-  async findAllFinish(empresaType) {
-    try {
-      const pedidos = await this.pedidoRepository.find({
-        where: { confirmado: true, available: true },
-        relations: ['pedidosprod', 'pedidosprod.producto'],
-      });
-
-      const clienteIds = pedidos.map((pedido) => pedido.cliente_id);
-      const clientes = await this.clienteRepository.findByIds(clienteIds);
-
-      const clienteMap = new Map(clientes.map((cliente) => [cliente.id, cliente]));
-
-      const pedidosFinal = pedidos.map((pedido) => {
-        const infoLinesJson = JSON.parse(pedido.infoLinesJson);
-        const direcciones = infoLinesJson.direccion ? infoLinesJson.direccion : "No hay direccion"
-        let total = 0;
-
-        pedido.pedidosprod.forEach((producto) => {
-          total += producto.producto.precio * producto.cantidad
-        });
-
-        const clienteData = clienteMap.get(pedido.cliente_id);
-
-        return {
-          clientName: clienteData?.nombre || 'Desconocido',
-          direccion: direcciones,
-          numberSender: clienteData?.telefono || 'N/A',
-          total,
-          orderId: pedido.id,
+          date: pedido.fecha,
         };
       });
 

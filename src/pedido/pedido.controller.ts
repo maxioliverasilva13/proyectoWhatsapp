@@ -12,16 +12,9 @@ export class PedidoController {
     return this.pedidoService.create(createPedidoDto);
   }
 
-  @Get('/pending')
-  findAllPending(@Req() request : Request) {
-    const empresaType = request['empresaType']
-    return this.pedidoService.findAllPending(empresaType);
-  }
-
-  @Get('/finished')
-  findAllFinish(@Req() request : Request) {
-    const empresaType = request['empresaType']
-    return this.pedidoService.findAllFinish(empresaType);
+  @Get('/:orderStatus')
+  findAllFinish(@Param('orderStatus') orderStatus : 'all' | 'pending' | 'finished' ) {
+    return this.pedidoService.findOrders(orderStatus);
   }
 
   @Get('aviableDate')
