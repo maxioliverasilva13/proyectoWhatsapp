@@ -269,6 +269,10 @@ export class PedidoService {
 
   async findOrders(filter: 'all' | 'pending' | 'finished') {
     try {
+
+      if(!filter) {
+        throw new BadRequestException('Please specify what type of order you wish to access')
+      }
       const whereCondition: any = { available: true };
 
       if (filter === 'pending') {
