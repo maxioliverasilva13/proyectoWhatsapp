@@ -1,30 +1,30 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { UpdatePedidoDto } from './dto/update-pedido.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Pedido } from './entities/pedido.entity';
-import { Estado } from 'src/estado/entities/estado.entity';
-import { CreatePedidoDto } from './dto/create-pedido.dto';
-import { ProductopedidoService } from 'src/productopedido/productopedido.service';
-import { Producto } from 'src/producto/entities/producto.entity';
-import { Tiposervicio } from 'src/tiposervicio/entities/tiposervicio.entity';
-import { handleGetGlobalConnection } from 'src/utils/dbConnection';
-import { ChatService } from 'src/chat/chat.service';
-import { MensajeService } from 'src/mensaje/mensaje.service';
-import { WebsocketGateway } from 'src/websocket/websocket.gatewat';
-import { Cambioestadopedido } from 'src/cambioestadopedido/entities/cambioestadopedido.entity';
-import { Chat } from 'src/chat/entities/chat.entity';
-import { ProductoPedido } from 'src/productopedido/entities/productopedido.entity';
-import { Mensaje } from 'src/mensaje/entities/mensaje.entity';
-import { Cliente } from 'src/cliente/entities/cliente.entity';
-import { Infoline } from 'src/infoline/entities/infoline.entity';
-import getCurrentDate from 'src/utils/getCurrentDate';
-import * as moment from 'moment';
+import { BadRequestException, Injectable } from "@nestjs/common";
+import { UpdatePedidoDto } from "./dto/update-pedido.dto";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { Pedido } from "./entities/pedido.entity";
+import { Estado } from "src/estado/entities/estado.entity";
+import { CreatePedidoDto } from "./dto/create-pedido.dto";
+import { ProductopedidoService } from "src/productopedido/productopedido.service";
+import { Producto } from "src/producto/entities/producto.entity";
+import { Tiposervicio } from "src/tiposervicio/entities/tiposervicio.entity";
+import { handleGetGlobalConnection } from "src/utils/dbConnection";
+import { ChatService } from "src/chat/chat.service";
+import { MensajeService } from "src/mensaje/mensaje.service";
+import { WebsocketGateway } from "src/websocket/websocket.gatewat";
+import { Cambioestadopedido } from "src/cambioestadopedido/entities/cambioestadopedido.entity";
+import { Chat } from "src/chat/entities/chat.entity";
+import { ProductoPedido } from "src/productopedido/entities/productopedido.entity";
+import { Mensaje } from "src/mensaje/entities/mensaje.entity";
+import { Cliente } from "src/cliente/entities/cliente.entity";
+import { Infoline } from "src/infoline/entities/infoline.entity";
+import getCurrentDate from "src/utils/getCurrentDate";
+import * as moment from "moment";
 
 @Injectable()
 export class PedidoService {
-  private tipoServicioRepository: Repository<Tiposervicio>
-  private clienteRepository: Repository<Cliente>
+  private tipoServicioRepository: Repository<Tiposervicio>;
+  private clienteRepository: Repository<Cliente>;
   constructor(
     @InjectRepository(Pedido)
     private pedidoRepository: Repository<Pedido>,
@@ -44,12 +44,12 @@ export class PedidoService {
     private readonly chatServices: ChatService,
     private readonly mensajesService: MensajeService,
     private readonly webSocketService: WebsocketGateway
-  ) { }
+  ) {}
 
   async onModuleInit() {
     const globalConnection = await handleGetGlobalConnection();
     this.tipoServicioRepository = globalConnection.getRepository(Tiposervicio);
-    this.clienteRepository = globalConnection.getRepository(Cliente)
+    this.clienteRepository = globalConnection.getRepository(Cliente);
   }
 
   async create(createPedidoDto: CreatePedidoDto) {
@@ -63,11 +63,13 @@ export class PedidoService {
       });
 
       if (!estado) {
-        throw new BadRequestException('No existe un estado con ese id');
+        throw new BadRequestException("No existe un estado con ese id");
       }
 
       if (!tipoServicio) {
-        throw new BadRequestException('No existe un tipo de servicio con ese id');
+        throw new BadRequestException(
+          "No existe un tipo de servicio con ese id"
+        );
       }
 
       const crearNuevoPedido = async (products) => {
@@ -88,7 +90,9 @@ export class PedidoService {
 
         const savedPedido = await this.pedidoRepository.save(newPedido);
         const productIds = products.map((product) => product.productoId);
-        const existingProducts = await this.productoRespitory.findByIds(productIds);
+        const existingProducts = await this.productoRespitory.findByIds(
+          productIds
+        );
 
         try {
           await Promise.all(
@@ -98,7 +102,9 @@ export class PedidoService {
               );
 
               if (!productExist) {
-                throw new Error(`Producto con ID ${product.productoId} no encontrado`);
+                throw new Error(
+                  `Producto con ID ${product.productoId} no encontrado`
+                );
               }
 
               total += productExist.precio * product.cantidad;
@@ -119,7 +125,9 @@ export class PedidoService {
         }
 
         try {
-          const { data } = await this.chatServices.create({ pedidoId: savedPedido.id });
+          const { data } = await this.chatServices.create({
+            pedidoId: savedPedido.id,
+          });
 
           await Promise.all(
             createPedidoDto.messages.map((message) =>
@@ -143,7 +151,7 @@ export class PedidoService {
           numberSender: createPedidoDto.numberSender,
           total,
           orderId: savedPedido.id,
-          fecha: savedPedido.fecha
+          fecha: savedPedido.fecha,
         };
 
         this.webSocketService.sendOrder(formatToSendFrontend);
@@ -158,43 +166,48 @@ export class PedidoService {
         await crearNuevoPedido(createPedidoDto.products);
       }
 
-
       return {
         statusCode: 200,
         ok: true,
-        message: 'Pedido creado exitosamente',
-      }
-
+        message: "Pedido creado exitosamente",
+      };
     } catch (error) {
       throw new BadRequestException({
         ok: false,
         statusCode: 400,
-        message: error?.message || 'Error al crear el pedido',
-        error: 'Bad Request',
+        message: error?.message || "Error al crear el pedido",
+        error: "Bad Request",
       });
     }
   }
 
   async consultarHorario(hora, producto) {
     const allServices = await this.pedidoRepository.find({
-      relations: ['pedidosprod', 'pedidosprod.producto'],
+      relations: ["pedidosprod", "pedidosprod.producto"],
     });
 
     let duracionMinutos;
     let isAviable = true;
 
-    const productoBD = await this.productoRespitory.findOne({ where: { id: producto.productoId } })
+    const productoBD = await this.productoRespitory.findOne({
+      where: { id: producto.productoId },
+    });
     duracionMinutos += productoBD.plazoDuracionEstimadoMinutos;
 
     const horaFormated = new Date(hora);
-    const horaFinSolicitadad = new Date(horaFormated)
-    horaFinSolicitadad.setMinutes(horaFinSolicitadad.getMinutes() + duracionMinutos)
+    const horaFinSolicitadad = new Date(horaFormated);
+    horaFinSolicitadad.setMinutes(
+      horaFinSolicitadad.getMinutes() + duracionMinutos
+    );
 
     for (const service of allServices) {
       const fechaInicial = new Date(service.fecha);
       for (const pedidoProd of service.pedidosprod) {
         const fechaFinal = new Date(fechaInicial);
-        fechaFinal.setMinutes(fechaFinal.getMinutes() + pedidoProd.producto.plazoDuracionEstimadoMinutos);
+        fechaFinal.setMinutes(
+          fechaFinal.getMinutes() +
+            pedidoProd.producto.plazoDuracionEstimadoMinutos
+        );
         if (
           (horaFormated < fechaFinal && horaFinSolicitadad > fechaInicial) ||
           (horaFormated >= fechaInicial && horaFormated < fechaFinal)
@@ -202,29 +215,36 @@ export class PedidoService {
           isAviable = false;
           break;
         }
-      };
-    };
+      }
+    }
 
     return {
-      "ok": isAviable ? true : false,
-      "isAviable": isAviable
-    }
+      ok: isAviable ? true : false,
+      isAviable: isAviable,
+    };
   }
 
   async getDetailsOfOrder(id: number) {
     try {
-      const pedidoExist = await this.pedidoRepository.findOne({ where: { id: id }, relations: ['cambioEstados', 'chat', 'pedidosprod'] })
+      const pedidoExist = await this.pedidoRepository.findOne({
+        where: { id: id },
+        relations: ["cambioEstados", "chat", "pedidosprod"],
+      });
       if (!pedidoExist) {
-        throw new BadRequestException("No existe un pedido con esse id")
+        throw new BadRequestException("No existe un pedido con esse id");
       }
-      const getClient = await this.clienteRepository.findOne({ where: { id: pedidoExist.cliente_id } })
+      const getClient = await this.clienteRepository.findOne({
+        where: { id: pedidoExist.cliente_id },
+      });
       let total = 0;
       let estimateTime = 0;
       const pedidosProdFormated = await Promise.all(
         pedidoExist.pedidosprod.map(async (data) => {
-          const productoInfo = await this.productoRespitory.findOne({ where: { id: data.productoId } });
-          total += productoInfo.precio * data.cantidad
-          estimateTime += productoInfo.plazoDuracionEstimadoMinutos
+          const productoInfo = await this.productoRespitory.findOne({
+            where: { id: data.productoId },
+          });
+          total += productoInfo.precio * data.cantidad;
+          estimateTime += productoInfo.plazoDuracionEstimadoMinutos;
 
           return {
             productoInfo,
@@ -232,7 +252,7 @@ export class PedidoService {
             detalle: data.detalle,
             cantidad: data.cantidad,
           };
-        }),
+        })
       );
 
       return {
@@ -242,7 +262,7 @@ export class PedidoService {
           client: {
             name: getClient.nombre,
             phone: getClient.telefono,
-            id: getClient.id
+            id: getClient.id,
           },
           products: pedidosProdFormated,
           chatId: pedidoExist.chat,
@@ -251,47 +271,49 @@ export class PedidoService {
           id: pedidoExist.id,
           estimateTime,
           total,
-          infoLines: JSON.parse(pedidoExist.infoLinesJson)
-        }
-      }
-
+          infoLines: JSON.parse(pedidoExist.infoLinesJson),
+        },
+      };
     } catch (error) {
       throw new BadRequestException({
         ok: false,
         statusCode: 400,
-        message: error?.message || 'Error al crear el pedido',
-        error: 'Bad Request',
+        message: error?.message || "Error al crear el pedido",
+        error: "Bad Request",
       });
     }
   }
 
-  async findOrders(filter: 'all' | 'pending' | 'finished') {
+  async findOrders(filter: "all" | "pending" | "finished") {
     try {
-
       if (!filter) {
-        throw new BadRequestException('Please specify what type of order you wish to access')
+        throw new BadRequestException(
+          "Please specify what type of order you wish to access"
+        );
       }
       const whereCondition: any = { available: true };
 
-      if (filter === 'pending') {
+      if (filter === "pending") {
         whereCondition.confirmado = false;
-      } else if (filter === 'finished') {
+      } else if (filter === "finished") {
         whereCondition.confirmado = true;
       }
 
       const pedidos = await this.pedidoRepository.find({
         where: whereCondition,
-        relations: ['pedidosprod', 'pedidosprod.producto'],
+        relations: ["pedidosprod", "pedidosprod.producto"],
       });
 
       const clienteIds = pedidos.map((pedido) => pedido.cliente_id);
       const clientes = await this.clienteRepository.findByIds(clienteIds);
 
-      const clienteMap = new Map(clientes.map((cliente) => [cliente.id, cliente]));
+      const clienteMap = new Map(
+        clientes.map((cliente) => [cliente.id, cliente])
+      );
 
       const pedidosFinal = pedidos.map((pedido) => {
-        const infoLinesJson = JSON.parse(pedido.infoLinesJson || '{}');
-        const direcciones = infoLinesJson.direccion || 'No hay direccion';
+        const infoLinesJson = JSON.parse(pedido.infoLinesJson || "{}");
+        const direcciones = infoLinesJson.direccion || "No hay direccion";
         let total = 0;
 
         pedido.pedidosprod.forEach((producto) => {
@@ -301,9 +323,9 @@ export class PedidoService {
         const clienteData = clienteMap.get(pedido.cliente_id);
 
         return {
-          clientName: clienteData?.nombre || 'Desconocido',
+          clientName: clienteData?.nombre || "Desconocido",
           direccion: direcciones,
-          numberSender: clienteData?.telefono || 'N/A',
+          numberSender: clienteData?.telefono || "N/A",
           total,
           orderId: pedido.id,
           date: pedido.fecha,
@@ -319,93 +341,98 @@ export class PedidoService {
       throw new BadRequestException({
         ok: false,
         statusCode: 400,
-        message: error?.message || 'Error al obtener los pedidos',
-        error: 'Bad Request',
+        message: error?.message || "Error al obtener los pedidos",
+        error: "Bad Request",
       });
     }
   }
 
   async getOrdersForCalendar() {
     try {
-      const now = getCurrentDate()
+      const now = getCurrentDate();
       const pedidos = await this.pedidoRepository.find({
         where: { available: true },
-        relations: ['pedidosprod', 'pedidosprod.producto'],
+        relations: ["pedidosprod", "pedidosprod.producto"],
       });
 
-      const dates = {}
+      const dates = {};
 
       pedidos.map((pedido) => {
-
         const formattedDate = moment(pedido.fecha).format("YYYY-MM-DD");
-        const pedidoProd = pedido.pedidosprod[0]
+        const pedidoProd = pedido.pedidosprod[0];
 
-        const pedidoDate = moment.tz(JSON.stringify(pedido.fecha), "YYYY-MM-DD HH:mm:ss", "America/Montevideo");
-        const nowMoment = moment.tz(now, "YYYY-MM-DD HH:mm:ss", "America/Montevideo");
+        const pedidoDate = moment.tz(
+          JSON.stringify(pedido.fecha),
+          "YYYY-MM-DD HH:mm:ss",
+          "America/Montevideo"
+        );
+        const nowMoment = moment.tz(
+          now,
+          "YYYY-MM-DD HH:mm:ss",
+          "America/Montevideo"
+        );
 
         const isOlder = pedidoDate.isAfter(nowMoment);
 
         const formatPedidoResponse = {
           id: pedido.id,
           confirmado: pedido.confirmado,
-          detalle: pedidoProd?.detalle ?? 'No hay detalles',
+          detalle: pedidoProd?.detalle ?? "No hay detalles",
           producto: pedidoProd?.producto.nombre,
           descProduct: pedidoProd?.producto?.descripcion,
           precio: pedidoProd?.cantidad * pedidoProd?.producto.precio,
-          estimadoDuracionMinutos: pedidoProd?.cantidad * pedidoProd?.producto?.plazoDuracionEstimadoMinutos,
-          date: isOlder
-            ? pedidoDate.format("LT")
-            : pedidoDate.fromNow(),
-        }
-        
+          estimadoDuracionMinutos:
+            pedidoProd?.cantidad *
+            pedidoProd?.producto?.plazoDuracionEstimadoMinutos,
+          date: isOlder ? pedidoDate.format("LT") : pedidoDate.fromNow(),
+        };
+
         if (formattedDate in dates) {
-          dates[formattedDate].push(formatPedidoResponse)
+          dates[formattedDate].push(formatPedidoResponse);
         } else {
-          dates[formattedDate] = [formatPedidoResponse]
+          dates[formattedDate] = [formatPedidoResponse];
         }
-      })
+      });
 
       return {
-        xd: 'xd',
+        xd: "xd",
         data: dates,
         statusCode: 200,
-        ok: true
-      }
-
+        ok: true,
+      };
     } catch (error) {
       throw new BadRequestException({
         ok: false,
         statusCode: 400,
-        message: error?.message || 'Error al crear el pedido',
-        error: 'Bad Request',
+        message: error?.message || "Error al crear el pedido",
+        error: "Bad Request",
       });
     }
   }
 
   async confirmOrder(id) {
     try {
-      const pedido = await this.pedidoRepository.findOne({ where: { id } })
+      const pedido = await this.pedidoRepository.findOne({ where: { id } });
 
       if (!pedido) {
-        throw new BadRequestException('There is no order with that ID')
+        throw new BadRequestException("There is no order with that ID");
       }
 
-      pedido.confirmado = true
+      pedido.confirmado = true;
 
-      await this.pedidoRepository.save(pedido)
+      await this.pedidoRepository.save(pedido);
 
       return {
         ok: true,
         statusCode: 200,
-        data: pedido
-      }
-
+        data: pedido,
+      };
     } catch (error) {
       throw new BadRequestException({
         ok: false,
         statusCode: 400,
-        message: error?.message || 'Error al crear el pedido',
-        error: 'Bad Request',
+        message: error?.message || "Error al crear el pedido",
+        error: "Bad Request",
       });
     }
   }
@@ -422,26 +449,25 @@ export class PedidoService {
     try {
       const pedidoExist = await this.pedidoRepository.findOne({
         where: { id: id },
-        relations: ['cambioEstados', 'chat', 'chat.mensajes', 'pedidosprod'],
+        relations: ["cambioEstados", "chat", "chat.mensajes", "pedidosprod"],
       });
 
-      pedidoExist.available = false
+      pedidoExist.available = false;
 
-      await this.pedidoRepository.save(pedidoExist)
+      await this.pedidoRepository.save(pedidoExist);
 
       return {
         ok: true,
-        message: 'Order deleted successfully',
+        message: "Order deleted successfully",
         statusCode: 200,
       };
     } catch (error) {
       throw new BadRequestException({
         ok: false,
         statusCode: 400,
-        message: error?.message || 'Error while deleting the order',
-        error: 'Bad Request',
+        message: error?.message || "Error while deleting the order",
+        error: "Bad Request",
       });
     }
   }
-
 }

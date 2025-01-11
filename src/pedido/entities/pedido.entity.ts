@@ -10,7 +10,7 @@ export class Pedido extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column()
+    @Column({ default: false })
     confirmado: boolean;
 
     @OneToMany(() => Cambioestadopedido, (cmbe) => cmbe.pedido)
@@ -32,7 +32,7 @@ export class Pedido extends BaseEntity {
     fecha : Date
 
     @OneToOne(() => Chat, (chat) => chat.pedido)
-    @JoinColumn() 
+    @JoinColumn()
     chat: Chat;
 
     @OneToMany(() => ProductoPedido, (prod) => prod.pedido)
