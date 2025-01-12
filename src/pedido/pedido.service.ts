@@ -356,12 +356,12 @@ export class PedidoService {
       });
 
       const dates = {};
-      Promise.all(
-        pedidos.map(async(pedido) => {
+      await Promise.all(
+        pedidos.map(async (pedido) => {
           const formattedDate = moment(pedido.fecha).format("YYYY-MM-DD");
-          const clientData = await this.clienteRepository.findOne({where:{id:pedido.cliente_id}})
+          const clientData = await this.clienteRepository.findOne({ where: { id: pedido.cliente_id } });
           const pedidoProd = pedido.pedidosprod[0];
-  
+      
           const pedidoDate = moment.tz(
             JSON.stringify(pedido.fecha),
             "YYYY-MM-DD HH:mm:ss",
@@ -372,9 +372,9 @@ export class PedidoService {
             "YYYY-MM-DD HH:mm:ss",
             "America/Montevideo"
           );
-  
+      
           const isOlder = pedidoDate.isAfter(nowMoment);
-  
+      
           const formatPedidoResponse = {
             clientName: clientData?.nombre || "Desconocido",
             numberSender: clientData?.telefono || "N/A",
@@ -383,18 +383,17 @@ export class PedidoService {
             total: pedidoProd?.cantidad * pedidoProd?.producto.precio,
             date: isOlder ? pedidoDate.format("LT") : pedidoDate.fromNow(),
           };
-  
+      
           if (formattedDate in dates) {
             dates[formattedDate].push(formatPedidoResponse);
           } else {
             dates[formattedDate] = [formatPedidoResponse];
           }
         })
-      )
+      );
 
 
       return {
-        xd: "xd",
         data: dates,
         statusCode: 200,
         ok: true,
