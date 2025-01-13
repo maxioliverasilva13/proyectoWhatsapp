@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { UpdatePedidoDto } from "./dto/update-pedido.dto";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { Between, Repository } from "typeorm";
 import { Pedido } from "./entities/pedido.entity";
 import { Estado } from "src/estado/entities/estado.entity";
 import { CreatePedidoDto } from "./dto/create-pedido.dto";
@@ -44,7 +44,7 @@ export class PedidoService {
     private readonly chatServices: ChatService,
     private readonly mensajesService: MensajeService,
     private readonly webSocketService: WebsocketGateway
-  ) {}
+  ) { }
 
   async onModuleInit() {
     const globalConnection = await handleGetGlobalConnection();
@@ -81,10 +81,19 @@ export class PedidoService {
         newPedido.cliente_id = createPedidoDto.clienteId;
         newPedido.estado = estado;
         newPedido.tipo_servicio_id = tipoServicio.id;
+
+
+        console.log(createPedidoDto.empresaType === "RESERVA");
+        
+        console.log(createPedidoDto.empresaType === "RESERVA"
+          ? (createPedidoDto.fecha ? createPedidoDto.fecha : products[0].fecha)
+          : getCurrentDate());
+
         newPedido.fecha =
           createPedidoDto.empresaType === "RESERVA"
-            ? createPedidoDto.fecha || products[0].fecha
-            : getCurrentDate();
+            ? (createPedidoDto.fecha ? createPedidoDto.fecha : products[0].fecha)
+            : getCurrentDate()
+
         newPedido.infoLinesJson = infoLineToJson;
         newPedido.detalle_pedido = createPedidoDto?.detalles ?? "";
 
@@ -109,7 +118,6 @@ export class PedidoService {
 
               total += productExist.precio * product.cantidad;
 
-              // Crear producto en el pedido
               await this.productoPedidoService.create({
                 cantidad: product.cantidad,
                 productoId: product.productoId,
@@ -152,6 +160,8 @@ export class PedidoService {
           total,
           orderId: savedPedido.id,
           fecha: savedPedido.fecha,
+          status: savedPedido.confirmado
+
         };
 
         this.webSocketService.sendOrder(formatToSendFrontend);
@@ -206,7 +216,7 @@ export class PedidoService {
         const fechaFinal = new Date(fechaInicial);
         fechaFinal.setMinutes(
           fechaFinal.getMinutes() +
-            pedidoProd.producto.plazoDuracionEstimadoMinutos
+          pedidoProd.producto.plazoDuracionEstimadoMinutos
         );
         if (
           (horaFormated < fechaFinal && horaFinSolicitadad > fechaInicial) ||
@@ -329,6 +339,8 @@ export class PedidoService {
           total,
           orderId: pedido.id,
           date: pedido.fecha,
+          status: pedido.confirmado
+
         };
       });
 
@@ -347,11 +359,19 @@ export class PedidoService {
     }
   }
 
-  async getOrdersForCalendar() {
+  async getOrdersForCalendar(dateTime: string) {
     try {
       const now = getCurrentDate();
+      const filterDate = moment(dateTime, "YYYY-MM-DD").startOf('day');
+
+      const filterDateStart = filterDate.startOf('day').toDate(); 
+      const filterDateEnd = filterDate.endOf('day').toDate();  
+
       const pedidos = await this.pedidoRepository.find({
-        where: { available: true },
+        where: {
+          available: true,
+          fecha: Between(filterDateStart, filterDateEnd)
+        },
         relations: ["pedidosprod", "pedidosprod.producto"],
       });
 
@@ -361,7 +381,7 @@ export class PedidoService {
           const formattedDate = moment(pedido.fecha).format("YYYY-MM-DD");
           const clientData = await this.clienteRepository.findOne({ where: { id: pedido.cliente_id } });
           const pedidoProd = pedido.pedidosprod[0];
-      
+
           const pedidoDate = moment.tz(
             JSON.stringify(pedido.fecha),
             "YYYY-MM-DD HH:mm:ss",
@@ -372,9 +392,9 @@ export class PedidoService {
             "YYYY-MM-DD HH:mm:ss",
             "America/Montevideo"
           );
-      
+
           const isOlder = pedidoDate.isAfter(nowMoment);
-      
+
           const formatPedidoResponse = {
             clientName: clientData?.nombre || "Desconocido",
             numberSender: clientData?.telefono || "N/A",
@@ -382,8 +402,9 @@ export class PedidoService {
             productName: pedidoProd?.producto?.nombre,
             total: pedidoProd?.cantidad * pedidoProd?.producto.precio,
             date: isOlder ? pedidoDate.format("LT") : pedidoDate.fromNow(),
+            status: pedido.confirmado
           };
-      
+
           if (formattedDate in dates) {
             dates[formattedDate].push(formatPedidoResponse);
           } else {

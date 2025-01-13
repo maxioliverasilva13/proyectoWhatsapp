@@ -25,9 +25,9 @@ export class PedidoController {
     return this.pedidoService.findOrders(orderStatus);
   }
   
-  @Get('/calendar/formatCalendar')
-  getOrdersForCalendar( ) {
-    return this.pedidoService.getOrdersForCalendar();
+  @Get('/calendar/formatCalendar/:date')
+  getOrdersForCalendar(@Param('date') date : string) {
+    return this.pedidoService.getOrdersForCalendar(date);
   }
 
   @Get('/aviableDate')

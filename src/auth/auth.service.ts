@@ -89,7 +89,7 @@ export class AuthService {
       if (user.id_empresa) {
         const empresa = await this.empresaRepository.findOne({ where: { id: user.id_empresa }, relations: ['tipoServicioId'] });
         if (empresa) {
-          console.log(empresa.tipoServicioId);
+          console.log('1');
 
           tipo_servicio = empresa.tipoServicioId.id
           tipo_servicioNombre = empresa.tipoServicioId.nombre
@@ -103,6 +103,7 @@ export class AuthService {
 
             greenApiConfigured = resFormated.stateInstance === 'authorized'
           }
+          console.log('2');
 
           const lastPlan = await this.planesEmpresaRepository.findOne({
             where: { id_empresa: empresa.id },
@@ -120,6 +121,8 @@ export class AuthService {
         }
       }
 
+      console.log('3');
+      
       const newUser = { ...user }
       delete newUser.password;
       return {
