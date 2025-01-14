@@ -340,7 +340,6 @@ export class PedidoService {
           orderId: pedido.id,
           date: pedido.fecha,
           status: pedido.confirmado
-
         };
       });
 
