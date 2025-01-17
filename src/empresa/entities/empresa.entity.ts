@@ -63,6 +63,9 @@ export class Empresa extends BaseEntity {
   @OneToMany(() => NumeroConfianza, (numeroConfianza) => numeroConfianza.empresa)
   numeroConfianza: NumeroConfianza[];
 
+  @Column({ default: 30 })
+  intervaloTiempoCalendario: number;
+
   @OneToMany(()=> CierreProvisorio, (CierreProvisorio)=> CierreProvisorio.empresa)
   cierre_provisorio: CierreProvisorio[];
 

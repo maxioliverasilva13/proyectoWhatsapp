@@ -1,30 +1,34 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
-import { UpdatePedidoDto } from "./dto/update-pedido.dto";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Between, Repository } from "typeorm";
-import { Pedido } from "./entities/pedido.entity";
-import { Estado } from "src/estado/entities/estado.entity";
-import { CreatePedidoDto } from "./dto/create-pedido.dto";
-import { ProductopedidoService } from "src/productopedido/productopedido.service";
-import { Producto } from "src/producto/entities/producto.entity";
-import { Tiposervicio } from "src/tiposervicio/entities/tiposervicio.entity";
-import { handleGetGlobalConnection } from "src/utils/dbConnection";
-import { ChatService } from "src/chat/chat.service";
-import { MensajeService } from "src/mensaje/mensaje.service";
-import { WebsocketGateway } from "src/websocket/websocket.gatewat";
-import { Cambioestadopedido } from "src/cambioestadopedido/entities/cambioestadopedido.entity";
-import { Chat } from "src/chat/entities/chat.entity";
-import { ProductoPedido } from "src/productopedido/entities/productopedido.entity";
-import { Mensaje } from "src/mensaje/entities/mensaje.entity";
-import { Cliente } from "src/cliente/entities/cliente.entity";
-import { Infoline } from "src/infoline/entities/infoline.entity";
-import getCurrentDate from "src/utils/getCurrentDate";
-import * as moment from "moment";
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { UpdatePedidoDto } from './dto/update-pedido.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Between, Repository } from 'typeorm';
+import { Pedido } from './entities/pedido.entity';
+import { Estado } from 'src/estado/entities/estado.entity';
+import { CreatePedidoDto } from './dto/create-pedido.dto';
+import { ProductopedidoService } from 'src/productopedido/productopedido.service';
+import { Producto } from 'src/producto/entities/producto.entity';
+import { Tiposervicio } from 'src/tiposervicio/entities/tiposervicio.entity';
+import { handleGetGlobalConnection } from 'src/utils/dbConnection';
+import { ChatService } from 'src/chat/chat.service';
+import { MensajeService } from 'src/mensaje/mensaje.service';
+import { WebsocketGateway } from 'src/websocket/websocket.gatewat';
+import { Cambioestadopedido } from 'src/cambioestadopedido/entities/cambioestadopedido.entity';
+import { Chat } from 'src/chat/entities/chat.entity';
+import { ProductoPedido } from 'src/productopedido/entities/productopedido.entity';
+import { Mensaje } from 'src/mensaje/entities/mensaje.entity';
+import { Cliente } from 'src/cliente/entities/cliente.entity';
+import { Infoline } from 'src/infoline/entities/infoline.entity';
+import getCurrentDate from 'src/utils/getCurrentDate';
+import * as moment from 'moment';
+import { Empresa } from 'src/empresa/entities/empresa.entity';
+import { EstadoDefectoIds } from 'src/enums/estadoDefecto';
 
+const LOCALE_TIMEZONE = 'America/Montevideo';
 @Injectable()
 export class PedidoService {
   private tipoServicioRepository: Repository<Tiposervicio>;
   private clienteRepository: Repository<Cliente>;
+  private empresaRepository: Repository<Empresa>;
   constructor(
     @InjectRepository(Pedido)
     private pedidoRepository: Repository<Pedido>,
@@ -43,13 +47,14 @@ export class PedidoService {
     private readonly productoRespitory: Repository<Producto>,
     private readonly chatServices: ChatService,
     private readonly mensajesService: MensajeService,
-    private readonly webSocketService: WebsocketGateway
-  ) { }
+    private readonly webSocketService: WebsocketGateway,
+  ) {}
 
   async onModuleInit() {
     const globalConnection = await handleGetGlobalConnection();
     this.tipoServicioRepository = globalConnection.getRepository(Tiposervicio);
     this.clienteRepository = globalConnection.getRepository(Cliente);
+    this.empresaRepository = globalConnection.getRepository(Empresa);
   }
 
   async create(createPedidoDto: CreatePedidoDto) {
@@ -63,12 +68,12 @@ export class PedidoService {
       });
 
       if (!estado) {
-        throw new BadRequestException("No existe un estado con ese id");
+        throw new BadRequestException('No existe un estado con ese id');
       }
 
       if (!tipoServicio) {
         throw new BadRequestException(
-          "No existe un tipo de servicio con ese id"
+          'No existe un tipo de servicio con ese id',
         );
       }
 
@@ -77,7 +82,7 @@ export class PedidoService {
         const infoLineToJson = JSON.stringify(createPedidoDto.infoLinesJson);
 
         const newPedido = new Pedido();
-        newPedido.confirmado = createPedidoDto.confirmado;
+        newPedido.confirmado = createPedidoDto.confirmado || false;
         newPedido.cliente_id = createPedidoDto.clienteId;
         newPedido.estado = estado;
         newPedido.tipo_servicio_id = tipoServicio.id;
@@ -90,29 +95,27 @@ export class PedidoService {
           : getCurrentDate());
 
         newPedido.fecha =
-          createPedidoDto.empresaType === "RESERVA"
-            ? (createPedidoDto.fecha ? createPedidoDto.fecha : products[0].fecha)
-            : getCurrentDate()
-
+          createPedidoDto.empresaType === 'RESERVA'
+            ? createPedidoDto.fecha || products[0].fecha
+            : getCurrentDate();
         newPedido.infoLinesJson = infoLineToJson;
-        newPedido.detalle_pedido = createPedidoDto?.detalles ?? "";
+        newPedido.detalle_pedido = createPedidoDto?.detalles ?? '';
 
         const savedPedido = await this.pedidoRepository.save(newPedido);
         const productIds = products.map((product) => product.productoId);
-        const existingProducts = await this.productoRespitory.findByIds(
-          productIds
-        );
+        const existingProducts =
+          await this.productoRespitory.findByIds(productIds);
 
         try {
           await Promise.all(
             products.map(async (product) => {
               const productExist = existingProducts.find(
-                (p) => p.id === product.productoId
+                (p) => p.id === product.productoId,
               );
 
               if (!productExist) {
                 throw new Error(
-                  `Producto con ID ${product.productoId} no encontrado`
+                  `Producto con ID ${product.productoId} no encontrado`,
                 );
               }
 
@@ -124,12 +127,12 @@ export class PedidoService {
                 pedidoId: savedPedido.id,
                 detalle: product.detalle,
               });
-            })
+            }),
           );
 
-          console.log("Productos creados correctamente");
+          console.log('Productos creados correctamente');
         } catch (error) {
-          console.error("Error al crear productos:", error);
+          console.error('Error al crear productos:', error);
         }
 
         try {
@@ -143,19 +146,19 @@ export class PedidoService {
                 chat: data.id,
                 isClient: message.isClient,
                 mensaje: message.text,
-              })
-            )
+              }),
+            ),
           );
 
-          console.log("Mensajes creados correctamente");
+          console.log('Mensajes creados correctamente');
         } catch (error) {
-          console.error("Error al crear chat o mensajes:", error);
+          console.error('Error al crear chat o mensajes:', error);
         }
 
         const formatToSendFrontend = {
           clientName: createPedidoDto.clientName,
           direccion:
-            createPedidoDto.infoLinesJson.direccion || "No hay direccion",
+            createPedidoDto.infoLinesJson.direccion || 'No hay direccion',
           numberSender: createPedidoDto.numberSender,
           total,
           orderId: savedPedido.id,
@@ -168,9 +171,11 @@ export class PedidoService {
         return formatToSendFrontend;
       };
 
-      if (tipoServicio.tipo === "RESERVA") {
+      if (tipoServicio.tipo === 'RESERVA') {
         await Promise.all(
-          createPedidoDto.products.map((product) => crearNuevoPedido([product]))
+          createPedidoDto.products.map((product) =>
+            crearNuevoPedido([product]),
+          ),
         );
       } else {
         await crearNuevoPedido(createPedidoDto.products);
@@ -179,21 +184,21 @@ export class PedidoService {
       return {
         statusCode: 200,
         ok: true,
-        message: "Pedido creado exitosamente",
+        message: 'Pedido creado exitosamente',
       };
     } catch (error) {
       throw new BadRequestException({
         ok: false,
         statusCode: 400,
-        message: error?.message || "Error al crear el pedido",
-        error: "Bad Request",
+        message: error?.message || 'Error al crear el pedido',
+        error: 'Bad Request',
       });
     }
   }
 
   async consultarHorario(hora, producto) {
     const allServices = await this.pedidoRepository.find({
-      relations: ["pedidosprod", "pedidosprod.producto"],
+      relations: ['pedidosprod', 'pedidosprod.producto'],
     });
 
     let duracionMinutos;
@@ -207,7 +212,7 @@ export class PedidoService {
     const horaFormated = new Date(hora);
     const horaFinSolicitadad = new Date(horaFormated);
     horaFinSolicitadad.setMinutes(
-      horaFinSolicitadad.getMinutes() + duracionMinutos
+      horaFinSolicitadad.getMinutes() + duracionMinutos,
     );
 
     for (const service of allServices) {
@@ -216,7 +221,7 @@ export class PedidoService {
         const fechaFinal = new Date(fechaInicial);
         fechaFinal.setMinutes(
           fechaFinal.getMinutes() +
-          pedidoProd.producto.plazoDuracionEstimadoMinutos
+            pedidoProd.producto.plazoDuracionEstimadoMinutos,
         );
         if (
           (horaFormated < fechaFinal && horaFinSolicitadad > fechaInicial) ||
@@ -238,10 +243,10 @@ export class PedidoService {
     try {
       const pedidoExist = await this.pedidoRepository.findOne({
         where: { id: id },
-        relations: ["cambioEstados", "chat", "pedidosprod"],
+        relations: ['cambioEstados', 'chat', 'pedidosprod'],
       });
       if (!pedidoExist) {
-        throw new BadRequestException("No existe un pedido con esse id");
+        throw new BadRequestException('No existe un pedido con esse id');
       }
       const getClient = await this.clienteRepository.findOne({
         where: { id: pedidoExist.cliente_id },
@@ -262,7 +267,7 @@ export class PedidoService {
             detalle: data.detalle,
             cantidad: data.cantidad,
           };
-        })
+        }),
       );
 
       return {
@@ -288,42 +293,42 @@ export class PedidoService {
       throw new BadRequestException({
         ok: false,
         statusCode: 400,
-        message: error?.message || "Error al crear el pedido",
-        error: "Bad Request",
+        message: error?.message || 'Error al crear el pedido',
+        error: 'Bad Request',
       });
     }
   }
 
-  async findOrders(filter: "all" | "pending" | "finished") {
+  async findOrders(filter: 'all' | 'pending' | 'finished') {
     try {
       if (!filter) {
         throw new BadRequestException(
-          "Please specify what type of order you wish to access"
+          'Please specify what type of order you wish to access',
         );
       }
       const whereCondition: any = { available: true };
 
-      if (filter === "pending") {
+      if (filter === 'pending') {
         whereCondition.confirmado = false;
-      } else if (filter === "finished") {
+      } else if (filter === 'finished') {
         whereCondition.confirmado = true;
       }
 
       const pedidos = await this.pedidoRepository.find({
         where: whereCondition,
-        relations: ["pedidosprod", "pedidosprod.producto"],
+        relations: ['pedidosprod', 'pedidosprod.producto'],
       });
 
       const clienteIds = pedidos.map((pedido) => pedido.cliente_id);
       const clientes = await this.clienteRepository.findByIds(clienteIds);
 
       const clienteMap = new Map(
-        clientes.map((cliente) => [cliente.id, cliente])
+        clientes.map((cliente) => [cliente.id, cliente]),
       );
 
       const pedidosFinal = pedidos.map((pedido) => {
-        const infoLinesJson = JSON.parse(pedido.infoLinesJson || "{}");
-        const direcciones = infoLinesJson.direccion || "No hay direccion";
+        const infoLinesJson = JSON.parse(pedido.infoLinesJson || '{}');
+        const direcciones = infoLinesJson.direccion || 'No hay direccion';
         let total = 0;
 
         pedido.pedidosprod.forEach((producto) => {
@@ -333,9 +338,9 @@ export class PedidoService {
         const clienteData = clienteMap.get(pedido.cliente_id);
 
         return {
-          clientName: clienteData?.nombre || "Desconocido",
+          clientName: clienteData?.nombre || 'Desconocido',
           direccion: direcciones,
-          numberSender: clienteData?.telefono || "N/A",
+          numberSender: clienteData?.telefono || 'N/A',
           total,
           orderId: pedido.id,
           date: pedido.fecha,
@@ -352,8 +357,147 @@ export class PedidoService {
       throw new BadRequestException({
         ok: false,
         statusCode: 400,
-        message: error?.message || "Error al obtener los pedidos",
-        error: "Bad Request",
+        message: error?.message || 'Error al obtener los pedidos',
+        error: 'Bad Request',
+      });
+    }
+  }
+
+  async getNextDateTimeAvailable(empresaId: number): Promise<any> {
+    try {
+      const empresaInfo = await this.empresaRepository.findOne({
+        where: { id: empresaId },
+      });
+      if (!empresaInfo) {
+        throw new Error('Empresa no encontrada');
+      }
+
+      const {
+        hora_apertura: horaAperturaEmpresa,
+        hora_cierre: horaCierreEmpresa,
+        intervaloTiempoCalendario,
+      } = empresaInfo;
+
+      if (!horaAperturaEmpresa || !horaCierreEmpresa) {
+        throw new Error(
+          'La empresa no tiene configurados los horarios de apertura y cierre.',
+        );
+      }
+
+      const horaActual = moment().tz(LOCALE_TIMEZONE);
+
+      const [aperturaHora, aperturaMinuto] = horaAperturaEmpresa
+        .split(':')
+        .map(Number);
+      const apertura = moment(horaActual)
+        .hour(aperturaHora)
+        .minute(aperturaMinuto)
+        .second(0)
+        .millisecond(0);
+
+      const [cierreHora, cierreMinuto] = horaCierreEmpresa
+        .split(':')
+        .map(Number);
+      const cierre = moment(horaActual)
+        .hour(cierreHora)
+        .minute(cierreMinuto)
+        .second(0)
+        .millisecond(0);
+
+      const minutosActuales = horaActual.minutes();
+      const minutosRedondeados =
+        Math.ceil(minutosActuales / intervaloTiempoCalendario) *
+        intervaloTiempoCalendario;
+      const proximoInicio = moment(horaActual)
+        .minute(minutosRedondeados)
+        .second(0)
+        .millisecond(0);
+
+      let proximoDisponible = proximoInicio.isBetween(
+        apertura,
+        cierre,
+        undefined,
+        '[)',
+      )
+        ? proximoInicio
+        : apertura;
+
+      if (horaActual.isSameOrAfter(cierre)) {
+        apertura.add(1, 'day');
+        cierre.add(1, 'day');
+        proximoDisponible = apertura;
+      }
+
+      let dateFounded = false;
+
+      while (dateFounded == false) {
+        const pedidosActivos = await this.pedidoRepository
+          .createQueryBuilder('pedido')
+          .leftJoinAndSelect('pedido.pedidosprod', 'productoPedido')
+          .leftJoinAndSelect('productoPedido.producto', 'producto')
+          .where('pedido.fecha >= :apertura AND pedido.fecha < :cierre', {
+            apertura: apertura.format('YYYY-MM-DD HH:mm:ss+00'),
+            cierre: cierre.format('YYYY-MM-DD HH:mm:ss+00'),
+          })
+          .andWhere('pedido.estado != :estadoCancelado', {
+            estadoCancelado: EstadoDefectoIds.CANCELADO,
+          })
+          .getMany();
+          console.log(apertura.format('YYYY-MM-DD HH:mm:ssZ'));
+          console.log(cierre.format('YYYY-MM-DD HH:mm:ssZ'))
+        console.log("pedidosActivos", pedidosActivos)
+
+
+        const intervalosOcupados: {
+          inicio: moment.Moment;
+          fin: moment.Moment;
+        }[] = pedidosActivos.map((pedido) => {
+          const duracion = intervaloTiempoCalendario;
+          const inicio = moment(pedido.fecha);
+          const fin = moment(inicio).add(duracion, 'minutes');
+          return { inicio, fin };
+        });
+        intervalosOcupados.sort(
+          (a, b) => a.inicio.valueOf() - b.inicio.valueOf(),
+        );
+        const zonaComun = -3;
+
+        for (const intervalo of intervalosOcupados) {
+          const intervaloInicio = intervalo.inicio.utcOffset(zonaComun, true);
+          const intervaloFin = intervalo.fin.utcOffset(zonaComun, true);
+          const proximoDisponibleForzado = proximoDisponible.utcOffset(
+            zonaComun,
+            true,
+          );
+
+          if (
+            proximoDisponibleForzado.isSameOrAfter(intervaloInicio) &&
+            proximoDisponibleForzado.isSameOrBefore(intervaloFin)
+          ) {
+            proximoDisponible = moment(intervaloFin);
+          } else if (proximoDisponibleForzado.isBefore(intervaloInicio)) {
+            break;
+          }
+        }
+
+        if (proximoDisponible.isSameOrAfter(cierre)) {
+          proximoDisponible = moment(apertura).add(1, 'day');
+          apertura.add(1, 'day');
+          cierre.add(1, 'day');
+          continue;
+        } else {
+          dateFounded = true;
+        }
+      }
+      console.log("proximoDisponible", proximoDisponible)
+
+      return proximoDisponible.toString();
+    } catch (error) {
+      throw new BadRequestException({
+        ok: false,
+        statusCode: 400,
+        message: error?.message || 'Error al crear el pedido',
+        error: 'Bad Request',
       });
     }
   }
@@ -422,8 +566,8 @@ export class PedidoService {
       throw new BadRequestException({
         ok: false,
         statusCode: 400,
-        message: error?.message || "Error al crear el pedido",
-        error: "Bad Request",
+        message: error?.message || 'Error al crear el pedido',
+        error: 'Bad Request',
       });
     }
   }
@@ -433,7 +577,7 @@ export class PedidoService {
       const pedido = await this.pedidoRepository.findOne({ where: { id } });
 
       if (!pedido) {
-        throw new BadRequestException("There is no order with that ID");
+        throw new BadRequestException('There is no order with that ID');
       }
 
       pedido.confirmado = true;
@@ -449,8 +593,8 @@ export class PedidoService {
       throw new BadRequestException({
         ok: false,
         statusCode: 400,
-        message: error?.message || "Error al crear el pedido",
-        error: "Bad Request",
+        message: error?.message || 'Error al crear el pedido',
+        error: 'Bad Request',
       });
     }
   }
@@ -467,7 +611,7 @@ export class PedidoService {
     try {
       const pedidoExist = await this.pedidoRepository.findOne({
         where: { id: id },
-        relations: ["cambioEstados", "chat", "chat.mensajes", "pedidosprod"],
+        relations: ['cambioEstados', 'chat', 'chat.mensajes', 'pedidosprod'],
       });
 
       pedidoExist.available = false;
@@ -476,15 +620,15 @@ export class PedidoService {
 
       return {
         ok: true,
-        message: "Order deleted successfully",
+        message: 'Order deleted successfully',
         statusCode: 200,
       };
     } catch (error) {
       throw new BadRequestException({
         ok: false,
         statusCode: 400,
-        message: error?.message || "Error while deleting the order",
-        error: "Bad Request",
+        message: error?.message || 'Error while deleting the order',
+        error: 'Bad Request',
       });
     }
   }
