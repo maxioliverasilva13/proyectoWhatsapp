@@ -1,6 +1,6 @@
 import { Seeder, SeederFactoryManager } from 'typeorm-extension';
 import { DataSource } from 'typeorm';
-import { EstadoDefecto } from 'src/enums/estadoDefecto';
+import { EstadoDefecto, EstadoDefectoIds } from 'src/enums/estadoDefecto';
 import { Estado } from 'src/estado/entities/estado.entity';
 
 export class RoolSeed implements Seeder {
@@ -15,26 +15,32 @@ export class RoolSeed implements Seeder {
 
         const estados = [
           {
-            id: 1,
+            id: EstadoDefectoIds.CREADO,
             nombre: EstadoDefecto.CREADO,
             es_defecto: true,
             tipoServicioId: itm,
           },
           {
-            id: 2,
+            id: EstadoDefectoIds.PENDIENTE,
             nombre: EstadoDefecto.PENDIENTE,
             tipoServicioId: itm,
             es_defecto: true,
           },
           {
-            id: 3,
+            id: EstadoDefectoIds.FINALIZADO,
             nombre: EstadoDefecto.FINALIZADO,
+            tipoServicioId: itm,
+            es_defecto: true,
+          },
+          {
+            id: EstadoDefectoIds.CANCELADO,
+            nombre: EstadoDefecto.CANCELADO,
             tipoServicioId: itm,
             es_defecto: true,
           },
         ];
 
-        const estadoExists = await estadoRepository.findOne({ where: { id: 1}});
+        const estadoExists = await estadoRepository.findOne({ where: { nombre: EstadoDefecto.CREADO }});
         if (estadoExists && estadoExists?.id) {
           return;
         }

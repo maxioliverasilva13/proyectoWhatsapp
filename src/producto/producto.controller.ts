@@ -36,6 +36,7 @@ export class ProductoController {
     @Body() createProductoDto: CreateProductoDto,
   ) {
     const empresaId = request['empresaId'];
+
     return this.productoService.create(createProductoDto, empresaId);
   }
 

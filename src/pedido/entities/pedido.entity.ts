@@ -25,7 +25,7 @@ export class Pedido extends BaseEntity {
     @Column()
     tipo_servicio_id: number;
 
-    @Column()
+    @Column({ nullable: true })
     cliente_id: number;
 
     @Column({ type: 'timestamp with time zone', default: () => 'CURRENT_TIMESTAMP' })

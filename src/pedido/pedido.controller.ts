@@ -30,6 +30,13 @@ export class PedidoController {
     return this.pedidoService.getOrdersForCalendar();
   }
 
+  @Get("/calendar/next-date-avaiable")
+  getNextDateAvailable(@Req() request: Request) {
+    const empresaId = request['empresaId'];
+
+    return this.pedidoService.getNextDateTimeAvailable(empresaId);
+  }
+
   @Get('/aviableDate')
   disponible(@Query('date') date: Date, @Body() producto : any ) {
     return this.pedidoService.consultarHorario(date,producto);
