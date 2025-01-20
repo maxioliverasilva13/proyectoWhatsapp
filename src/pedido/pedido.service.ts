@@ -430,7 +430,9 @@ export class PedidoService {
 
       let dateFounded = false;
 
-      while (dateFounded == false) {
+      while (dateFounded === false) {
+        console.log(`Verificando disponibilidad para el día: ${apertura.format('YYYY-MM-DD')}`);
+      
         const pedidosActivos = await this.pedidoRepository
           .createQueryBuilder('pedido')
           .leftJoinAndSelect('pedido.pedidosprod', 'productoPedido')
@@ -443,52 +445,61 @@ export class PedidoService {
             estadoCancelado: EstadoDefectoIds.CANCELADO,
           })
           .getMany();
-          console.log(apertura.format('YYYY-MM-DD HH:mm:ssZ'));
-          console.log(cierre.format('YYYY-MM-DD HH:mm:ssZ'))
-        console.log("pedidosActivos", pedidosActivos)
-
-
-        const intervalosOcupados: {
-          inicio: moment.Moment;
-          fin: moment.Moment;
-        }[] = pedidosActivos.map((pedido) => {
+      
+        console.log(`Pedidos activos: ${pedidosActivos.length}`);
+        console.log(`Proximo disponible actual: ${proximoDisponible.format('YYYY-MM-DD HH:mm:ssZ')}`);
+      
+        const intervalosOcupados = pedidosActivos.map((pedido) => {
           const duracion = intervaloTiempoCalendario;
           const inicio = moment(pedido.fecha);
           const fin = moment(inicio).add(duracion, 'minutes');
           return { inicio, fin };
         });
-        intervalosOcupados.sort(
-          (a, b) => a.inicio.valueOf() - b.inicio.valueOf(),
-        );
+      
+        intervalosOcupados.sort((a, b) => a.inicio.valueOf() - b.inicio.valueOf());
+      
+        console.log('Intervalos ocupados:', intervalosOcupados.map(i => ({
+          inicio: i.inicio.format('HH:mm'),
+          fin: i.fin.format('HH:mm'),
+        })));
+      
         const zonaComun = -3;
-
+        let encontradoHueco = true;
+      
         for (const intervalo of intervalosOcupados) {
           const intervaloInicio = intervalo.inicio.utcOffset(zonaComun, true);
           const intervaloFin = intervalo.fin.utcOffset(zonaComun, true);
-          const proximoDisponibleForzado = proximoDisponible.utcOffset(
-            zonaComun,
-            true,
-          );
-
+          const proximoDisponibleForzado = proximoDisponible.utcOffset(zonaComun, true);
+      
           if (
             proximoDisponibleForzado.isSameOrAfter(intervaloInicio) &&
             proximoDisponibleForzado.isSameOrBefore(intervaloFin)
           ) {
+            console.log('Conflicto con intervalo:', {
+              inicio: intervaloInicio.format('HH:mm'),
+              fin: intervaloFin.format('HH:mm'),
+            });
             proximoDisponible = moment(intervaloFin);
+            encontradoHueco = false;
           } else if (proximoDisponibleForzado.isBefore(intervaloInicio)) {
             break;
           }
         }
-
-        if (proximoDisponible.isSameOrAfter(cierre)) {
+      
+        if (encontradoHueco) {
+          dateFounded = true;
+        } else if (proximoDisponible.isSameOrAfter(cierre)) {
+          console.log('Pasando al siguiente día');
           proximoDisponible = moment(apertura).add(1, 'day');
           apertura.add(1, 'day');
           cierre.add(1, 'day');
-          continue;
-        } else {
-          dateFounded = true;
+        }
+      
+        if (apertura.diff(horaActual, 'days') > 30) {
+          throw new Error('No se encontró disponibilidad en los próximos 30 días');
         }
       }
+      
       console.log("proximoDisponible", proximoDisponible)
 
       return proximoDisponible.toString();
