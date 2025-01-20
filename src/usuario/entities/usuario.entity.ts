@@ -33,6 +33,6 @@ export class Usuario extends BaseEntity {
     @Column({ default: false })
     firstUser: boolean;
 
-    @Column({ nullable: true })
-    photo: string;
+    @Column({ nullable: true, default: 'https://www.iconpacks.net/icons/2/free-user-icon-3296-thumb.png' })
+    image: string;
 }
