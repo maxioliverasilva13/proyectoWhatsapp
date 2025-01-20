@@ -12,3 +12,4 @@ import { ProductoPedido } from 'src/productopedido/entities/productopedido.entit
   exports: [ProductoService, TypeOrmModule],
 })
 export class ProductoModule {}
+
