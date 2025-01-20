@@ -460,26 +460,28 @@ export class PedidoService {
           const actual = intervalosOcupados[i];
           const siguiente = intervalosOcupados[i + 1];
 
-          if (!actual || proximoDisponible.isBefore(actual.inicio)) {
+          if (!actual) {
+            if (proximoDisponible.isBefore(cierre)) {
+              encontradoHueco = true;
+              break;
+            }
+          } else if (proximoDisponible.isBefore(actual.inicio)) {
             encontradoHueco = true;
             break;
-          }
-
-          if (siguiente) {
-            const huecoDisponible = actual.fin.add(
-              intervaloTiempoCalendario,
-              'minutes',
-            );
-            if (huecoDisponible.isBefore(siguiente.inicio)) {
-              proximoDisponible = huecoDisponible;
+          } else if (siguiente) {
+            const finActual = actual.fin
+              .clone()
+              .add(intervaloTiempoCalendario, 'minutes');
+            if (finActual.isBefore(siguiente.inicio)) {
+              proximoDisponible = finActual;
               encontradoHueco = true;
               break;
             }
           } else {
-            proximoDisponible = actual.fin.add(
-              intervaloTiempoCalendario,
-              'minutes',
-            );
+            // Último intervalo del día
+            proximoDisponible = actual.fin
+              .clone()
+              .add(intervaloTiempoCalendario, 'minutes');
           }
         }
 
