@@ -382,9 +382,7 @@ export class PedidoService {
       } = empresaInfo;
 
       if (!horaAperturaEmpresa || !horaCierreEmpresa) {
-        throw new Error(
-          'La empresa no tiene configurados los horarios de apertura y cierre.',
-        );
+        throw new Error('La empresa no tiene horarios configurados.');
       }
 
       const horaActual = moment().tz(LOCALE_TIMEZONE);
@@ -397,7 +395,7 @@ export class PedidoService {
         .minute(aperturaMinuto)
         .second(0)
         .millisecond(0);
-  
+
       const [cierreHora, cierreMinuto] = horaCierreEmpresa
         .split(':')
         .map(Number);
@@ -406,47 +404,29 @@ export class PedidoService {
         .minute(cierreMinuto)
         .second(0)
         .millisecond(0);
-  
+
       const minutosActuales = horaActual.minutes();
       const minutosRedondeados =
         Math.ceil(minutosActuales / intervaloTiempoCalendario) *
         intervaloTiempoCalendario;
-      const proximoInicio = moment(horaActual)
+      let proximoDisponible = moment(horaActual)
         .minute(minutosRedondeados)
         .second(0)
         .millisecond(0);
-  
-      let proximoDisponible = proximoInicio.isBetween(
-        apertura,
-        cierre,
-        undefined,
-        '[)',
-      )
-        ? proximoInicio
-        : apertura;
-  
+
       if (horaActual.isSameOrAfter(cierre)) {
         apertura.add(1, 'day');
         cierre.add(1, 'day');
-        proximoDisponible = apertura;
+        proximoDisponible = apertura.clone();
       }
-  
-      let dateFounded = false;
-      let intentos = 0;
-      const maxIntentos = 1000;
-  
-      while (dateFounded === false) {
-        if (intentos > maxIntentos) {
-          throw new Error('Se alcanzó el límite de intentos para encontrar disponibilidad');
-        }
-        intentos++;
-  
-        console.log(`Verificando disponibilidad para el día: ${apertura.format('YYYY-MM-DD')}`);
-  
+
+      while (true) {
+        console.log(
+          `Verificando disponibilidad para el día: ${apertura.format('YYYY-MM-DD')}`,
+        );
+
         const pedidosActivos = await this.pedidoRepository
           .createQueryBuilder('pedido')
-          .leftJoinAndSelect('pedido.pedidosprod', 'productoPedido')
-          .leftJoinAndSelect('productoPedido.producto', 'producto')
           .where('pedido.fecha >= :apertura AND pedido.fecha < :cierre', {
             apertura: apertura.format('YYYY-MM-DD HH:mm:ss+00'),
             cierre: cierre.format('YYYY-MM-DD HH:mm:ss+00'),
@@ -455,88 +435,82 @@ export class PedidoService {
             estadoCancelado: EstadoDefectoIds.CANCELADO,
           })
           .getMany();
-  
-        console.log(`Pedidos activos: ${pedidosActivos.length}`);
-        console.log(`Proximo disponible actual: ${proximoDisponible.format('YYYY-MM-DD HH:mm:ssZ')}`);
-  
+
         const intervalosOcupados = pedidosActivos.map((pedido) => {
-          const duracion = intervaloTiempoCalendario;
           const inicio = moment(pedido.fecha);
-          const fin = moment(inicio).add(duracion, 'minutes');
+          const fin = inicio.clone().add(intervaloTiempoCalendario, 'minutes');
           return { inicio, fin };
         });
-  
-        intervalosOcupados.sort((a, b) => a.inicio.valueOf() - b.inicio.valueOf());
-  
-        console.log('Intervalos ocupados:', intervalosOcupados.map(i => ({
-          inicio: i.inicio.format('HH:mm'),
-          fin: i.fin.format('HH:mm'),
-        })));
-  
-        const zonaComun = -3;
-        let encontradoHueco = true;
-  
-        for (let i = 0; i < intervalosOcupados.length; i++) {
-          const intervalo = intervalosOcupados[i];
-          const intervaloInicio = intervalo.inicio.utcOffset(zonaComun, true);
-          const intervaloFin = intervalo.fin.utcOffset(zonaComun, true);
-          const proximoDisponibleForzado = proximoDisponible.utcOffset(zonaComun, true);
-  
-          if (
-            proximoDisponibleForzado.isSameOrAfter(intervaloInicio) &&
-            proximoDisponibleForzado.isSameOrBefore(intervaloFin)
-          ) {
-            console.log('Conflicto con intervalo:', {
-              inicio: intervaloInicio.format('HH:mm'),
-              fin: intervaloFin.format('HH:mm'),
-            });
-  
-            // Ajustar al final del intervalo actual
-            proximoDisponible = moment(intervaloFin).add(intervaloTiempoCalendario, 'minutes');
-            encontradoHueco = false;
-  
-            // Verificar si hay un hueco antes del siguiente intervalo
-            if (i + 1 < intervalosOcupados.length) {
-              const siguienteIntervaloInicio = intervalosOcupados[i + 1].inicio.utcOffset(zonaComun, true);
-              if (proximoDisponible.isBefore(siguienteIntervaloInicio)) {
-                dateFounded = true;
-                break;
-              }
-            }
-          } else if (proximoDisponibleForzado.isBefore(intervaloInicio)) {
-            // Hay un hueco disponible
-            dateFounded = true;
+
+        intervalosOcupados.sort(
+          (a, b) => a.inicio.valueOf() - b.inicio.valueOf(),
+        );
+
+        console.log(
+          'Intervalos ocupados:',
+          intervalosOcupados.map((i) => ({
+            inicio: i.inicio.format('HH:mm'),
+            fin: i.fin.format('HH:mm'),
+          })),
+        );
+
+        let encontradoHueco = false;
+
+        for (let i = 0; i <= intervalosOcupados.length; i++) {
+          const actual = intervalosOcupados[i];
+          const siguiente = intervalosOcupados[i + 1];
+
+          if (!actual || proximoDisponible.isBefore(actual.inicio)) {
+            encontradoHueco = true;
             break;
           }
+
+          if (siguiente) {
+            const huecoDisponible = actual.fin.add(
+              intervaloTiempoCalendario,
+              'minutes',
+            );
+            if (huecoDisponible.isBefore(siguiente.inicio)) {
+              proximoDisponible = huecoDisponible;
+              encontradoHueco = true;
+              break;
+            }
+          } else {
+            proximoDisponible = actual.fin.add(
+              intervaloTiempoCalendario,
+              'minutes',
+            );
+          }
         }
-  
-        if (encontradoHueco && !dateFounded) {
-          dateFounded = true;
-        } else if (!dateFounded && proximoDisponible.isSameOrAfter(cierre)) {
-          console.log('Pasando al siguiente día');
-          proximoDisponible = moment(apertura).add(1, 'day');
-          apertura.add(1, 'day');
-          cierre.add(1, 'day');
+
+        if (encontradoHueco && proximoDisponible.isBefore(cierre)) {
+          console.log(
+            'Proximo disponible:',
+            proximoDisponible.format('YYYY-MM-DD HH:mm:ssZ'),
+          );
+          return proximoDisponible.toISOString();
         }
-  
+
+        console.log('Pasando al siguiente día');
+        apertura.add(1, 'day');
+        cierre.add(1, 'day');
+        proximoDisponible = apertura.clone();
+
         if (apertura.diff(horaActual, 'days') > 30) {
-          throw new Error('No se encontró disponibilidad en los próximos 30 días');
+          throw new Error(
+            'No se encontró disponibilidad en los próximos 30 días',
+          );
         }
       }
-  
-      console.log("Proximo disponible:", proximoDisponible.format('YYYY-MM-DD HH:mm:ssZ'));
-  
-      return proximoDisponible.toISOString();
     } catch (error) {
       throw new BadRequestException({
         ok: false,
         statusCode: 400,
-        message: error?.message || 'Error al crear el pedido',
+        message: error?.message || 'Error al obtener disponibilidad',
         error: 'Bad Request',
       });
     }
   }
-
 
   async getOrdersForCalendar(dateTime: string) {
     try {
