@@ -87,12 +87,15 @@ export class PedidoService {
         newPedido.estado = estado;
         newPedido.tipo_servicio_id = tipoServicio.id;
 
+        console.log(createPedidoDto.empresaType === 'RESERVA');
 
-        console.log(createPedidoDto.empresaType === "RESERVA");
-        
-        console.log(createPedidoDto.empresaType === "RESERVA"
-          ? (createPedidoDto.fecha ? createPedidoDto.fecha : products[0].fecha)
-          : getCurrentDate());
+        console.log(
+          createPedidoDto.empresaType === 'RESERVA'
+            ? createPedidoDto.fecha
+              ? createPedidoDto.fecha
+              : products[0].fecha
+            : getCurrentDate(),
+        );
 
         newPedido.fecha =
           createPedidoDto.empresaType === 'RESERVA'
@@ -163,8 +166,7 @@ export class PedidoService {
           total,
           orderId: savedPedido.id,
           fecha: savedPedido.fecha,
-          status: savedPedido.confirmado
-
+          status: savedPedido.confirmado,
         };
 
         this.webSocketService.sendOrder(formatToSendFrontend);
@@ -344,7 +346,7 @@ export class PedidoService {
           total,
           orderId: pedido.id,
           date: pedido.fecha,
-          status: pedido.confirmado
+          status: pedido.confirmado,
         };
       });
 
@@ -368,6 +370,7 @@ export class PedidoService {
       const empresaInfo = await this.empresaRepository.findOne({
         where: { id: empresaId },
       });
+
       if (!empresaInfo) {
         throw new Error('Empresa no encontrada');
       }
@@ -429,10 +432,21 @@ export class PedidoService {
       }
 
       let dateFounded = false;
+      let intentos = 0;
+      const maxIntentos = 1000;
 
       while (dateFounded === false) {
-        console.log(`Verificando disponibilidad para el día: ${apertura.format('YYYY-MM-DD')}`);
-      
+        if (intentos > maxIntentos) {
+          throw new Error(
+            'Se alcanzó el límite de intentos para encontrar disponibilidad',
+          );
+        }
+        intentos++;
+
+        console.log(
+          `Verificando disponibilidad para el día: ${apertura.format('YYYY-MM-DD')}`,
+        );
+
         const pedidosActivos = await this.pedidoRepository
           .createQueryBuilder('pedido')
           .leftJoinAndSelect('pedido.pedidosprod', 'productoPedido')
@@ -445,32 +459,42 @@ export class PedidoService {
             estadoCancelado: EstadoDefectoIds.CANCELADO,
           })
           .getMany();
-      
+
         console.log(`Pedidos activos: ${pedidosActivos.length}`);
-        console.log(`Proximo disponible actual: ${proximoDisponible.format('YYYY-MM-DD HH:mm:ssZ')}`);
-      
+        console.log(
+          `Proximo disponible actual: ${proximoDisponible.format('YYYY-MM-DD HH:mm:ssZ')}`,
+        );
+
         const intervalosOcupados = pedidosActivos.map((pedido) => {
           const duracion = intervaloTiempoCalendario;
           const inicio = moment(pedido.fecha);
           const fin = moment(inicio).add(duracion, 'minutes');
           return { inicio, fin };
         });
-      
-        intervalosOcupados.sort((a, b) => a.inicio.valueOf() - b.inicio.valueOf());
-      
-        console.log('Intervalos ocupados:', intervalosOcupados.map(i => ({
-          inicio: i.inicio.format('HH:mm'),
-          fin: i.fin.format('HH:mm'),
-        })));
-      
+
+        intervalosOcupados.sort(
+          (a, b) => a.inicio.valueOf() - b.inicio.valueOf(),
+        );
+
+        console.log(
+          'Intervalos ocupados:',
+          intervalosOcupados.map((i) => ({
+            inicio: i.inicio.format('HH:mm'),
+            fin: i.fin.format('HH:mm'),
+          })),
+        );
+
         const zonaComun = -3;
         let encontradoHueco = true;
-      
+
         for (const intervalo of intervalosOcupados) {
           const intervaloInicio = intervalo.inicio.utcOffset(zonaComun, true);
           const intervaloFin = intervalo.fin.utcOffset(zonaComun, true);
-          const proximoDisponibleForzado = proximoDisponible.utcOffset(zonaComun, true);
-      
+          const proximoDisponibleForzado = proximoDisponible.utcOffset(
+            zonaComun,
+            true,
+          );
+
           if (
             proximoDisponibleForzado.isSameOrAfter(intervaloInicio) &&
             proximoDisponibleForzado.isSameOrBefore(intervaloFin)
@@ -479,13 +503,18 @@ export class PedidoService {
               inicio: intervaloInicio.format('HH:mm'),
               fin: intervaloFin.format('HH:mm'),
             });
-            proximoDisponible = moment(intervaloFin);
+
+            proximoDisponible = moment(intervaloFin).add(
+              intervaloTiempoCalendario,
+              'minutes',
+            );
             encontradoHueco = false;
+            break;
           } else if (proximoDisponibleForzado.isBefore(intervaloInicio)) {
             break;
           }
         }
-      
+
         if (encontradoHueco) {
           dateFounded = true;
         } else if (proximoDisponible.isSameOrAfter(cierre)) {
@@ -494,15 +523,20 @@ export class PedidoService {
           apertura.add(1, 'day');
           cierre.add(1, 'day');
         }
-      
+
         if (apertura.diff(horaActual, 'days') > 30) {
-          throw new Error('No se encontró disponibilidad en los próximos 30 días');
+          throw new Error(
+            'No se encontró disponibilidad en los próximos 30 días',
+          );
         }
       }
-      
-      console.log("proximoDisponible", proximoDisponible)
 
-      return proximoDisponible.toString();
+      console.log(
+        'Proximo disponible:',
+        proximoDisponible.format('YYYY-MM-DD HH:mm:ssZ'),
+      );
+
+      return proximoDisponible.toISOString();
     } catch (error) {
       throw new BadRequestException({
         ok: false,
@@ -516,47 +550,49 @@ export class PedidoService {
   async getOrdersForCalendar(dateTime: string) {
     try {
       const now = getCurrentDate();
-      const filterDate = moment(dateTime, "YYYY-MM-DD").startOf('day');
+      const filterDate = moment(dateTime, 'YYYY-MM-DD').startOf('day');
 
-      const filterDateStart = filterDate.startOf('day').toDate(); 
-      const filterDateEnd = filterDate.endOf('day').toDate();  
+      const filterDateStart = filterDate.startOf('day').toDate();
+      const filterDateEnd = filterDate.endOf('day').toDate();
 
       const pedidos = await this.pedidoRepository.find({
         where: {
           available: true,
-          fecha: Between(filterDateStart, filterDateEnd)
+          fecha: Between(filterDateStart, filterDateEnd),
         },
-        relations: ["pedidosprod", "pedidosprod.producto"],
+        relations: ['pedidosprod', 'pedidosprod.producto'],
       });
 
       const dates = {};
       await Promise.all(
         pedidos.map(async (pedido) => {
-          const formattedDate = moment(pedido.fecha).format("YYYY-MM-DD");
-          const clientData = await this.clienteRepository.findOne({ where: { id: pedido.cliente_id } });
+          const formattedDate = moment(pedido.fecha).format('YYYY-MM-DD');
+          const clientData = await this.clienteRepository.findOne({
+            where: { id: pedido.cliente_id },
+          });
           const pedidoProd = pedido.pedidosprod[0];
 
           const pedidoDate = moment.tz(
             JSON.stringify(pedido.fecha),
-            "YYYY-MM-DD HH:mm:ss",
-            "America/Montevideo"
+            'YYYY-MM-DD HH:mm:ss',
+            'America/Montevideo',
           );
           const nowMoment = moment.tz(
             now,
-            "YYYY-MM-DD HH:mm:ss",
-            "America/Montevideo"
+            'YYYY-MM-DD HH:mm:ss',
+            'America/Montevideo',
           );
 
           const isOlder = pedidoDate.isAfter(nowMoment);
 
           const formatPedidoResponse = {
-            clientName: clientData?.nombre || "Desconocido",
-            numberSender: clientData?.telefono || "N/A",
+            clientName: clientData?.nombre || 'Desconocido',
+            numberSender: clientData?.telefono || 'N/A',
             orderId: pedido.id,
             productName: pedidoProd?.producto?.nombre,
             total: pedidoProd?.cantidad * pedidoProd?.producto.precio,
-            date: isOlder ? pedidoDate.format("LT") : pedidoDate.fromNow(),
-            status: pedido.confirmado
+            date: isOlder ? pedidoDate.format('LT') : pedidoDate.fromNow(),
+            status: pedido.confirmado,
           };
 
           if (formattedDate in dates) {
@@ -564,9 +600,8 @@ export class PedidoService {
           } else {
             dates[formattedDate] = [formatPedidoResponse];
           }
-        })
+        }),
       );
-
 
       return {
         data: dates,
