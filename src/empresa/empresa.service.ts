@@ -49,9 +49,10 @@ export class EmpresaService {
         newEmpresa.nombre = createEmpresaDto.nombre;
         newEmpresa.db_name = dbName;
 
-        if (!isValidTimeFormat(createEmpresaDto?.hora_apertura) || isValidTimeFormat(createEmpresaDto?.hora_cierre)) {
+        if (!isValidTimeFormat(createEmpresaDto?.hora_apertura) || !isValidTimeFormat(createEmpresaDto?.hora_cierre)) {
           throw new Error('Hora de apertur y cierre invalidos');
         }
+
         newEmpresa.hora_apertura = createEmpresaDto.hora_apertura;
         newEmpresa.hora_cierre = createEmpresaDto.hora_cierre
         newEmpresa.logo = createEmpresaDto.logo;
@@ -67,6 +68,7 @@ export class EmpresaService {
         if (!userExistsWithThisEmail) {
           throw new Error('Ya existe un usuario con el correo ingresado');
         }
+        
         const empresaCreated = await this.empresaRepository.save(newEmpresa);
         const hashedPassword = await bcrypt.hash(createEmpresaDto?.password, 10);
         const user = this.usuarioRepository.create({
