@@ -119,6 +119,7 @@ export class AppModule {
         { path: '/auth/login', method: RequestMethod.ALL },
         { path: '/auth/register', method: RequestMethod.ALL },
         { path: '/webhooks', method: RequestMethod.ALL },
+        { path: '/tiposervicio', method: RequestMethod.ALL },
       )
       .forRoutes('*');
   }
