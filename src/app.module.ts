@@ -120,6 +120,7 @@ export class AppModule {
         { path: '/auth/register', method: RequestMethod.ALL },
         { path: '/webhooks', method: RequestMethod.ALL },
         { path: '/tiposervicio', method: RequestMethod.ALL },
+        { path: '/empresa', method: RequestMethod.ALL },
       )
       .forRoutes('*');
   }
