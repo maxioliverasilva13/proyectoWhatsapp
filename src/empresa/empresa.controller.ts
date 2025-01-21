@@ -20,8 +20,8 @@ export class EmpresaController {
   constructor(private readonly empresaService: EmpresaService) {}
 
   @Post()
-  @Roles(TypeRol.SUPER_ADMIN)
-  @UseGuards(RolesGuard)
+  // @Roles(TypeRol.SUPER_ADMIN)
+  // @UseGuards(RolesGuard)
   create(@Body() createEmpresaDto: CreateEmpresaDto) {
     return this.empresaService.create(createEmpresaDto);
   }
