@@ -65,7 +65,7 @@ export class EmpresaService {
         }
 
         const userExistsWithThisEmail = await this.usuarioRepository.findOne({ where: { correo: createEmpresaDto?.userEmail } });
-        if (!userExistsWithThisEmail) {
+        if (userExistsWithThisEmail) {
           throw new Error('Ya existe un usuario con el correo ingresado');
         }
         
