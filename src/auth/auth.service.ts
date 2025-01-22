@@ -69,6 +69,7 @@ export class AuthService {
   }
 
   async currentUser(userId: any) {
+
     try {
       const globalConnection = await handleGetGlobalConnection();
       const userRepository = globalConnection.getRepository(Usuario);
@@ -77,7 +78,8 @@ export class AuthService {
       if (!user) {
         throw new HttpException("Invalid user", 400);
       }
-
+      let notificarReserva ;
+      let intervaloTiempoCalendario;
       let userConfigured = !!user.nombre?.trim() && !!user.apellido?.trim();
       let apiConfigured;
       let paymentMade = false;
@@ -91,12 +93,14 @@ export class AuthService {
       if (user.id_empresa) {
         const empresa = await this.empresaRepository.findOne({ where: { id: user.id_empresa }, relations: ['tipoServicioId'] });
         if (empresa) {
-          console.log('1');
+          
           opening_time = empresa.hora_apertura
           closing_time = empresa.hora_cierre
           isOpen = empresa.abierto,
           tipo_servicio = empresa.tipoServicioId.id
           tipo_servicioNombre = empresa.tipoServicioId.nombre
+          intervaloTiempoCalendario = empresa.intervaloTiempoCalendario
+          notificarReserva = empresa.notificarReservaHoras = 
 
           apiConfigured = empresa.apiConfigured
           apiUrl = `${process.env.ENV === "dev" ? "http" : "https"}://${process.env.VIRTUAL_HOST?.replace("app", empresa?.db_name)}`
@@ -107,7 +111,6 @@ export class AuthService {
 
             greenApiConfigured = resFormated.stateInstance === 'authorized'
           }
-          console.log('2');
 
           const lastPlan = await this.planesEmpresaRepository.findOne({
             where: { id_empresa: empresa.id },
@@ -124,8 +127,6 @@ export class AuthService {
           }
         }
       }
-
-      console.log('3');
       
       const newUser = { ...user }
       delete newUser.password;
@@ -139,6 +140,8 @@ export class AuthService {
         userConfigured,
         greenApiConfigured,
         globalConfig: greenApiConfigured && userConfigured && paymentMade && apiConfigured,
+        intervaloTiempoCalendario,
+        notificarReserva,
         opening_time,
         closing_time,
         isOpen,
