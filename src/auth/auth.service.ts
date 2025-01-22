@@ -85,12 +85,16 @@ export class AuthService {
       let greenApiConfigured = false
       let tipo_servicio = 0;
       let tipo_servicioNombre = '';
-
+      let opening_time ;
+      let closing_time;
+      let isOpen;
       if (user.id_empresa) {
         const empresa = await this.empresaRepository.findOne({ where: { id: user.id_empresa }, relations: ['tipoServicioId'] });
         if (empresa) {
           console.log('1');
-
+          opening_time = empresa.hora_apertura
+          closing_time = empresa.hora_cierre
+          isOpen = empresa.abierto,
           tipo_servicio = empresa.tipoServicioId.id
           tipo_servicioNombre = empresa.tipoServicioId.nombre
 
@@ -135,6 +139,9 @@ export class AuthService {
         userConfigured,
         greenApiConfigured,
         globalConfig: greenApiConfigured && userConfigured && paymentMade && apiConfigured,
+        opening_time,
+        closing_time,
+        isOpen,
       }
     } catch (error) {
       throw new BadRequestException({
