@@ -78,6 +78,7 @@ export class AuthService {
       if (!user) {
         throw new HttpException("Invalid user", 400);
       }
+      let remaindersHorsRemainder;
       let notificarReserva ;
       let intervaloTiempoCalendario;
       let userConfigured = !!user.nombre?.trim() && !!user.apellido?.trim();
@@ -100,7 +101,8 @@ export class AuthService {
           tipo_servicio = empresa.tipoServicioId.id
           tipo_servicioNombre = empresa.tipoServicioId.nombre
           intervaloTiempoCalendario = empresa.intervaloTiempoCalendario
-          notificarReserva = empresa.notificarReservaHoras = 
+          notificarReserva = empresa.notificarReservaHoras 
+          remaindersHorsRemainder = empresa.remaindersHorsRemainder
 
           apiConfigured = empresa.apiConfigured
           apiUrl = `${process.env.ENV === "dev" ? "http" : "https"}://${process.env.VIRTUAL_HOST?.replace("app", empresa?.db_name)}`
@@ -145,6 +147,7 @@ export class AuthService {
         opening_time,
         closing_time,
         isOpen,
+        remaindersHorsRemainder
       }
     } catch (error) {
       throw new BadRequestException({
