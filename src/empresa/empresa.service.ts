@@ -49,7 +49,7 @@ export class EmpresaService {
         newEmpresa.nombre = createEmpresaDto.nombre;
         newEmpresa.db_name = dbName;
 
-        if (isValidTimeFormat(createEmpresaDto?.hora_apertura) && isValidTimeFormat(createEmpresaDto?.hora_cierre)) {
+        if (!isValidTimeFormat(createEmpresaDto?.hora_apertura) || !isValidTimeFormat(createEmpresaDto?.hora_cierre)) {
           throw new Error('Hora de apertur y cierre invalidos');
         }
 
