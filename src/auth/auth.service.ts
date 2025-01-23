@@ -88,16 +88,16 @@ export class AuthService {
       let greenApiConfigured = false
       let tipo_servicio = 0;
       let tipo_servicioNombre = '';
-      let opening_time ;
-      let closing_time;
-      let isOpen;
+      let hora_apertura ;
+      let hora_cierre;
+      let abierto;
       if (user.id_empresa) {
         const empresa = await this.empresaRepository.findOne({ where: { id: user.id_empresa }, relations: ['tipoServicioId'] });
         if (empresa) {
           
-          opening_time = empresa.hora_apertura
-          closing_time = empresa.hora_cierre
-          isOpen = empresa.abierto,
+          hora_apertura = empresa.hora_apertura
+          hora_cierre = empresa.hora_cierre
+          abierto = empresa.abierto,
           tipo_servicio = empresa.tipoServicioId.id
           tipo_servicioNombre = empresa.tipoServicioId.nombre
           intervaloTiempoCalendario = empresa.intervaloTiempoCalendario
