@@ -144,9 +144,9 @@ export class AuthService {
         globalConfig: greenApiConfigured && userConfigured && paymentMade && apiConfigured,
         intervaloTiempoCalendario,
         notificarReserva,
-        opening_time,
-        closing_time,
-        isOpen,
+        hora_apertura,
+        hora_cierre,
+        abierto,
         remaindersHorsRemainder
       }
     } catch (error) {
