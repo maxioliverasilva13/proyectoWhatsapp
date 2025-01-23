@@ -6,5 +6,11 @@ export class UpdateEmpresaDto extends PartialType(CreateEmpresaDto) {
     greenApiConfigured?: boolean;
     greenApiInstance?: string;
     greenApiInstanceToken? : string;
+    hora_apertura: string;
+    hora_cierre: string;
+    abierto: boolean;
+    intervaloTiempoCalendario: number;
+    notificarReservaHoras: boolean;
+    remaindersHorsRemainder: number
 }
 
