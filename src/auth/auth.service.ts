@@ -79,7 +79,7 @@ export class AuthService {
         throw new HttpException("Invalid user", 400);
       }
       let remaindersHorsRemainder;
-      let notificarReserva ;
+      let notificarReservaHoras ;
       let intervaloTiempoCalendario;
       let userConfigured = !!user.nombre?.trim() && !!user.apellido?.trim();
       let apiConfigured;
@@ -101,7 +101,7 @@ export class AuthService {
           tipo_servicio = empresa.tipoServicioId.id
           tipo_servicioNombre = empresa.tipoServicioId.nombre
           intervaloTiempoCalendario = empresa.intervaloTiempoCalendario
-          notificarReserva = empresa.notificarReservaHoras 
+          notificarReservaHoras = empresa.notificarReservaHoras 
           remaindersHorsRemainder = empresa.remaindersHorsRemainder
 
           apiConfigured = empresa.apiConfigured
@@ -143,7 +143,7 @@ export class AuthService {
         greenApiConfigured,
         globalConfig: greenApiConfigured && userConfigured && paymentMade && apiConfigured,
         intervaloTiempoCalendario,
-        notificarReserva,
+        notificarReservaHoras,
         hora_apertura,
         hora_cierre,
         abierto,
