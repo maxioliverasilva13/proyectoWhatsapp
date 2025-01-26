@@ -504,7 +504,6 @@ export class PedidoService {
             encontradoHueco = true;
             proximoDisponible = actual.fin
               .clone()
-              .add(intervaloTiempoCalendario, 'minutes');
           }
         }
 
