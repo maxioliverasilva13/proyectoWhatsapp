@@ -529,6 +529,9 @@ export class PedidoService {
           available: true,
           fecha: Between(filterDateStart, filterDateEnd),
         },
+        order: {
+          fecha: "DESC"
+        },
         relations: ['pedidosprod', 'pedidosprod.producto'],
       });
 
