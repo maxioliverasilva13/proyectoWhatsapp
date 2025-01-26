@@ -23,7 +23,7 @@ import * as moment from 'moment';
 import { Empresa } from 'src/empresa/entities/empresa.entity';
 import { EstadoDefectoIds } from 'src/enums/estadoDefecto';
 
-moment.locale("es");
+moment.locale('es');
 
 const LOCALE_TIMEZONE = 'America/Montevideo';
 @Injectable()
@@ -436,17 +436,18 @@ export class PedidoService {
           .andWhere('pedido.estado != :estadoCancelado', {
             estadoCancelado: EstadoDefectoIds.CANCELADO,
           })
+          .andWhere('pedido.fecha > :horaActual', {
+            horaActual: horaActual.format('YYYY-MM-DD HH:mm:ss+00'),
+          })
           .getMany();
-        
-        const pedidosActivos = allPedidos?.filter((ped) => {
-          return proximoDisponible.isSameOrAfter(moment(ped.fecha))
-        }) ?? [];
+
+        const pedidosActivos = allPedidos;
 
         const intervalosOcupados = pedidosActivos.map((pedido) => {
           const inicio = moment(pedido.fecha);
           const fin = inicio.clone().add(intervaloTiempoCalendario, 'minutes');
           return { inicio, fin };
-        })
+        });
 
         intervalosOcupados.sort(
           (a, b) => a.inicio.valueOf() - b.inicio.valueOf(),
@@ -469,42 +470,50 @@ export class PedidoService {
         for (let i = 0; i <= intervalosOcupados.length - 1; i++) {
           const actual = intervalosOcupados[i];
           const siguiente = intervalosOcupados[i + 1];
-          console.log("comparando",  intervalosOcupados[i])
-          console.log("siguiente", siguiente)
-          console.log("proximoDisponible", proximoDisponible)
-        
+          console.log('comparando', intervalosOcupados[i]);
+          console.log('siguiente', siguiente);
+          console.log('proximoDisponible', proximoDisponible);
+
           if (!actual) {
             if (proximoDisponible.isBefore(cierre)) {
-              console.log("if 1")
+              console.log('if 1');
               encontradoHueco = true;
               break;
             }
           } else if (proximoDisponible.isBefore(actual.inicio)) {
-            console.log("if 2")
+            console.log('if 2');
             encontradoHueco = true;
             break;
           } else if (siguiente) {
-            console.log("if 3")
-            const finActual = actual.fin.clone().add(intervaloTiempoCalendario, 'minutes');
+            console.log('if 3');
+            const finActual = actual.fin
+              .clone()
+              .add(intervaloTiempoCalendario, 'minutes');
             if (finActual.isBefore(siguiente.inicio)) {
-              console.log("if 4")
+              console.log('if 4');
               proximoDisponible = finActual;
               encontradoHueco = true;
               break;
             }
           } else {
-            console.log("if 5")
-            proximoDisponible = actual.fin.clone().add(intervaloTiempoCalendario, 'minutes');
+            console.log('if 5');
+            proximoDisponible = actual.fin
+              .clone()
+              .add(intervaloTiempoCalendario, 'minutes');
           }
         }
 
         if (encontradoHueco && proximoDisponible.isBefore(cierre)) {
+          console.log('proximoDisponible', proximoDisponible);
           console.log(
             'Proximo disponible:',
             proximoDisponible.format('YYYY-MM-DD HH:mm:ssZ'),
           );
           return proximoDisponible.toISOString();
-        } else if (intervalosOcupados?.length === 0 && proximoDisponible.isBefore(cierre)) {
+        } else if (
+          intervalosOcupados?.length === 0 &&
+          proximoDisponible.isBefore(cierre)
+        ) {
           return proximoDisponible.toISOString();
         }
 
@@ -543,7 +552,7 @@ export class PedidoService {
           fecha: Between(filterDateStart, filterDateEnd),
         },
         order: {
-          fecha: "DESC"
+          fecha: 'DESC',
         },
         relations: ['pedidosprod', 'pedidosprod.producto'],
       });
