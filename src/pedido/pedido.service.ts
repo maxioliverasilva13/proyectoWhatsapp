@@ -443,7 +443,7 @@ export class PedidoService {
           const inicio = moment(pedido.fecha);
           const fin = inicio.clone().add(intervaloTiempoCalendario, 'minutes');
           return { inicio, fin };
-        }).filter((int) => int.inicio.isSameOrAfter(proximoDisponible));
+        }).filter((int) => proximoDisponible.isSameOrAfter(int.inicio));
 
         intervalosOcupados.sort(
           (a, b) => a.inicio.valueOf() - b.inicio.valueOf(),
@@ -500,6 +500,8 @@ export class PedidoService {
             'Proximo disponible:',
             proximoDisponible.format('YYYY-MM-DD HH:mm:ssZ'),
           );
+          return proximoDisponible.toISOString();
+        } else if (intervalosOcupados?.length === 0 && proximoDisponible.isBefore(cierre)) {
           return proximoDisponible.toISOString();
         }
 
