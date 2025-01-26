@@ -427,7 +427,7 @@ export class PedidoService {
           `Verificando disponibilidad para el día: ${apertura.format('YYYY-MM-DD')}`,
         );
 
-        const pedidosActivos = await this.pedidoRepository
+        const allPedidos = await this.pedidoRepository
           .createQueryBuilder('pedido')
           .where('pedido.fecha >= :apertura AND pedido.fecha < :cierre', {
             apertura: apertura.format('YYYY-MM-DD HH:mm:ss+00'),
@@ -437,13 +437,16 @@ export class PedidoService {
             estadoCancelado: EstadoDefectoIds.CANCELADO,
           })
           .getMany();
-        console.log("pedidosActivos", pedidosActivos)
+        
+        const pedidosActivos = allPedidos?.filter((ped) => {
+          return proximoDisponible.isSameOrAfter(moment(ped.fecha))
+        }) ?? [];
 
         const intervalosOcupados = pedidosActivos.map((pedido) => {
           const inicio = moment(pedido.fecha);
           const fin = inicio.clone().add(intervaloTiempoCalendario, 'minutes');
           return { inicio, fin };
-        }).filter((int) => proximoDisponible.isSameOrAfter(int.inicio));
+        })
 
         intervalosOcupados.sort(
           (a, b) => a.inicio.valueOf() - b.inicio.valueOf(),
