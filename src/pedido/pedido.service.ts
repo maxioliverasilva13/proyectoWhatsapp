@@ -491,7 +491,6 @@ export class PedidoService {
             console.log('if 3');
             const finActual = actual.fin
               .clone()
-              .add(intervaloTiempoCalendario, 'minutes');
             if (finActual.isBefore(siguiente.inicio)) {
               console.log('if 4');
               proximoDisponible = finActual;
