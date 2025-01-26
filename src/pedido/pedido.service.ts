@@ -437,6 +437,7 @@ export class PedidoService {
             estadoCancelado: EstadoDefectoIds.CANCELADO,
           })
           .getMany();
+        console.log("pedidosActivos", pedidosActivos)
 
         const intervalosOcupados = pedidosActivos.map((pedido) => {
           const inicio = moment(pedido.fecha);
@@ -461,7 +462,7 @@ export class PedidoService {
         for (let i = 0; i <= intervalosOcupados.length; i++) {
           const actual = intervalosOcupados[i];
           const siguiente = intervalosOcupados[i + 1];
-
+        
           if (!actual) {
             if (proximoDisponible.isBefore(cierre)) {
               encontradoHueco = true;
@@ -471,19 +472,14 @@ export class PedidoService {
             encontradoHueco = true;
             break;
           } else if (siguiente) {
-            const finActual = actual.fin
-              .clone()
-              .add(intervaloTiempoCalendario, 'minutes');
+            const finActual = actual.fin.clone().add(intervaloTiempoCalendario, 'minutes');
             if (finActual.isBefore(siguiente.inicio)) {
               proximoDisponible = finActual;
               encontradoHueco = true;
               break;
             }
           } else {
-            // Último intervalo del día
-            proximoDisponible = actual.fin
-              .clone()
-              .add(intervaloTiempoCalendario, 'minutes');
+            proximoDisponible = actual.fin.clone().add(intervaloTiempoCalendario, 'minutes');
           }
         }
 
