@@ -414,7 +414,10 @@ export class PedidoService {
       let proximoDisponible = moment(horaActual)
         .minute(minutosRedondeados)
         .second(0)
-        .millisecond(0);
+        .millisecond(0)
+        .utcOffset(0, true);
+
+      console.log("proximoDisponible xd1", proximoDisponible)
 
       if (horaActual.isSameOrAfter(cierre)) {
         apertura.add(1, 'day');
