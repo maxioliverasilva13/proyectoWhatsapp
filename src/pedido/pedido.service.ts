@@ -496,6 +496,8 @@ export class PedidoService {
               proximoDisponible = finActual;
               encontradoHueco = true;
               break;
+            } else {
+              proximoDisponible = actual.fin.clone();
             }
           } else {
             console.log('if 5');
