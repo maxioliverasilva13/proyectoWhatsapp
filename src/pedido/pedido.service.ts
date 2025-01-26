@@ -497,6 +497,7 @@ export class PedidoService {
             }
           } else {
             console.log('if 5');
+            encontradoHueco = true;
             proximoDisponible = actual.fin
               .clone()
               .add(intervaloTiempoCalendario, 'minutes');
