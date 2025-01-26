@@ -462,23 +462,29 @@ export class PedidoService {
         for (let i = 0; i <= intervalosOcupados.length; i++) {
           const actual = intervalosOcupados[i];
           const siguiente = intervalosOcupados[i + 1];
+          console.log("comparando",  intervalosOcupados[i])
         
           if (!actual) {
             if (proximoDisponible.isBefore(cierre)) {
+              console.log("if 1")
               encontradoHueco = true;
               break;
             }
           } else if (proximoDisponible.isBefore(actual.inicio)) {
+            console.log("if 2")
             encontradoHueco = true;
             break;
           } else if (siguiente) {
+            console.log("if 3")
             const finActual = actual.fin.clone().add(intervaloTiempoCalendario, 'minutes');
             if (finActual.isBefore(siguiente.inicio)) {
+              console.log("if 4")
               proximoDisponible = finActual;
               encontradoHueco = true;
               break;
             }
           } else {
+            console.log("if 5")
             proximoDisponible = actual.fin.clone().add(intervaloTiempoCalendario, 'minutes');
           }
         }
