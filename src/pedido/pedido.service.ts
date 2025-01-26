@@ -23,7 +23,7 @@ import * as moment from 'moment';
 import { Empresa } from 'src/empresa/entities/empresa.entity';
 import { EstadoDefectoIds } from 'src/enums/estadoDefecto';
 
-moment.locale('es');
+moment.locale("es");
 
 const LOCALE_TIMEZONE = 'America/Montevideo';
 @Injectable()
@@ -437,7 +437,7 @@ export class PedidoService {
             estadoCancelado: EstadoDefectoIds.CANCELADO,
           })
           .getMany();
-        console.log('pedidosActivos', pedidosActivos);
+        console.log("pedidosActivos", pedidosActivos)
 
         const intervalosOcupados = pedidosActivos.map((pedido) => {
           const inicio = moment(pedido.fecha);
@@ -466,45 +466,36 @@ export class PedidoService {
         for (let i = 0; i <= intervalosOcupados.length - 1; i++) {
           const actual = intervalosOcupados[i];
           const siguiente = intervalosOcupados[i + 1];
-          console.log('comparando', intervalosOcupados[i]);
-          console.log('siguiente', siguiente);
-          console.log('proximoDisponible', proximoDisponible);
-
+          console.log("comparando",  intervalosOcupados[i])
+          console.log("siguiente", siguiente)
+          console.log("proximoDisponible", proximoDisponible)
+        
           if (!actual) {
             if (proximoDisponible.isBefore(cierre)) {
-              console.log('if 1');
+              console.log("if 1")
               encontradoHueco = true;
               break;
             }
           } else if (proximoDisponible.isBefore(actual.inicio)) {
-            console.log('if 2');
+            console.log("if 2")
             encontradoHueco = true;
             break;
           } else if (siguiente) {
-            console.log('if 3');
-            const finActual = actual.fin
-              .clone()
-              .add(intervaloTiempoCalendario, 'minutes');
+            console.log("if 3")
+            const finActual = actual.fin.clone().add(intervaloTiempoCalendario, 'minutes');
             if (finActual.isBefore(siguiente.inicio)) {
-              console.log('if 4');
+              console.log("if 4")
               proximoDisponible = finActual;
               encontradoHueco = true;
               break;
             }
           } else {
-            console.log('if 5');
-            proximoDisponible = actual.fin
-              .clone()
-              .add(intervaloTiempoCalendario, 'minutes');
+            console.log("if 5")
+            proximoDisponible = actual.fin.clone().add(intervaloTiempoCalendario, 'minutes');
           }
         }
 
-        // Verificar si el hueco es en el futuro
-        if (
-          encontradoHueco &&
-          proximoDisponible.isAfter(horaActual) &&
-          proximoDisponible.isBefore(cierre)
-        ) {
+        if (encontradoHueco && proximoDisponible.isBefore(cierre)) {
           console.log(
             'Proximo disponible:',
             proximoDisponible.format('YYYY-MM-DD HH:mm:ssZ'),
@@ -547,7 +538,7 @@ export class PedidoService {
           fecha: Between(filterDateStart, filterDateEnd),
         },
         order: {
-          fecha: 'DESC',
+          fecha: "DESC"
         },
         relations: ['pedidosprod', 'pedidosprod.producto'],
       });
