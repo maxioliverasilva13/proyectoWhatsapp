@@ -23,6 +23,8 @@ import * as moment from 'moment';
 import { Empresa } from 'src/empresa/entities/empresa.entity';
 import { EstadoDefectoIds } from 'src/enums/estadoDefecto';
 
+moment.locale("es");
+
 const LOCALE_TIMEZONE = 'America/Montevideo';
 @Injectable()
 export class PedidoService {
