@@ -459,10 +459,14 @@ export class PedidoService {
 
         let encontradoHueco = false;
 
-        for (let i = 0; i < intervalosOcupados.length; i++) {
+        if (intervalosOcupados?.length === 0 && pedidosActivos?.length === 0) {
+          proximoDisponible = apertura.clone();
+        }
+
+        for (let i = 0; i <= intervalosOcupados.length - 1; i++) {
           const actual = intervalosOcupados[i];
           const siguiente = intervalosOcupados[i + 1];
-          console.log("comparando",  intervalosOcupados[i])
+          console.log("comparando",  intervalosOcupados[i]) // 13:30 - 14:00
         
           if (!actual) {
             if (proximoDisponible.isBefore(cierre)) {
@@ -477,7 +481,7 @@ export class PedidoService {
           } else if (siguiente) {
             console.log("if 3")
             const finActual = actual.fin.clone().add(intervaloTiempoCalendario, 'minutes');
-            if (finActual.isBefore(siguiente.inicio)) {
+            if (finActual.isSameOrBefore(siguiente.inicio)) {
               console.log("if 4")
               proximoDisponible = finActual;
               encontradoHueco = true;
