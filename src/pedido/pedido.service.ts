@@ -459,7 +459,7 @@ export class PedidoService {
 
         let encontradoHueco = false;
 
-        for (let i = 0; i <= intervalosOcupados.length; i++) {
+        for (let i = 0; i < intervalosOcupados.length; i++) {
           const actual = intervalosOcupados[i];
           const siguiente = intervalosOcupados[i + 1];
           console.log("comparando",  intervalosOcupados[i])
