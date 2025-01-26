@@ -468,6 +468,7 @@ export class PedidoService {
           const siguiente = intervalosOcupados[i + 1];
           console.log("comparando",  intervalosOcupados[i])
           console.log("siguiente", siguiente)
+          console.log("proximoDisponible", proximoDisponible)
         
           if (!actual) {
             if (proximoDisponible.isBefore(cierre)) {
