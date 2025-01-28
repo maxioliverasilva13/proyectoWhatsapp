@@ -23,6 +23,8 @@ import * as moment from 'moment';
 import { Empresa } from 'src/empresa/entities/empresa.entity';
 import { EstadoDefectoIds } from 'src/enums/estadoDefecto';
 
+moment.locale('es');
+
 const LOCALE_TIMEZONE = 'America/Montevideo';
 @Injectable()
 export class PedidoService {
@@ -412,7 +414,10 @@ export class PedidoService {
       let proximoDisponible = moment(horaActual)
         .minute(minutosRedondeados)
         .second(0)
-        .millisecond(0);
+        .millisecond(0)
+        .utcOffset(0, true);
+
+      console.log("proximoDisponible xd1", proximoDisponible)
 
       if (horaActual.isSameOrAfter(cierre)) {
         apertura.add(1, 'day');
@@ -425,7 +430,7 @@ export class PedidoService {
           `Verificando disponibilidad para el día: ${apertura.format('YYYY-MM-DD')}`,
         );
 
-        const pedidosActivos = await this.pedidoRepository
+        const allPedidos = await this.pedidoRepository
           .createQueryBuilder('pedido')
           .where('pedido.fecha >= :apertura AND pedido.fecha < :cierre', {
             apertura: apertura.format('YYYY-MM-DD HH:mm:ss+00'),
@@ -434,7 +439,12 @@ export class PedidoService {
           .andWhere('pedido.estado != :estadoCancelado', {
             estadoCancelado: EstadoDefectoIds.CANCELADO,
           })
+          .andWhere('pedido.fecha > :horaActual', {
+            horaActual: horaActual.format('YYYY-MM-DD HH:mm:ss+00'),
+          })
           .getMany();
+
+        const pedidosActivos = allPedidos;
 
         const intervalosOcupados = pedidosActivos.map((pedido) => {
           const inicio = moment(pedido.fecha);
@@ -456,40 +466,58 @@ export class PedidoService {
 
         let encontradoHueco = false;
 
-        for (let i = 0; i <= intervalosOcupados.length; i++) {
+        if (intervalosOcupados?.length === 0 && pedidosActivos?.length === 0) {
+          proximoDisponible = apertura.clone();
+        }
+
+        for (let i = 0; i <= intervalosOcupados.length - 1; i++) {
           const actual = intervalosOcupados[i];
           const siguiente = intervalosOcupados[i + 1];
+          console.log('comparando', intervalosOcupados[i]);
+          console.log('siguiente', siguiente);
+          console.log('proximoDisponible', proximoDisponible);
 
           if (!actual) {
             if (proximoDisponible.isBefore(cierre)) {
+              console.log('if 1');
               encontradoHueco = true;
               break;
             }
           } else if (proximoDisponible.isBefore(actual.inicio)) {
+            console.log('if 2');
             encontradoHueco = true;
             break;
           } else if (siguiente) {
+            console.log('if 3');
             const finActual = actual.fin
               .clone()
-              .add(intervaloTiempoCalendario, 'minutes');
             if (finActual.isBefore(siguiente.inicio)) {
+              console.log('if 4');
               proximoDisponible = finActual;
               encontradoHueco = true;
               break;
+            } else {
+              proximoDisponible = actual.fin.clone();
             }
           } else {
-            // Último intervalo del día
+            console.log('if 5');
+            encontradoHueco = true;
             proximoDisponible = actual.fin
               .clone()
-              .add(intervaloTiempoCalendario, 'minutes');
           }
         }
 
         if (encontradoHueco && proximoDisponible.isBefore(cierre)) {
+          console.log('proximoDisponible', proximoDisponible);
           console.log(
             'Proximo disponible:',
             proximoDisponible.format('YYYY-MM-DD HH:mm:ssZ'),
           );
+          return proximoDisponible.toISOString();
+        } else if (
+          intervalosOcupados?.length === 0 &&
+          proximoDisponible.isBefore(cierre)
+        ) {
           return proximoDisponible.toISOString();
         }
 
@@ -526,6 +554,9 @@ export class PedidoService {
         where: {
           available: true,
           fecha: Between(filterDateStart, filterDateEnd),
+        },
+        order: {
+          fecha: 'DESC',
         },
         relations: ['pedidosprod', 'pedidosprod.producto'],
       });
