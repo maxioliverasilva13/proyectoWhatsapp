@@ -69,6 +69,9 @@ export class Empresa extends BaseEntity {
   @OneToMany(()=> CierreProvisorio, (CierreProvisorio)=> CierreProvisorio.empresa)
   cierre_provisorio: CierreProvisorio[];
 
+  @Column({default:'America/Montevideo'})
+  timeZone: string
+
   @OneToMany(()=> PlanEmpresa, (planEmpresa)=> planEmpresa.empresa)
   planEmpresa : PlanEmpresa[]
 }

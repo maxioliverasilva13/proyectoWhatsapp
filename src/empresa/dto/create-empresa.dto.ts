@@ -10,4 +10,5 @@ export class CreateEmpresaDto {
   userEmail: string; // text
   password: string; // text
   direction? : string;
+  timeZone?: string;
 }

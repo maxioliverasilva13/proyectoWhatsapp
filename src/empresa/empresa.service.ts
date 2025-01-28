@@ -58,7 +58,8 @@ export class EmpresaService {
         newEmpresa.logo = createEmpresaDto.logo;
         newEmpresa.descripcion = createEmpresaDto.descripcion;
         newEmpresa.menu = createEmpresaDto.menu;
-
+        newEmpresa.timeZone = createEmpresaDto.timeZone
+        
         const existsTipoServicio = await this.tipoServicioRepository.findOne({ where: { id: Number(createEmpresaDto?.tipoServicioId) } });
         if (!existsTipoServicio) {
           throw new Error('El tipo de servicio es invalido');
