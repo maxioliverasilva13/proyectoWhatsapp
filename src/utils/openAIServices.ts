@@ -1,4 +1,5 @@
 import getCurrentDate from "./getCurrentDate";
+import * as moment from 'moment-timezone';
 
 export const askAssistant = async (question, instrucciones) => {
     try {
@@ -63,9 +64,9 @@ export async function createThread(products, infoLines, empresaType) {
     return threadData.id;
 }
 
-export async function sendMessageToThread(threadId, text, isAdmin) {
+export async function sendMessageToThread(threadId, text, isAdmin, timeZone) {
 
-    const today = new Date().toLocaleDateString(); 
+    const today = moment.tz(timeZone); 
     const headers = {
         "Authorization": `Bearer ${process.env.OPEN_AI_TOKEN}`,
         "Content-Type": "application/json",

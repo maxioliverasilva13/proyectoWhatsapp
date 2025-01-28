@@ -24,7 +24,7 @@ export class GreenApiService {
         }
     }
 
-    async handleMessagetText(textMessage, numberSender, empresaType, empresaId, senderName) {
+    async handleMessagetText(textMessage, numberSender, empresaType, empresaId, senderName, timeZone) {
         
         const { threadId } = await this.chatGptThreadsService.getLastThreads(numberSender);
         
@@ -42,7 +42,7 @@ export class GreenApiService {
             });
         }
 
-        const openAIResponse = await sendMessageToThread(currentThreadId, textMessage, false);
+        const openAIResponse = await sendMessageToThread(currentThreadId, textMessage, false, timeZone);
         
         const cleanJSON = (jsonString: string) => {
             return jsonString
@@ -68,10 +68,10 @@ export class GreenApiService {
                 let status = true;
                 for(const items of openAIResponseFormatted.data) {
                     
-                    const res = await this.pedidoService.consultarHorario(items.fecha, items);
+                    const res = await this.pedidoService.consultarHorario(items.fecha, items, timeZone, empresaId);
                     if(res.ok === false) {
                         console.log(`para el producto ${items.nombre} la fecha ${items.fecha} no se encuentra disponible`)
-                        const res = await sendMessageToThread(currentThreadId, `lo siento, vuelveme a solicitar la fecha para el producto ${items.nombre} ya que la fecha ${items.fecha} no se encuentra disponible`, true);
+                        const res = await sendMessageToThread(currentThreadId, `lo siento, vuelveme a solicitar la fecha para el producto ${items.nombre} ya que la fecha ${items.fecha} no se encuentra disponible`, true, timeZone);
                         const openAIResponseRaw = res.content[0].text.value;            
             
                         textError = JSON.parse(cleanJSON(openAIResponseRaw));            
@@ -93,13 +93,11 @@ export class GreenApiService {
         }
 
         if (!openAIResponseFormatted?.placeOrder) {
-            await this.chatGptThreadsService.updateThreadStatus(threadId)
+            await this.chatGptThreadsService.updateThreadStatus(threadId, timeZone)
         }
     }
 
-    async hacerPedido(currentThreadId, clienteId, openAIResponse, empresaType ,clientName, numberSender) {
-        console.log('llego aqui');
-        
+    async hacerPedido(currentThreadId, clienteId, openAIResponse, empresaType ,clientName, numberSender) {        
         await this.pedidoService.create({
             clienteId: clienteId,
             clientName: clientName,

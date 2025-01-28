@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Request, UnauthorizedException } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, Request, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDTO } from './dto/login.dto';
 import { RegisterDTO } from './dto/register.dto';
@@ -10,13 +10,14 @@ export class AuthController {
   }
 
   @Post('register')
-  async register(@Body() userData: RegisterDTO) {
+  async register(@Body() userData: RegisterDTO, request) {
     return this.authService.register(userData);
   }
 
   @Get('me')
-  async me(@Request() req) {
-    return this.authService.currentUser(req?.user?.userId);
+  async me(@Request() req, @Req() request : Request) {
+    const timeZone = request['timeZone']
+    return this.authService.currentUser(req?.user?.userId, timeZone);
   }
 
   @Post('login')

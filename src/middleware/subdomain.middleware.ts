@@ -32,7 +32,8 @@ export class SubdomainMiddleware implements NestMiddleware {
     req['subdomain'] = subdomain;
     req['empresaId'] = empresaExists?.id;
     req['empresaType'] = empresaExists?.tipoServicioId?.tipo
-    
+    req['timeZone'] = empresaExists?.timeZone
+
     next();
   }
 }

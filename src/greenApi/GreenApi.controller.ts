@@ -24,6 +24,7 @@ export class GrenApiController {
                 console.log('Hubo un problema con la configuración de la API');
             }
         } else {
+            const timeZone = request["timeZone"]
             const empresaId = request["empresaId"];
             const empresaType = request["empresaType"];
             const { typeWebhook, messageData, senderData } = body;
@@ -44,7 +45,8 @@ export class GrenApiController {
                         numberSender,
                         empresaType,
                         empresaId,
-                        senderName
+                        senderName,
+                        timeZone
                     );
                 }
                 else if (typeWebhook === 'incomingAudioReceived') {

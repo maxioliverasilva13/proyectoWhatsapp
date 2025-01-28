@@ -10,13 +10,13 @@ import { Empresa } from 'src/empresa/entities/empresa.entity';
 import { EmailService } from 'src/emailqueue/email.service';
 import { Plan } from 'src/plan/entities/plan.entity';
 import { PlanEmpresa } from 'src/planEmpresa/entities/planEmpresa.entity';
-import { Tiposervicio } from 'src/tiposervicio/entities/tiposervicio.entity';
+import * as moment from 'moment-timezone';
 
 @Injectable()
 export class AuthService {
-  private empresaRepository: Repository<Empresa>
-  private planesRepository: Repository<Plan>
-  private planesEmpresaRepository: Repository<PlanEmpresa>
+  private empresaRepository: Repository<Empresa>;
+  private planesRepository: Repository<Plan>;
+  private planesEmpresaRepository: Repository<PlanEmpresa>;
 
   async onModuleInit() {
     const globalConnection = await handleGetGlobalConnection();
@@ -29,8 +29,8 @@ export class AuthService {
     private jwtService: JwtService,
     @InjectRepository(Usuario)
     private usuarioRepository: Repository<Usuario>,
-    private readonly emailService: EmailService
-  ) { }
+    private readonly emailService: EmailService,
+  ) {}
 
   async validateUser(correo: string, password: string): Promise<any> {
     const user = await this.usuarioRepository.findOne({ where: { correo } });
@@ -49,88 +49,88 @@ export class AuthService {
   }
 
   async register(userData: RegisterDTO) {
-    // TODO: check if empresa is valid
-
-    // Chcek if rol is valid
-
-    console.log(userData);
-
-    // todo: user another DTO
     const hashedPassword = await bcrypt.hash(userData.password, 10);
     const user = this.usuarioRepository.create({
       ...userData,
       activo: true,
       password: hashedPassword,
-      id_rol: 2
+      id_rol: 2,
     });
-    this.emailService.sendEmail(user.correo, "Bienvenido", 'welcome')
-    // delete user.password;
+    this.emailService.sendEmail(user.correo, 'Bienvenido', 'welcome');
     return this.usuarioRepository.save(user);
   }
 
-  async currentUser(userId: any) {
-
+  async currentUser(userId: any, timeZoneCompany: string) {
     try {
       const globalConnection = await handleGetGlobalConnection();
       const userRepository = globalConnection.getRepository(Usuario);
-      const now = new Date()
+      const now = moment.tz(timeZoneCompany);
       const user = await userRepository.findOne({ where: { id: userId } });
       if (!user) {
-        throw new HttpException("Invalid user", 400);
+        throw new HttpException('Invalid user', 400);
       }
+
       let remaindersHorsRemainder;
-      let notificarReservaHoras ;
+      let notificarReservaHoras;
       let intervaloTiempoCalendario;
       let userConfigured = !!user.nombre?.trim() && !!user.apellido?.trim();
       let apiConfigured;
       let paymentMade = false;
-      let apiUrl = "";
-      let greenApiConfigured = false
+      let apiUrl = '';
+      let greenApiConfigured = false;
       let tipo_servicio = 0;
       let tipo_servicioNombre = '';
-      let hora_apertura ;
+      let hora_apertura;
       let hora_cierre;
       let abierto;
-      if (user.id_empresa) {
-        const empresa = await this.empresaRepository.findOne({ where: { id: user.id_empresa }, relations: ['tipoServicioId'] });
-        if (empresa) {
-          
-          hora_apertura = empresa.hora_apertura
-          hora_cierre = empresa.hora_cierre
-          abierto = empresa.abierto,
-          tipo_servicio = empresa.tipoServicioId.id
-          tipo_servicioNombre = empresa.tipoServicioId.nombre
-          intervaloTiempoCalendario = empresa.intervaloTiempoCalendario
-          notificarReservaHoras = empresa.notificarReservaHoras 
-          remaindersHorsRemainder = empresa.remaindersHorsRemainder
+      let timeZone;
 
-          apiConfigured = empresa.apiConfigured
-          apiUrl = `${process.env.ENV === "dev" ? "http" : "https"}://${process.env.VIRTUAL_HOST?.replace("app", empresa?.db_name)}`
+      if (user.id_empresa) {
+        const empresa = await this.empresaRepository.findOne({
+          where: { id: user.id_empresa },
+          relations: ['tipoServicioId'],
+        });
+        if (empresa) {
+          hora_apertura = empresa.hora_apertura;
+          hora_cierre = empresa.hora_cierre;
+          abierto = empresa.abierto;
+          tipo_servicio = empresa.tipoServicioId.id;
+          tipo_servicioNombre = empresa.tipoServicioId.nombre;
+          intervaloTiempoCalendario = empresa.intervaloTiempoCalendario;
+          notificarReservaHoras = empresa.notificarReservaHoras;
+          remaindersHorsRemainder = empresa.remaindersHorsRemainder;
+          timeZone = empresa.timeZone
+          apiConfigured = empresa.apiConfigured;
+          apiUrl = `${process.env.ENV === 'dev' ? 'http' : 'https'}://${process.env.VIRTUAL_HOST?.replace(
+            'app',
+            empresa?.db_name,
+          )}`;
 
           if (empresa.greenApiInstance && empresa.greenApiInstanceToken) {
-            const res = await fetch(`https://api.green-api.com/waInstance${empresa.greenApiInstance}/getStateInstance/${empresa.greenApiInstanceToken}`)
-            const resFormated = await res.json()
+            const res = await fetch(
+              `https://api.green-api.com/waInstance${empresa.greenApiInstance}/getStateInstance/${empresa.greenApiInstanceToken}`,
+            );
+            const resFormated = await res.json();
 
-            greenApiConfigured = resFormated.stateInstance === 'authorized'
+            greenApiConfigured = resFormated.stateInstance === 'authorized';
           }
 
           const lastPlan = await this.planesEmpresaRepository.findOne({
             where: { id_empresa: empresa.id },
-            order: { fecha_inicio: "DESC" },
+            order: { fecha_inicio: 'DESC' },
           });
 
           if (lastPlan) {
-            const plan = await this.planesRepository.findOne({ where: { id: lastPlan.id_plan } })
+            const plan = await this.planesRepository.findOne({ where: { id: lastPlan.id_plan } });
 
-            const planExpiryDate = new Date(lastPlan.fecha_inicio);
-            planExpiryDate.setDate(planExpiryDate.getDate() + plan.diasDuracion);
+            const planExpiryDate = moment.tz(lastPlan.fecha_inicio, timeZoneCompany).add(plan.diasDuracion, 'days');
 
-            paymentMade = now <= planExpiryDate;
+            paymentMade = now.isSameOrBefore(planExpiryDate);
           }
         }
       }
-      
-      const newUser = { ...user }
+
+      const newUser = { ...user };
       delete newUser.password;
       return {
         ...newUser,
@@ -147,8 +147,9 @@ export class AuthService {
         hora_apertura,
         hora_cierre,
         abierto,
-        remaindersHorsRemainder
-      }
+        remaindersHorsRemainder,
+        timeZone
+      };
     } catch (error) {
       throw new BadRequestException({
         ok: false,
@@ -165,12 +166,11 @@ export class AuthService {
 
     const user = await userRepository.findOne({ where: { correo: userEmail } });
     if (!user) {
-      throw new HttpException("Invalid user", 400);
+      throw new HttpException('Invalid user', 400);
     }
-    // send mail to reset password
     return {
       ok: true,
-      message: "La password se restablecio correctamente, chequea el email",
-    }
+      message: 'La password se restablecio correctamente, chequea el email',
+    };
   }
 }

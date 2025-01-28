@@ -2,6 +2,7 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ChatGptThreads } from './entities/chatGpThreads.entity';
+import * as moment from 'moment-timezone';
 
 @Injectable()
 export class ChatGptThreadsService {
@@ -62,7 +63,7 @@ export class ChatGptThreadsService {
         }
     }
 
-    async updateThreadStatus(threadId: string) {
+    async updateThreadStatus(threadId: string, timeZone : string) {
         try {
             const thread = await this.threadsRepository.findOne({ where: { threadId } });
 
@@ -71,7 +72,7 @@ export class ChatGptThreadsService {
             }
 
             const result = await this.threadsRepository.update(thread.id, {
-                last_update: new Date(),
+                last_update: moment.tz(timeZone),
             });
 
             if (result.affected === 0) {

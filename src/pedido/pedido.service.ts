@@ -17,13 +17,11 @@ import { Chat } from 'src/chat/entities/chat.entity';
 import { ProductoPedido } from 'src/productopedido/entities/productopedido.entity';
 import { Mensaje } from 'src/mensaje/entities/mensaje.entity';
 import { Cliente } from 'src/cliente/entities/cliente.entity';
-import { Infoline } from 'src/infoline/entities/infoline.entity';
 import getCurrentDate from 'src/utils/getCurrentDate';
-import * as moment from 'moment';
 import { Empresa } from 'src/empresa/entities/empresa.entity';
 import { EstadoDefectoIds } from 'src/enums/estadoDefecto';
+import * as moment from 'moment-timezone';
 
-moment.locale('es');
 
 const LOCALE_TIMEZONE = 'America/Montevideo';
 @Injectable()
@@ -50,7 +48,7 @@ export class PedidoService {
     private readonly chatServices: ChatService,
     private readonly mensajesService: MensajeService,
     private readonly webSocketService: WebsocketGateway,
-  ) {}
+  ) { }
 
   async onModuleInit() {
     const globalConnection = await handleGetGlobalConnection();
@@ -200,48 +198,48 @@ export class PedidoService {
     }
   }
 
-  async consultarHorario(hora, producto) {
+  async consultarHorario(hora, producto, timeZone, empresaId) {
+    const empresa = await this.empresaRepository.findOne({
+      where: { id: empresaId }
+    })
+
     const allServices = await this.pedidoRepository.find({
       relations: ['pedidosprod', 'pedidosprod.producto'],
     });
 
-    let duracionMinutos;
     let isAviable = true;
 
-    const productoBD = await this.productoRespitory.findOne({
-      where: { id: producto.productoId },
-    });
-    duracionMinutos += productoBD.plazoDuracionEstimadoMinutos;
+    const intervaloEmpresa = empresa.intervaloTiempoCalendario
 
-    const horaFormated = new Date(hora);
-    const horaFinSolicitadad = new Date(horaFormated);
-    horaFinSolicitadad.setMinutes(
-      horaFinSolicitadad.getMinutes() + duracionMinutos,
+    const horaFormated = moment.tz(hora, timeZone);
+    const horaFinSolicitadad = moment.tz(horaFormated, timeZone).add(
+      intervaloEmpresa,
+      'minutes'
     );
 
     for (const service of allServices) {
-      const fechaInicial = new Date(service.fecha);
-      for (const pedidoProd of service.pedidosprod) {
-        const fechaFinal = new Date(fechaInicial);
-        fechaFinal.setMinutes(
-          fechaFinal.getMinutes() +
-            pedidoProd.producto.plazoDuracionEstimadoMinutos,
-        );
-        if (
-          (horaFormated < fechaFinal && horaFinSolicitadad > fechaInicial) ||
-          (horaFormated >= fechaInicial && horaFormated < fechaFinal)
-        ) {
-          isAviable = false;
-          break;
-        }
+      const fechaInicial = moment.tz(service.fecha, timeZone);
+
+      const fechaFinal = moment(fechaInicial, timeZone).add(
+        intervaloEmpresa,
+        'minutes'
+      );
+
+      if (
+        (horaFormated.isBefore(fechaFinal) && horaFinSolicitadad.isAfter(fechaInicial)) ||
+        (horaFormated.isSameOrAfter(fechaInicial) && horaFormated.isBefore(fechaFinal))
+      ) {
+        isAviable = false;
+        break;
       }
     }
 
     return {
-      ok: isAviable ? true : false,
+      ok: isAviable,
       isAviable: isAviable,
     };
   }
+
 
   async getDetailsOfOrder(id: number) {
     try {

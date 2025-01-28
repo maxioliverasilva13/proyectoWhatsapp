@@ -42,6 +42,8 @@ import { InfolineModule } from './infoline/infoline.module';
 import { WebSocketModule } from './websocket/websocket.module';
 import { PedidoController } from './pedido/pedido.controller';
 import { InfolineController } from './infoline/infoline.controller';
+import { ChatGptThreadsController } from './chatGptThreads/chatGptThreads.controller';
+import { MensajeController } from './mensaje/mensaje.controller';
 
 ConfigModule.forRoot();
 
@@ -109,7 +111,9 @@ export class AppModule {
         GrenApiController,
         NumeroConfianzaController,
         PedidoController,
-        InfolineController
+        InfolineController,
+        ChatGptThreadsController,
+        MensajeController
       );
 
     //JWT MIDDLEWARE

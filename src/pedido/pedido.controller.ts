@@ -37,9 +37,12 @@ export class PedidoController {
     return this.pedidoService.getNextDateTimeAvailable(empresaId);
   }
 
-  @Get('/aviableDate')
-  disponible(@Query('date') date: Date, @Body() producto : any ) {
-    return this.pedidoService.consultarHorario(date,producto);
+  @Post('/aviableDate')
+  disponible(@Query('date') date: string, @Body() producto, @Req() request: Request) {
+    const timeZone = request['timeZone'];
+    const empresaId = request['empresaId']
+    
+    return this.pedidoService.consultarHorario(date,producto, timeZone, empresaId);
   }
 
   @Get('/confirm/:id')
