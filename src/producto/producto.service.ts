@@ -27,6 +27,8 @@ export class ProductoService {
       product.empresa_id = empresaId;
       product.descripcion = createProduct.descripcion;
       product.disponible = createProduct.disponible;
+      product.plazoDuracionEstimadoMinutos = createProduct.plazoDuracionEstimadoMinutos
+      
       const producto = this.productoRepository.create(product);
       await this.productoRepository.save(producto);
 
