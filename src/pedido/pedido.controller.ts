@@ -26,8 +26,9 @@ export class PedidoController {
   }
   
   @Get('/calendar/formatCalendar/:date')
-  getOrdersForCalendar(@Param('date') date : string) {
-    return this.pedidoService.getOrdersForCalendar(date);
+  getOrdersForCalendar(@Param('date') date : string,  @Req() request: Request) {
+    const timeZone = request['timeZone'];
+    return this.pedidoService.getOrdersForCalendar(date, timeZone);
   }
 
   @Get("/calendar/next-date-avaiable")

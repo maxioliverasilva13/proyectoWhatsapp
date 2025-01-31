@@ -540,7 +540,7 @@ export class PedidoService {
     }
   }
 
-  async getOrdersForCalendar(dateTime: string) {
+  async getOrdersForCalendar(dateTime: string, timeZone : string) {
     try {
       const now = getCurrentDate();
       const filterDate = moment(dateTime, 'YYYY-MM-DD').startOf('day');
@@ -571,12 +571,12 @@ export class PedidoService {
           const pedidoDate = moment.tz(
             JSON.stringify(pedido.fecha),
             'YYYY-MM-DD HH:mm:ss',
-            'America/Montevideo',
+            timeZone
           );
           const nowMoment = moment.tz(
             now,
             'YYYY-MM-DD HH:mm:ss',
-            'America/Montevideo',
+            timeZone
           );
 
           const isOlder = pedidoDate.isAfter(nowMoment);
@@ -589,6 +589,7 @@ export class PedidoService {
             total: pedidoProd?.cantidad * pedidoProd?.producto.precio,
             date: isOlder ? pedidoDate.format('LT') : pedidoDate.fromNow(),
             status: pedido.confirmado,
+            product: pedidoProd.producto.nombre
           };
 
           if (formattedDate in dates) {
