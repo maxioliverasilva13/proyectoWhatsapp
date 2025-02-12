@@ -77,6 +77,7 @@ function createEnvFileApp() {
       DOCKER_BUILDKIT=1
       SUBDOMAIN=app
     `;
+  console.log(".env.app", envContent)
   fs.writeFileSync(`.env.app`, envContent);
 }
 

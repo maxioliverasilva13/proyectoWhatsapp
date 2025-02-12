@@ -15,9 +15,7 @@ export class ImageService {
     .replace(/[^a-zA-Z0-9.-]/g, "_");
 
     const fileName = `${uuidv4()}-${sanitizedFileName}`;
-    console.log("fileName", fileName)
-    
-    const { data, error } = await supabase.storage
+    const { error } = await supabase.storage
       .from(bucket)
       .upload(fileName, file.buffer, {
         contentType: file.mimetype,

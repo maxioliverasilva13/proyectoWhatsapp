@@ -6,10 +6,12 @@ export class SupabaseService {
   private supabase;
 
   constructor() {
-    this.supabase = createClient(
-      process.env.SUPABASE_URL,
-      process.env.SUPABASE_KEY,
-    );
+    if (process.env.SUBDOMAIN === 'app') {
+      this.supabase = createClient(
+        process.env.SUPABASE_URL,
+        process.env.SUPABASE_KEY,
+      );
+    }
   }
 
   getClient() {
