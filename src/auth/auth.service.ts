@@ -56,6 +56,9 @@ export class AuthService {
       password: hashedPassword,
       id_rol: 2,
     });
+    if (userData?.imagen) {
+      user.image = userData?.imagen;
+    }
     this.emailService.sendEmail(user.correo, 'Bienvenido', 'welcome');
     return this.usuarioRepository.save(user);
   }

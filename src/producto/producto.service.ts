@@ -27,8 +27,12 @@ export class ProductoService {
       product.empresa_id = empresaId;
       product.descripcion = createProduct.descripcion;
       product.disponible = createProduct.disponible;
-      product.plazoDuracionEstimadoMinutos = createProduct.plazoDuracionEstimadoMinutos
-      
+      product.plazoDuracionEstimadoMinutos = createProduct.plazoDuracionEstimadoMinutos;
+
+      if (createProduct.imagen) {
+        product.imagen = createProduct.imagen;
+      }
+
       const producto = this.productoRepository.create(product);
       await this.productoRepository.save(producto);
 
@@ -96,8 +100,6 @@ export class ProductoService {
   }
 
   async updateProducto(id: number, updateProductoDto: UpdateProductoDto) {
-
-    console.log(id, updateProductoDto);
 
     try {
       const existProduct = await this.productoRepository.findOne({ where: { id: id } })

@@ -12,6 +12,9 @@ export class Producto extends BaseEntity {
   @Column()
   precio: number;
 
+  @Column({ nullable: true })
+  imagen: string;
+
   @Column()
   empresa_id: number;
 

@@ -55,6 +55,9 @@ jobs:
         EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
         REDIS_HOST: ${{ secrets.REDIS_HOST }}
         REDIS_PORT: ${{ secrets.REDIS_PORT }}
+        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        SUPABASE_BUCKET: ${{ secrets.SUPABASE_BUCKET }}
       run: node deployCompanies.js
 
     # - name: Remove IP address to trusted source (managed database)

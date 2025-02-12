@@ -4,4 +4,5 @@ export class CreateProductoDto {
   descripcion: string;
   plazoDuracionEstimadoMinutos: number;
   disponible:boolean;
+  imagen: string;
 }

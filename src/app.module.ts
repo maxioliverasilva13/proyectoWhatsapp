@@ -44,6 +44,8 @@ import { PedidoController } from './pedido/pedido.controller';
 import { InfolineController } from './infoline/infoline.controller';
 import { ChatGptThreadsController } from './chatGptThreads/chatGptThreads.controller';
 import { MensajeController } from './mensaje/mensaje.controller';
+import { ImageModule } from './images/image.module';
+import { ImageController } from './images/image.controller';
 
 ConfigModule.forRoot();
 
@@ -86,6 +88,7 @@ const connection = handleGetConnection();
     CierreProvisorioModule,
     PlanEmpresaModule,
     InfolineModule,
+    ImageModule
   ],
   controllers: [
     AppController,
@@ -101,7 +104,7 @@ export class AppModule {
     // APP ROUTES
     consumer
       .apply(AppWithoutSubdomainMiddleware)
-      .forRoutes(EmpresaController, AuthController);
+      .forRoutes(EmpresaController, AuthController, ImageController);
 
     // EMPRESA ROUTES
     consumer
@@ -125,6 +128,8 @@ export class AppModule {
         { path: '/webhooks', method: RequestMethod.ALL },
         { path: '/tiposervicio', method: RequestMethod.ALL },
         { path: '/empresa', method: RequestMethod.ALL },
+        { path: '/upload', method: RequestMethod.ALL },
+        { path: '/upload/image', method: RequestMethod.ALL },
       )
       .forRoutes('*');
   }

@@ -5,5 +5,5 @@ export class RegisterDTO {
   password: string;
   id_empresa: number;
   id_rol: number;
+  imagen: string;
 }
-  

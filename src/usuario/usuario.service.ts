@@ -29,7 +29,10 @@ export class UsuarioService {
       user.password = hashedPassword
       user.id_empresa = createUsuarioDto.id_empresa
       user.id_rol = 1
-      user.activo = true
+      user.activo = true;
+      if (createUsuarioDto?.imagen) {
+        user.image = createUsuarioDto?.imagen;
+      }
 
       await this.usuarioRepository.save(user)
 
