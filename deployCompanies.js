@@ -59,9 +59,9 @@ function createEnvFileApp() {
       POSTGRES_DB=${process.env.POSTGRES_DB_GLOBAL}
       VIRTUAL_HOST=app.whatsproy.com
       EMAIL_USER=${process.env.EMAIL_USER}
-      SUPABASE_URL: ${process.env.SUPABASE_URL}
-      SUPABASE_KEY: ${process.env.SUPABASE_KEY}
-      SUPABASE_BUCKET: ${process.env.SUPABASE_BUCKET}
+      SUPABASE_URL=${process.env.SUPABASE_URL}
+      SUPABASE_KEY=${process.env.SUPABASE_KEY}
+      SUPABASE_BUCKET=${process.env.SUPABASE_BUCKET}
       EMAIL_HOST=${process.env.EMAIL_HOST}
       EMAIL_PORT=${process.env.EMAIL_PORT}
       EMAIL_PASS=${process.env.EMAIL_PASS}

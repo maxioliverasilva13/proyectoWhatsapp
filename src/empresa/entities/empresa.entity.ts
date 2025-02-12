@@ -52,6 +52,9 @@ export class Empresa extends BaseEntity {
   apiConfigured: boolean;
 
   @Column({ default: false })
+  deploy: boolean;
+
+  @Column({ default: false })
   greenApiConfigured: boolean;
 
   @Column({ nullable: true, })
