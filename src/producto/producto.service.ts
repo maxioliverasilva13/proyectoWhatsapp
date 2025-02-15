@@ -90,8 +90,12 @@ export class ProductoService {
   }
 
   async findAllInText() {
+    console.log('entre');
+    
     const productsAll = await this.productoRepository.find({where: {disponible: true}});
 
+    console.log('retornare', productsAll);
+    
     const productsFormated = productsAll.map((product) => {
       return `${product.id}-Procuto: ${product.nombre},Precio: ${product.precio}, Descripcion:${product.descripcion}$`;
     }).join(', ');

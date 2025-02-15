@@ -3,6 +3,7 @@ import { GreenApiService } from './GreenApi.service';
 import { Request } from 'express';
 import { NumeroConfianzaService } from 'src/numerosConfianza/numeroConfianza.service';
 import { WebsocketGateway } from 'src/websocket/websocket.gatewat';
+import { SpeechToText } from 'src/utils/openAIServices';
 
 @Controller()
 export class GrenApiController {
@@ -13,7 +14,9 @@ export class GrenApiController {
     ) { }
 
     @Post('/webhooks')
-    async handleWebhook(@Req() request: Request, @Body() body: any) {        
+    async handleWebhook(@Req() request: Request, @Body() body: any) {   
+        console.log('jiji',body);
+             
         if(body.stateInstance) {
             const greenApiStatus = body.stateInstance;
             console.log("greenApiStatus", greenApiStatus)
@@ -34,12 +37,14 @@ export class GrenApiController {
             const senderName = sender.senderName
             // Valido si el número es un número de confianza o no
             const numberExist = await this.numeroConfianza.getOne(numberSender, empresaId);
-
+            console.log(typeWebhook);
+            
             if (numberExist.data) {
                 return
             } else {
-                const message = messageData.textMessageData?.textMessage || messageData.extendedTextMessageData?.text;
-                if (typeWebhook === 'incomingMessageReceived') {
+                if (messageData.typeMessage === 'textMessage') {
+                    const message = messageData.textMessageData?.textMessage || messageData.extendedTextMessageData?.text;
+
                     await this.greenApi.handleMessagetText(
                         message,
                         numberSender,
@@ -49,9 +54,19 @@ export class GrenApiController {
                         timeZone
                     );
                 }
-                else if (typeWebhook === 'incomingAudioReceived') {
-                    // Manejo de mensajes de audio
-                    console.log("Audio entrante recibido:", messageData);
+                else if (messageData.typeMessage === 'audioMessage') {
+                    const fileUrl = messageData.fileMessageData.downloadUrl
+
+                    const speechToText = await SpeechToText(fileUrl)
+                    await this.greenApi.handleMessagetText(
+                        speechToText,
+                        numberSender,
+                        empresaType,
+                        empresaId,
+                        senderName,
+                        timeZone
+                    );
+
                 } else {
                     // Manejo de otros tipos de eventos
                     console.log('Evento desconocido del webhook:', typeWebhook);

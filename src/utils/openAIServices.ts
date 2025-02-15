@@ -1,5 +1,8 @@
 import getCurrentDate from "./getCurrentDate";
 import * as moment from 'moment-timezone';
+import * as FormData from 'form-data';
+import { Readable } from "stream";
+import fetch from 'node-fetch';
 
 export const askAssistant = async (question, instrucciones) => {
     try {
@@ -167,3 +170,44 @@ export async function closeThread(threadId) {
     console.log(`Thread ${threadId} cerrado exitosamente.`);
     return await response.json();
 }
+
+export const SpeechToText = async (audioUrl: string) => {
+    try {
+        const responseAudio = await fetch(audioUrl);
+        
+        if (!responseAudio.ok) {
+            throw new Error(`Error al descargar el audio: ${responseAudio.statusText}`);
+        }
+
+        const audioBuffer = Buffer.from(await responseAudio.arrayBuffer());
+
+        const readableStream = new Readable();
+        readableStream.push(audioBuffer);
+        readableStream.push(null);
+
+        const formData = new FormData();
+        formData.append('file', readableStream, {
+            filename: 'audio.wav', 
+            contentType: 'audio/wav'
+        });
+        formData.append('model', 'whisper-1'); 
+
+        const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${process.env.OPEN_AI_TOKEN}`, 
+                ...formData.getHeaders(),
+            },
+            body: formData as any,
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error en la transcripción: ${await response.text()}`);
+        }
+
+        const data = await response.json();
+        return data.text;
+    } catch (error) {
+        console.error('Error al procesar el audio:', error);
+    }
+};
