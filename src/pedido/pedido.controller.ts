@@ -56,6 +56,26 @@ export class PedidoController {
     return this.pedidoService.getDetailsOfOrder(id);
   }
 
+  @Get('/stats/ordersDay/:date')
+  getOrdersDay(@Param('date') fecha: string, @Req() request: Request) {
+    const timeZone = request['timeZone'];
+
+    return this.pedidoService.getOrdersOfTheDay(fecha, timeZone);
+  }
+
+  @Get('/stats/momeyInDay/:date')
+  getMoneyOfTheDay(@Param('date') fecha: string, @Req() request: Request) {
+    const timeZone = request['timeZone'];
+
+    return this.pedidoService.getMoneyOfTheDay(fecha, timeZone);
+  }
+
+  @Get('/stats/lastThree')
+  getLastThreeOrders() {    
+    return this.pedidoService.getLastThreeOrders();
+  }
+
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.pedidoService.findOne(+id);

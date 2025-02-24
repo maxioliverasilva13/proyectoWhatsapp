@@ -123,6 +123,7 @@ export class AppModule {
     consumer
       .apply(JwtMiddleware)
       .exclude(
+        { path: '/empresa/info/getInfoByDomain', method: RequestMethod.ALL },
         { path: '/auth/login', method: RequestMethod.ALL },
         { path: '/auth/register', method: RequestMethod.ALL },
         { path: '/webhooks', method: RequestMethod.ALL },

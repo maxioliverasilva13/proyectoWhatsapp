@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { EmpresaService } from './empresa.service';
 import { CreateEmpresaDto } from './dto/create-empresa.dto';
@@ -64,6 +65,11 @@ export class EmpresaController {
   @UseGuards(RolesGuard)
   getAuthCode(@Param('id') id: number, @Param('numberPhone') numberPhone: number) {
     return this.empresaService.getAuthCode(+id, +numberPhone );
+  }
+
+  @Get('/info/getInfoByDomain')
+  getInfoByDomain(@Query('domain') domain : string){
+    return this.empresaService.getInfoByDomain(domain)
   }
   
 }

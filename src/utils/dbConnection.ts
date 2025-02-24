@@ -1,6 +1,6 @@
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ENTITIES_TO_MAP_EMPRESA_DB, ENTITIES_TO_MAP_GLOBAL_DB, SEEDERS_TO_MAP_EMPRESA, SEEDERS_TO_MAP_GLOBAL_DB } from './db';
-import { DataSource } from 'typeorm';
+import { DataSource, DataSourceOptions } from 'typeorm';
 import { runSeeders } from 'typeorm-extension';
 
 
@@ -105,5 +105,36 @@ export const handleGetGlobalConnection = async () => {
     }
   }
   return globalConnection;
+};
+
+export const handleGetConnectionByEmpresa = async (dbName: string) => {
+  const empresaDBName = dbName + "_db"
+  const isDev = process.env.ENV === 'dev';
+  const env = process.env.SUBDOMAIN;
+  const host = isDev ? 
+    (env === "app" ? process.env.POSTGRES_GLOBAL_DB_HOST : `${env}-db`) 
+    : process.env.POSTGRES_GLOBAL_DB_HOST;
+
+  const params: DataSourceOptions = {
+    type: 'postgres',
+    host: host,
+    port: Number(process.env.POSTGRES_GLOBAL_DB_PORT || 5432) || 5432,
+    entities: env === 'app' ? ENTITIES_TO_MAP_GLOBAL_DB : ENTITIES_TO_MAP_EMPRESA_DB,
+    synchronize: true,
+    username: process.env.POSTGRES_USER,
+    password: process.env.POSTGRES_PASSWORD,
+    database: empresaDBName,
+    ...(isDev ? {} : { 
+      ssl: { rejectUnauthorized: false }
+    })
+  };
+
+  const empresaConnection = new DataSource(params);
+
+  if (!empresaConnection.isInitialized) {
+    await empresaConnection.initialize();
+  }
+
+  return empresaConnection;
 };
 

@@ -17,6 +17,8 @@ import { Tiposervicio } from 'src/tiposervicio/entities/tiposervicio.entity';
 import { Usuario } from 'src/usuario/entities/usuario.entity';
 import * as bcrypt from 'bcryptjs';
 import { METHODS } from 'http';
+import { handleGetConnection, handleGetConnectionByEmpresa, handleGetCurrentConnection } from 'src/utils/dbConnection';
+import { Producto } from 'src/producto/entities/producto.entity';
 
 @Injectable()
 export class EmpresaService {
@@ -219,10 +221,34 @@ export class EmpresaService {
     }
   }
 
-  // @Interval(1000) 
-  // mensjae() {
-  //   console.log("hola");
-  // }
+  async getInfoByDomain(domain: string) {
+    try {
 
+      if(!domain) {
+        throw new BadRequestException('Error, there not has domain query param')
+      }
+
+      const empresaData = await this.empresaRepository.findOne({where: { nombre : domain }})
+      const connection = await handleGetConnectionByEmpresa(empresaData.db_name);
+
+      const productoRepository = await connection.getRepository(Producto)
+
+      const allProducts = await productoRepository.find()
+
+      return {
+        ok:true,
+        data : empresaData,
+        products: allProducts
+      }
+
+    } catch (error) {
+      throw new BadRequestException({
+        ok: false,
+        statusCode: 400,
+        message: error?.message,
+        error: 'Bad Request',
+      });
+    }
+  }
 
 }

@@ -202,12 +202,12 @@ export const SpeechToText = async (audioUrl: string) => {
         });
 
         if (!response.ok) {
-            throw new Error(`Error en la transcripción: ${await response.text()}`);
+            throw new Error(`error en la traduccion: ${await response.text()}`);
         }
 
         const data = await response.json();
         return data.text;
     } catch (error) {
-        console.error('Error al procesar el audio:', error);
+        console.error('Error:', error);
     }
 };

@@ -675,4 +675,79 @@ export class PedidoService {
       });
     }
   }
+
+  async getOrdersOfTheDay(date: string, timeZone: string) {
+    try {
+      const startDay = moment.tz(date, timeZone).startOf('day').toDate()
+      const endDay = moment.tz(date, timeZone).endOf('day').toDate()
+
+      const orderCount = await this.pedidoRepository.count({ where: { fecha: Between(startDay, endDay)  } }); 
+
+      return {
+        ok: true,
+        ordersDay: orderCount
+      }
+      
+    } catch (error) {
+      throw new BadRequestException({
+        ok: false,
+        statusCode: 400,
+        message: error?.message || 'Error getting orders of the dat',
+        error: 'Bad Request',
+      });
+    }
+  }
+  async getMoneyOfTheDay(date: string, timeZone: string) {
+    try {
+      const startDay = moment.tz(date, timeZone).startOf('day').toDate()
+      const endDay = moment.tz(date, timeZone).endOf('day').toDate()
+
+      const ordersDay = await this.pedidoRepository.find({ where: { fecha: Between(startDay, endDay)  } , relations:['pedidosprod', 'pedidosprod.producto']}); 
+      console.log();
+      console.log(ordersDay.length);
+      
+      let ganancia = 0
+
+
+      ordersDay.map((order)=> {
+        if(order.pedidosprod.length > 0) {
+          console.log('entro');
+          
+          order.pedidosprod.map((pedidoProd)=> {
+            ganancia += pedidoProd.cantidad * pedidoProd.producto.precio
+          })
+        }
+      })
+
+      return {
+        ok:true,
+        ganancia
+      }
+      
+    } catch (error) {
+      throw new BadRequestException({
+        ok: false,
+        statusCode: 400,
+        message: error?.message || 'Error getting diary revenue',
+        error: 'Bad Request',
+      });
+    }
+  }
+
+  async getLastThreeOrders () {
+    try {      
+      const lastOrders = await this.pedidoRepository.find({order: {id : 'DESC'}, take:3})
+
+      return {
+        ok:true,
+        data: lastOrders
+      }
+    } catch (error) {
+      throw new BadRequestException({
+        ok: false,
+        statusCode: 400,
+        message: error?.message || 'Error getting three last orders',
+        error: 'Bad Request',
+      });    }
+  }
 }
