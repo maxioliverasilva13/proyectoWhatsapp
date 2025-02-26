@@ -6,7 +6,7 @@ import { ImageService } from './image.service';
 export class ImageController {
   constructor(private readonly uploadService: ImageService) {}
 
-  @Post('image')
+  @Post('/image')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(@UploadedFile() file: Express.Multer.File) {
     const imageUrl = await this.uploadService.uploadImage(file);
