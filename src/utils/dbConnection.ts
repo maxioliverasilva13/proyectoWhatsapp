@@ -120,8 +120,8 @@ export const handleGetConnectionByEmpresa = async (dbName: string) => {
     port: Number(process.env.POSTGRES_GLOBAL_DB_PORT || 5432) || 5432,
     entities: ENTITIES_TO_MAP_EMPRESA_DB,
     synchronize: true,
-    username: dbName + "_user",
-    password: dbName + "_pass",
+    username: isDev ? dbName + "_user" : process.env.POSTGRES_GLOBAL_DB_HOST,
+    password: isDev ? dbName + "_pass" : process.env.POSTGRES_PASSWORD,
     database: empresaDBName,
     ...(isDev ? {} : {
       ssl: { rejectUnauthorized: false }

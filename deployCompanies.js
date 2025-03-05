@@ -17,7 +17,7 @@ const client = new Client({
 async function getCompanies() {
   try {
     await client.connect();
-    const res = await client.query('SELECT * FROM empresa');
+    const res = await client.query('SELECT * FROM empresa where deploy=True');
     await client.end();
     return res.rows;
   } catch (error) {
