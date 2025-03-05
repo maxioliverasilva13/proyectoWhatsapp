@@ -108,21 +108,19 @@ export const handleGetGlobalConnection = async () => {
 };
 
 export const handleGetConnectionByEmpresa = async (dbName: string) => {
-  const empresaDBName = dbName + "_db"
+  
+  const empresaDBName = "db_" + dbName
   const isDev = process.env.ENV === 'dev';
-  const env = process.env.SUBDOMAIN;
-  const host = isDev ? 
-    (env === "app" ? process.env.POSTGRES_GLOBAL_DB_HOST : `${env}-db`) 
-    : process.env.POSTGRES_GLOBAL_DB_HOST;
+  const host =  dbName + `-db`
 
   const params: DataSourceOptions = {
     type: 'postgres',
     host: host,
     port: Number(process.env.POSTGRES_GLOBAL_DB_PORT || 5432) || 5432,
-    entities: env === 'app' ? ENTITIES_TO_MAP_GLOBAL_DB : ENTITIES_TO_MAP_EMPRESA_DB,
+    entities: ENTITIES_TO_MAP_EMPRESA_DB,
     synchronize: true,
-    username: process.env.POSTGRES_USER,
-    password: process.env.POSTGRES_PASSWORD,
+    username: dbName + "_user",
+    password: dbName + "_pass",
     database: empresaDBName,
     ...(isDev ? {} : { 
       ssl: { rejectUnauthorized: false }
