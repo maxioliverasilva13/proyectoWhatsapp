@@ -75,6 +75,11 @@ export class PedidoController {
     return this.pedidoService.getLastThreeOrders();
   }
 
+  @Get('/stats/lastTime')
+  getOrdersOfTimePeriod() {    
+    return this.pedidoService.getOrdersOfTimePeriods();
+  }
+
 
   @Get(':id')
   findOne(@Param('id') id: string) {

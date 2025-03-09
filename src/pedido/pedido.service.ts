@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { UpdatePedidoDto } from './dto/update-pedido.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, Repository } from 'typeorm';
+import { Between, MoreThan, Repository } from 'typeorm';
 import { Pedido } from './entities/pedido.entity';
 import { Estado } from 'src/estado/entities/estado.entity';
 import { CreatePedidoDto } from './dto/create-pedido.dto';
@@ -540,7 +540,7 @@ export class PedidoService {
     }
   }
 
-  async getOrdersForCalendar(dateTime: string, timeZone : string) {
+  async getOrdersForCalendar(dateTime: string, timeZone: string) {
     try {
       const now = getCurrentDate();
       const filterDate = moment(dateTime, 'YYYY-MM-DD').startOf('day');
@@ -681,13 +681,13 @@ export class PedidoService {
       const startDay = moment.tz(date, timeZone).startOf('day').toDate()
       const endDay = moment.tz(date, timeZone).endOf('day').toDate()
 
-      const orderCount = await this.pedidoRepository.count({ where: { fecha: Between(startDay, endDay)  } }); 
+      const orderCount = await this.pedidoRepository.count({ where: { fecha: Between(startDay, endDay) } });
 
       return {
         ok: true,
         ordersDay: orderCount
       }
-      
+
     } catch (error) {
       throw new BadRequestException({
         ok: false,
@@ -702,28 +702,28 @@ export class PedidoService {
       const startDay = moment.tz(date, timeZone).startOf('day').toDate()
       const endDay = moment.tz(date, timeZone).endOf('day').toDate()
 
-      const ordersDay = await this.pedidoRepository.find({ where: { fecha: Between(startDay, endDay)  } , relations:['pedidosprod', 'pedidosprod.producto']}); 
+      const ordersDay = await this.pedidoRepository.find({ where: { fecha: Between(startDay, endDay) }, relations: ['pedidosprod', 'pedidosprod.producto'] });
       console.log();
       console.log(ordersDay.length);
-      
+
       let ganancia = 0
 
 
-      ordersDay.map((order)=> {
-        if(order.pedidosprod.length > 0) {
+      ordersDay.map((order) => {
+        if (order.pedidosprod.length > 0) {
           console.log('entro');
-          
-          order.pedidosprod.map((pedidoProd)=> {
+
+          order.pedidosprod.map((pedidoProd) => {
             ganancia += pedidoProd.cantidad * pedidoProd.producto.precio
           })
         }
       })
 
       return {
-        ok:true,
+        ok: true,
         ganancia
       }
-      
+
     } catch (error) {
       throw new BadRequestException({
         ok: false,
@@ -734,12 +734,12 @@ export class PedidoService {
     }
   }
 
-  async getLastThreeOrders () {
-    try {      
-      const lastOrders = await this.pedidoRepository.find({order: {id : 'DESC'}, take:3})
+  async getLastThreeOrders() {
+    try {
+      const lastOrders = await this.pedidoRepository.find({ order: { id: 'DESC' }, take: 3 })
 
       return {
-        ok:true,
+        ok: true,
         data: lastOrders
       }
     } catch (error) {
@@ -748,6 +748,58 @@ export class PedidoService {
         statusCode: 400,
         message: error?.message || 'Error getting three last orders',
         error: 'Bad Request',
-      });    }
+      });
+    }
   }
+
+  async getOrdersOfTimePeriods() {
+    try {
+      const now = moment();
+  
+      const periods = {
+        weekly: now.clone().startOf('isoWeek'), 
+        monthly: now.clone().startOf('month'), 
+        quarterly: now.clone().startOf('quarter'), 
+        yearly: now.clone().startOf('year'), 
+      };
+  
+      const orders = await this.pedidoRepository.find({
+        where: { fecha: MoreThan(periods.yearly.toDate()) }, relations: ['pedidosprod', 'pedidosprod.producto']
+      });
+      
+      const groupedOrders = {
+        weekly: orders.filter(order => moment(order.fecha).isSameOrAfter(periods.weekly)),
+        monthly: orders.filter(order => moment(order.fecha).isSameOrAfter(periods.monthly)),
+        quarterly: orders.filter(order => moment(order.fecha).isSameOrAfter(periods.quarterly)),
+        yearly: orders
+      };
+      
+      return {
+        ok:true,
+        weekly: getTotalOfPeriod(groupedOrders.weekly),
+        monthly: getTotalOfPeriod(groupedOrders.monthly),
+        quarterly: getTotalOfPeriod(groupedOrders.quarterly),
+        yearly: getTotalOfPeriod(groupedOrders.yearly)
+      }
+
+    } catch (error) {
+      throw new BadRequestException({
+        ok: false,
+        statusCode: 400,
+        message: error?.message || 'Error getting orders',
+        error: 'Bad Request',
+      });
+    }
+  }
+}
+
+const getTotalOfPeriod = (orders) => {
+  let total = 0
+  orders.map((order)=> {
+    order.pedidosprod.map((pedidoProd)=> {
+      total += pedidoProd.cantidad * pedidoProd.producto.precio
+    })
+  })
+
+  return total
 }
