@@ -17,11 +17,13 @@ import { NumeroConfianza } from "src/numerosConfianza/entities/numeroConfianza.e
 import { CierreProvisorio } from "src/cierreProvisorio/entities/cierreProvisorio.entitty";
 import { PlanEmpresa } from "src/planEmpresa/entities/planEmpresa.entity";
 import { Infoline } from "src/infoline/entities/infoline.entity";
+import { Currency } from "src/currencies/entities/currency.entity";
 
 
 export const ENTITIES_TO_MAP_GLOBAL_DB = [
   Plan,
   Empresa,
+  Currency,
   CierreProvisorio,
   Tiposervicio,
   Role,

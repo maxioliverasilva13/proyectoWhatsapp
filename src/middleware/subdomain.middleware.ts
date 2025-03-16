@@ -15,14 +15,10 @@ export class SubdomainMiddleware implements NestMiddleware {
     const host = req.headers.host;
     const subdomain = process.env.SUBDOMAIN || host.split('.')[0];
 
-    console.log('subdomain',subdomain);
-    
     if (subdomain === 'app') {      
       throw new BadRequestException('Subdominio invalido.');
     }
 
-    console.log('subdomain es ', subdomain);
-    
     const connection = await handleGetGlobalConnection();
     const empresaRepository = connection?.getRepository(Empresa);
     
@@ -30,9 +26,6 @@ export class SubdomainMiddleware implements NestMiddleware {
       where: { db_name: subdomain },
       relations: ['tipoServicioId']
     });
-
-    console.log(empresaExists);
-    
 
     if (!empresaExists) {
       throw new BadRequestException('Subdominio invalido');

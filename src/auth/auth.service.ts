@@ -11,6 +11,7 @@ import { EmailService } from 'src/emailqueue/email.service';
 import { Plan } from 'src/plan/entities/plan.entity';
 import { PlanEmpresa } from 'src/planEmpresa/entities/planEmpresa.entity';
 import * as moment from 'moment-timezone';
+import { Currency } from 'src/currencies/entities/currency.entity';
 
 @Injectable()
 export class AuthService {
@@ -67,12 +68,15 @@ export class AuthService {
     try {
       const globalConnection = await handleGetGlobalConnection();
       const userRepository = globalConnection.getRepository(Usuario);
+      const currencyRepository = globalConnection.getRepository(Currency);
+
       const now = moment.tz(timeZoneCompany);
       const user = await userRepository.findOne({ where: { id: userId } });
       if (!user) {
         throw new HttpException('Invalid user', 400);
       }
 
+      let currencies = [];
       let remaindersHorsRemainder;
       let notificarReservaHoras;
       let intervaloTiempoCalendario;
@@ -89,15 +93,23 @@ export class AuthService {
       let timeZone;
 
       if (user.id_empresa) {
+        const allCurrencies = await currencyRepository
+        .createQueryBuilder("currency")
+        .leftJoinAndSelect("currency.empresa", "empresa")
+        .where("empresa.id = :empresaId OR currency.empresa IS NULL", { empresaId: user?.id_empresa })
+        .getMany();
+
+        currencies = allCurrencies ?? [];
+
         const empresa = await this.empresaRepository.findOne({
           where: { id: user.id_empresa },
-          relations: ['tipoServicioId'],
+          relations: ['tipoServicioId', 'currencies'],
         });
         if (empresa) {
           hora_apertura = empresa.hora_apertura;
           hora_cierre = empresa.hora_cierre;
           abierto = empresa.abierto;
-          tipo_servicio = empresa.tipoServicioId.id;
+          tipo_servicio = empresa?.tipoServicioId?.id;
           tipo_servicioNombre = empresa.tipoServicioId.nombre;
           intervaloTiempoCalendario = empresa.intervaloTiempoCalendario;
           notificarReservaHoras = empresa.notificarReservaHoras;
@@ -113,13 +125,18 @@ export class AuthService {
             const res = await fetch(
               `https://api.green-api.com/waInstance${empresa.greenApiInstance}/getStateInstance/${empresa.greenApiInstanceToken}`,
             );
-            const resFormated = await res.json();
+            try {
+              const resFormated = await res.json();
 
-            greenApiConfigured = resFormated.stateInstance === 'authorized';
+              greenApiConfigured = resFormated.stateInstance === 'authorized';
+            } catch (error) {
+              greenApiConfigured = false;
+              console.log(error);
+            }
           }
 
           const lastPlan = await this.planesEmpresaRepository.findOne({
-            where: { id_empresa: empresa.id },
+            where: { id_empresa: empresa?.id },
             order: { fecha_inicio: 'DESC' },
           });
 
@@ -151,9 +168,11 @@ export class AuthService {
         hora_cierre,
         abierto,
         remaindersHorsRemainder,
-        timeZone
+        timeZone,
+        currencies: currencies
       };
     } catch (error) {
+      console.log(error)
       throw new BadRequestException({
         ok: false,
         statusCode: 400,
