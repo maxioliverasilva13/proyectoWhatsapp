@@ -105,7 +105,7 @@ async function deployCompany(empresa) {
     `scp -i private_key -o StrictHostKeyChecking=no -r .env.${empresa.db_name} root@${dropletIp}:/projects/${empresa?.db_name}/.env`,
   );
   await execSync(
-    `ssh -i private_key root@${dropletIp} 'cd /projects/${empresa?.db_name} && docker-compose -f docker-compose.yml up -d --build --remove-orphans'`,
+    `ssh -i private_key root@${dropletIp} 'cd /projects/${empresa?.db_name} && docker-compose -f docker-compose.yml up -d --build`,
   );
 }
 
