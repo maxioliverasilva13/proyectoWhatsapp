@@ -34,8 +34,9 @@ export class PedidoController {
   @Get("/calendar/next-date-avaiable")
   getNextDateAvailable(@Req() request: Request) {
     const empresaId = request['empresaId'];
+    const timeZone = request['timeZone'];
 
-    return this.pedidoService.getNextDateTimeAvailable(empresaId);
+    return this.pedidoService.getNextDateTimeAvailable(empresaId, timeZone);
   }
 
   @Post('/aviableDate')

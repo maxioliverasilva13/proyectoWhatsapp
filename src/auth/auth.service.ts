@@ -71,7 +71,7 @@ export class AuthService {
       const currencyRepository = globalConnection.getRepository(Currency);
 
       const now = moment.tz(timeZoneCompany);
-      const user = await userRepository.findOne({ where: { id: userId } });
+      const user = await userRepository.findOne({ where: { id: userId }, relations: ['u'] });
       if (!user) {
         throw new HttpException('Invalid user', 400);
       }

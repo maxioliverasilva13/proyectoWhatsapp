@@ -60,6 +60,9 @@ function createEnvFileApp() {
       VIRTUAL_HOST=app.whatsproy.com
       EMAIL_USER=${process.env.EMAIL_USER}
       SUPABASE_URL=${process.env.SUPABASE_URL}
+      FIREBASE_PROJECT_ID=${process.env.FIREBASE_PROJECT_ID}
+      FIREBASE_PRIVATE_KEY=${process.env.FIREBASE_PRIVATE_KEY}
+      FIREBASE_CLIENT_EMAIL=${process.env.FIREBASE_CLIENT_EMAIL}
       SUPABASE_KEY=${process.env.SUPABASE_KEY}
       SUPABASE_BUCKET=${process.env.SUPABASE_BUCKET}
       EMAIL_HOST=${process.env.EMAIL_HOST}
