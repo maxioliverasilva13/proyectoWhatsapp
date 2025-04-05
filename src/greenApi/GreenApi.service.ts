@@ -89,7 +89,7 @@ export class GreenApiService {
             }
         } else {
             const respToUser = textError ? textError : openAIResponseFormatted
-            console.log(respToUser);
+            return respToUser
         }
 
         if (!openAIResponseFormatted?.placeOrder) {

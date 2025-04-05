@@ -5,6 +5,29 @@ import { NumeroConfianzaService } from 'src/numerosConfianza/numeroConfianza.ser
 import { WebsocketGateway } from 'src/websocket/websocket.gatewat';
 import { SpeechToText } from 'src/utils/openAIServices';
 
+const retriveMessage = async (message, chatId) => {
+
+    const payload = {
+        chatId,
+        message
+    }
+
+    try {
+        const resp = await fetch(`https://greenapu.com//waInstance${process.env.ID_INSTANCE}/sendMessage/${process.env.API_TOKEN_INSTANCE}`,{
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        })
+
+        const respF = await resp.json()
+
+        return respF
+    } catch (error) {
+        console.log(error);
+    }
+}
+
 @Controller()
 export class GrenApiController {
     constructor(
@@ -14,9 +37,7 @@ export class GrenApiController {
     ) { }
 
     @Post('/webhooks')
-    async handleWebhook(@Req() request: Request, @Body() body: any) {   
-        console.log('jiji',body);
-             
+    async handleWebhook(@Req() request: Request, @Body() body: any) {           
         if(body.stateInstance) {
             const greenApiStatus = body.stateInstance;
             console.log("greenApiStatus", greenApiStatus)
@@ -30,14 +51,14 @@ export class GrenApiController {
             const timeZone = request["timeZone"]
             const empresaId = request["empresaId"];
             const empresaType = request["empresaType"];
-            const { typeWebhook, messageData, senderData } = body;
+            const { typeWebhook, messageData, senderData, chatId } = body;
             const { sender } = senderData;
-            
+            console.log('chat id es', chatId);
+
             const numberSender = sender.match(/^\d+/)[0];
             const senderName = sender.senderName
             // Valido si el número es un número de confianza o no
             const numberExist = await this.numeroConfianza.getOne(numberSender, empresaId);
-            console.log(typeWebhook);
             
             if (numberExist.data) {
                 return
@@ -45,7 +66,7 @@ export class GrenApiController {
                 if (messageData.typeMessage === 'textMessage') {
                     const message = messageData.textMessageData?.textMessage || messageData.extendedTextMessageData?.text;
 
-                    await this.greenApi.handleMessagetText(
+                    const respText = await this.greenApi.handleMessagetText(
                         message,
                         numberSender,
                         empresaType,
@@ -53,12 +74,13 @@ export class GrenApiController {
                         senderName,
                         timeZone
                     );
+                    await retriveMessage(respText, chatId)
                 }
                 else if (messageData.typeMessage === 'audioMessage') {
                     const fileUrl = messageData.fileMessageData.downloadUrl
 
                     const speechToText = await SpeechToText(fileUrl)
-                    await this.greenApi.handleMessagetText(
+                    const respText = await this.greenApi.handleMessagetText(
                         speechToText,
                         numberSender,
                         empresaType,
@@ -67,6 +89,7 @@ export class GrenApiController {
                         timeZone
                     );
 
+                    await retriveMessage(respText, chatId)
                 } else {
                     // Manejo de otros tipos de eventos
                     console.log('Evento desconocido del webhook:', typeWebhook);
