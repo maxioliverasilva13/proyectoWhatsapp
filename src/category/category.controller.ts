@@ -14,7 +14,7 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 export class CategoryController {
   constructor(
     private categoryService: CategoryService
-  ) { }
+  ) {}
 
   @Post()
   async createCategory(@Body() data : CreateCategoryDto) {
@@ -27,13 +27,13 @@ export class CategoryController {
   }
 
   @Get(':id/products')
-  async getProductFromCategory(@Param() id : string) {
-    return this.categoryService.getProductFromCategory(parseInt(id))
+  async getProductFromCategory(@Param('idCategory') idCategory : string) {
+    return this.categoryService.getProductFromCategory(parseInt(idCategory))
   }
 
   @Delete(':id')
-  async deleteCategory(@Param() id : string) {
-    return this.categoryService.deleteCategory(parseInt(id))
+  async deleteCategory(@Param('idCategory') idCategory : string) {
+    return this.categoryService.deleteCategory(parseInt(idCategory))
   }
 
 }
