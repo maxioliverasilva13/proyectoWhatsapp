@@ -13,7 +13,7 @@ import { Category } from 'src/category/entities/category.entity';
 @Injectable()
 export class ProductoService {
     private currencyRepo: Repository<Currency>;
-
+    
   constructor(
     @InjectRepository(Producto)
     private productoRepository: Repository<Producto>,
@@ -35,6 +35,7 @@ export class ProductoService {
   ) {
     try {
       const currencyExist = await this.currencyRepo.findOne({ where : { id: createProduct?.currency_id ?? 0 }  });
+
       if (!currencyExist) {
         throw new BadRequestException({
           ok: false,
