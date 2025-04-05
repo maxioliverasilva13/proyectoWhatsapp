@@ -8,8 +8,8 @@ import { SpeechToText } from 'src/utils/openAIServices';
 const retriveMessage = async (message, chatId) => {
 
     const payload = {
-        chatId,
-        message
+        chatId: chatId,
+        message: message,
     }
 
     console.log("payload", payload)
