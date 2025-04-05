@@ -59,7 +59,9 @@ export class GrenApiController {
             const empresaType = request["empresaType"];
             const { typeWebhook, messageData } = body;
 
+            console.log("body", body)
             const senderData = body?.senderData;
+            console.log("senderData", senderData)
             const sender = senderData?.sender;
             const chatId = senderData?.chatId;
 
