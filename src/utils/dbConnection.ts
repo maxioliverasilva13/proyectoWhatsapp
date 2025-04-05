@@ -116,6 +116,8 @@ export const handleGetGlobalConnection = async () => {
   return globalConnection;
 };
 
+
+// TODO: revisar synchronize: true en PROD
 export const handleGetConnectionByEmpresa = async (dbName: string) => {
   const env = process.env.SUBDOMAIN;
   const empresaDBName = "db_" + dbName

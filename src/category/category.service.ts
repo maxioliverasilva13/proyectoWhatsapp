@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, ReturnDocument } from 'typeorm'
-import { Category } from './entities/cliente.entity';
+import { Category } from './entities/category.entity';
 import { Producto } from 'src/producto/entities/producto.entity';
 import { CreateCategoryDto } from './dto/create-category.dto';
 

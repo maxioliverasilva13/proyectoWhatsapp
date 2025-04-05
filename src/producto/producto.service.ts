@@ -1,13 +1,14 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { Producto } from './entities/producto.entity';
 import { CreateProductoDto } from './dto/create-producto.dto';
-import { ILike, Repository } from 'typeorm';
+import { ILike, In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UpdateProductoDto } from './dto/update-producto.dto';
 import { ProductoPedido } from 'src/productopedido/entities/productopedido.entity';
 import { GetProductsDTO } from './dto/get-product-search.dto';
 import { handleGetGlobalConnection } from 'src/utils/dbConnection';
 import { Currency } from 'src/currencies/entities/currency.entity';
+import { Category } from 'src/category/entities/category.entity';
 
 @Injectable()
 export class ProductoService {
@@ -18,6 +19,9 @@ export class ProductoService {
     private productoRepository: Repository<Producto>,
     @InjectRepository(ProductoPedido)
     private productoPedidoRepository: Repository<ProductoPedido>,
+    @InjectRepository(Category)
+    private categoryRepo: Repository<Category>,
+
   ) { }
 
   async onModuleInit() {
@@ -39,6 +43,16 @@ export class ProductoService {
           error: 'Bad Request',
         });
       }
+
+      const categories = await this.categoryRepo.find({ where: { id: In(createProduct.categoryIds) } });
+    if (createProduct.categoryIds && categories.length !== createProduct.categoryIds.length) {
+      throw new BadRequestException({
+        ok: false,
+        statusCode: 400,
+        message: "Una o más categorías no fueron encontradas",
+        error: 'Bad Request',
+      });
+    }
       
       const product = new Producto();
       product.nombre = createProduct.nombre;
@@ -48,7 +62,10 @@ export class ProductoService {
       product.disponible = createProduct.disponible;
       product.currency_id = currencyExist?.id;
       product.plazoDuracionEstimadoMinutos = createProduct.plazoDuracionEstimadoMinutos;
-
+      if (categories?.length > 0) { 
+        product.category = categories;
+      }
+    
       if (createProduct.imagen) {
         product.imagen = createProduct.imagen;
       }
@@ -72,7 +89,7 @@ export class ProductoService {
   }
 
   async findAll(): Promise<Producto[]> {
-    return this.productoRepository.find();
+    return this.productoRepository.find({ relations: ['category'] });
   }
 
   async findAllWithQuery(data: GetProductsDTO): Promise<Producto[]> {
@@ -82,14 +99,14 @@ export class ProductoService {
       whereCondition.nombre = ILike(`%${data.query}%`);
     }
 
-    const products = await this.productoRepository.find({ where: whereCondition });
+    const products = await this.productoRepository.find({ where: whereCondition, relations: ['category'] });
 
     return products;
   }
 
   async findOne(id: number) {
     try {
-      const producto = await this.productoRepository.findOne({ where: { id: id } });
+      const producto = await this.productoRepository.findOne({ where: { id: id }, relations: ['category'] });
       if (!producto) {
         throw new BadRequestException('El producto no existe')
       }
@@ -141,6 +158,21 @@ export class ProductoService {
         throw new BadRequestException('El producto no existe')
       }
 
+      if (updateProductoDto.categoryIds && updateProductoDto.categoryIds.length > 0) {
+        console.log("categoryIds", updateProductoDto?.categoryIds)
+        const categories = await this.categoryRepo.find({
+          where: { id: In([...updateProductoDto.categoryIds]) },
+        });
+        console.log("categories", categories)
+  
+        if (categories.length !== updateProductoDto.categoryIds.length) {
+          throw new BadRequestException('Una o más categorías no fueron encontradas');
+        }
+  
+        existProduct.category = categories;
+      } else if (updateProductoDto?.categoryIds?.length === 0) {
+        existProduct.category = [] as Category[];
+      }
       existProduct.currency_id = newCurrency?.id;
       await this.productoRepository.save(existProduct)
 

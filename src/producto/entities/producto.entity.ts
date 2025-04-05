@@ -1,7 +1,7 @@
-import { Category } from 'src/category/entities/cliente.entity';
+import { Category } from 'src/category/entities/category.entity';
 import { Currency } from 'src/currencies/entities/currency.entity';
 import { ProductoPedido } from 'src/productopedido/entities/productopedido.entity';
-import { Entity, Column, PrimaryGeneratedColumn, BaseEntity, OneToMany, ManyToOne } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, BaseEntity, OneToMany, ManyToOne, ManyToMany, JoinTable } from 'typeorm';
 
 @Entity('productos')
 export class Producto extends BaseEntity {
@@ -36,6 +36,7 @@ export class Producto extends BaseEntity {
   pedidosprod: ProductoPedido[];
 
 
-  @ManyToOne(()=> Category, (cat) => cat.producto )
-  category: Category
+  @ManyToMany(()=> Category, (cat) => cat.producto )
+  @JoinTable()
+  category: Category[]
 }
