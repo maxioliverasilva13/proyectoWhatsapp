@@ -8,16 +8,19 @@ import { ProductoPedido } from 'src/productopedido/entities/productopedido.entit
 import { GetProductsDTO } from './dto/get-product-search.dto';
 import { handleGetGlobalConnection } from 'src/utils/dbConnection';
 import { Currency } from 'src/currencies/entities/currency.entity';
+import { Category } from 'src/category/entities/cliente.entity';
 
 @Injectable()
 export class ProductoService {
     private currencyRepo: Repository<Currency>;
-
+    
   constructor(
     @InjectRepository(Producto)
     private productoRepository: Repository<Producto>,
     @InjectRepository(ProductoPedido)
     private productoPedidoRepository: Repository<ProductoPedido>,
+    @InjectRepository(Category)
+    private categoryRepository: Repository<Category>,
   ) { }
 
   async onModuleInit() {
@@ -31,6 +34,8 @@ export class ProductoService {
   ) {
     try {
       const currencyExist = await this.currencyRepo.findOne({ where : { id: createProduct?.currency_id ?? 0 }  });
+      const categoryExist = await this.categoryRepository.findOne({ where : { id: createProduct?.currency_id ?? 0 }  });
+
       if (!currencyExist) {
         throw new BadRequestException({
           ok: false,
@@ -48,6 +53,7 @@ export class ProductoService {
       product.disponible = createProduct.disponible;
       product.currency_id = currencyExist?.id;
       product.plazoDuracionEstimadoMinutos = createProduct.plazoDuracionEstimadoMinutos;
+      product.category = categoryExist
 
       if (createProduct.imagen) {
         product.imagen = createProduct.imagen;

@@ -6,4 +6,5 @@ export class CreateProductoDto {
   disponible:boolean;
   imagen: string;
   currency_id: number;
+  category_id: number;
 }
