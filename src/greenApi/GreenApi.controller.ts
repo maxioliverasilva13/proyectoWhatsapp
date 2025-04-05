@@ -25,9 +25,9 @@ const retriveMessage = async (message, chatId) => {
             const respF = await resp.json()
             return respF
         } else {
-            throw new Error(resp.statusText)
+            console.log(resp.statusText);
+            return null;
         }
-
     } catch (error) {
         console.log(error);
     }
