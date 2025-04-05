@@ -3,7 +3,7 @@ import { DataSource } from 'typeorm';
 import { EstadoDefecto, EstadoDefectoIds } from 'src/enums/estadoDefecto';
 import { Estado } from 'src/estado/entities/estado.entity';
 
-export class RoolSeed implements Seeder {
+export class EstadoSeed implements Seeder {
   async run(
     dataSource: DataSource,
     factoryManager: SeederFactoryManager,

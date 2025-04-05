@@ -5,4 +5,6 @@ export class CreateProductoDto {
   plazoDuracionEstimadoMinutos: number;
   disponible:boolean;
   imagen: string;
+  currency_id: number;
+  category_id: number;
 }

@@ -1,4 +1,5 @@
 import { CierreProvisorio } from 'src/cierreProvisorio/entities/cierreProvisorio.entitty';
+import { Currency } from 'src/currencies/entities/currency.entity';
 import { NumeroConfianza } from 'src/numerosConfianza/entities/numeroConfianza.entity';
 import { Plan } from 'src/plan/entities/plan.entity';
 import { PlanEmpresa } from 'src/planEmpresa/entities/planEmpresa.entity';
@@ -77,4 +78,7 @@ export class Empresa extends BaseEntity {
 
   @OneToMany(()=> PlanEmpresa, (planEmpresa)=> planEmpresa.empresa)
   planEmpresa : PlanEmpresa[]
+
+  @OneToMany(()=> Currency, (curr)=> curr.empresa)
+  currencies: Currency[];
 }

@@ -46,6 +46,11 @@ import { ChatGptThreadsController } from './chatGptThreads/chatGptThreads.contro
 import { MensajeController } from './mensaje/mensaje.controller';
 import { ImageModule } from './images/image.module';
 import { ImageController } from './images/image.controller';
+import { CategoryController } from './category/category.controller';
+import { CategoryModule } from './category/category.module';
+import { DeviceModule } from './device/device.module';
+import { DeviceController } from './device/device.controller';
+
 
 ConfigModule.forRoot();
 
@@ -88,7 +93,9 @@ const connection = handleGetConnection();
     CierreProvisorioModule,
     PlanEmpresaModule,
     InfolineModule,
-    ImageModule
+    ImageModule,
+    CategoryModule,
+    DeviceModule
   ],
   controllers: [
     AppController,
@@ -104,7 +111,7 @@ export class AppModule {
     // APP ROUTES
     consumer
       .apply(AppWithoutSubdomainMiddleware)
-      .forRoutes(EmpresaController, AuthController, ImageController);
+      .forRoutes(EmpresaController, AuthController, ImageController, DeviceController);
 
     // EMPRESA ROUTES
     consumer
@@ -116,7 +123,8 @@ export class AppModule {
         PedidoController,
         InfolineController,
         ChatGptThreadsController,
-        MensajeController
+        MensajeController,
+        CategoryController
       );
 
     //JWT MIDDLEWARE

@@ -6,28 +6,54 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { UpdateProductoDto } from './dto/update-producto.dto';
 import { ProductoPedido } from 'src/productopedido/entities/productopedido.entity';
 import { GetProductsDTO } from './dto/get-product-search.dto';
+import { handleGetGlobalConnection } from 'src/utils/dbConnection';
+import { Currency } from 'src/currencies/entities/currency.entity';
+import { Category } from 'src/category/entities/cliente.entity';
 
 @Injectable()
 export class ProductoService {
+    private currencyRepo: Repository<Currency>;
+    
   constructor(
     @InjectRepository(Producto)
     private productoRepository: Repository<Producto>,
     @InjectRepository(ProductoPedido)
     private productoPedidoRepository: Repository<ProductoPedido>,
+    @InjectRepository(Category)
+    private categoryRepository: Repository<Category>,
   ) { }
+
+  async onModuleInit() {
+    const globalConnection = await handleGetGlobalConnection();
+    this.currencyRepo = globalConnection.getRepository(Currency);
+  }
 
   async create(
     createProduct: CreateProductoDto,
     empresaId: number,
   ) {
     try {
+      const currencyExist = await this.currencyRepo.findOne({ where : { id: createProduct?.currency_id ?? 0 }  });
+      const categoryExist = await this.categoryRepository.findOne({ where : { id: createProduct?.currency_id ?? 0 }  });
+
+      if (!currencyExist) {
+        throw new BadRequestException({
+          ok: false,
+          statusCode: 400,
+          message: "No se encontro el currency seleccionado",
+          error: 'Bad Request',
+        });
+      }
+      
       const product = new Producto();
       product.nombre = createProduct.nombre;
       product.precio = createProduct.precio;
       product.empresa_id = empresaId;
       product.descripcion = createProduct.descripcion;
       product.disponible = createProduct.disponible;
+      product.currency_id = currencyExist?.id;
       product.plazoDuracionEstimadoMinutos = createProduct.plazoDuracionEstimadoMinutos;
+      product.category = categoryExist
 
       if (createProduct.imagen) {
         product.imagen = createProduct.imagen;
@@ -90,12 +116,8 @@ export class ProductoService {
   }
 
   async findAllInText() {
-    console.log('entre');
-    
     const productsAll = await this.productoRepository.find({where: {disponible: true}});
 
-    console.log('retornare', productsAll);
-    
     const productsFormated = productsAll.map((product) => {
       return `${product.id}-Procuto: ${product.nombre},Precio: ${product.precio}, Descripcion:${product.descripcion}$`;
     }).join(', ');
@@ -116,7 +138,16 @@ export class ProductoService {
           existProduct[dato] = updateProductoDto[dato];
         }
       }
+      const newCurrency = await this.currencyRepo.findOne({ where: { id: updateProductoDto?.currency_id } })
 
+      if (!newCurrency) {
+        throw new BadRequestException('El Currency no existe')
+      }
+      if (!existProduct) {
+        throw new BadRequestException('El producto no existe')
+      }
+
+      existProduct.currency_id = newCurrency?.id;
       await this.productoRepository.save(existProduct)
 
       return {

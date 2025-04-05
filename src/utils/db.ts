@@ -17,18 +17,22 @@ import { NumeroConfianza } from "src/numerosConfianza/entities/numeroConfianza.e
 import { CierreProvisorio } from "src/cierreProvisorio/entities/cierreProvisorio.entitty";
 import { PlanEmpresa } from "src/planEmpresa/entities/planEmpresa.entity";
 import { Infoline } from "src/infoline/entities/infoline.entity";
-
+import { Currency } from "src/currencies/entities/currency.entity";
+import { Category } from "src/category/entities/cliente.entity";
+import { Device } from "src/device/device.entity";
 
 export const ENTITIES_TO_MAP_GLOBAL_DB = [
   Plan,
   Empresa,
+  Currency,
   CierreProvisorio,
   Tiposervicio,
   Role,
   Cliente,
   Usuario,
   NumeroConfianza,
-  PlanEmpresa
+  PlanEmpresa,
+  Device
 ];
 
 export const ENTITIES_TO_MAP_EMPRESA_DB = [
@@ -40,7 +44,8 @@ export const ENTITIES_TO_MAP_EMPRESA_DB = [
   Estado,
   Mensaje,
   ChatGptThreads,
-  Infoline
+  Infoline,
+  Category
 ];
 
 export const SEEDERS_TO_MAP_GLOBAL_DB = 'src/database/seeders/app/*{.ts,.js}'

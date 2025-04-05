@@ -2,7 +2,6 @@ import getCurrentDate from "./getCurrentDate";
 import * as moment from 'moment-timezone';
 import * as FormData from 'form-data';
 import { Readable } from "stream";
-import fetch from 'node-fetch';
 
 export const askAssistant = async (question, instrucciones) => {
     try {
@@ -30,7 +29,7 @@ export const askAssistant = async (question, instrucciones) => {
             throw new Error('Error al enviar la pregunta: ' + JSON.stringify(errorResponse));
         }
 
-        const data = await response.json();
+        const data = await response.json() as any;
         return data.choices[0].message.content;
 
     } catch (error) {
@@ -61,7 +60,7 @@ export async function createThread(products, infoLines, empresaType) {
         throw new Error(`Error al crear el thread: ${JSON.stringify(errorResponse)}`);
     }    
 
-    const threadData = await response.json();
+    const threadData = await response.json() as any;
     console.log("thread creado");
     
     return threadData.id;
@@ -99,7 +98,7 @@ export async function sendMessageToThread(threadId, text, isAdmin, timeZone) {
         throw new Error("Error al enviar el mensaje al hilo: " + response.statusText);
     }
 
-    const runData = await response.json();
+    const runData = await response.json() as any;
     const runId = runData.id;
 
     let delay = 300;
@@ -118,7 +117,7 @@ export async function sendMessageToThread(threadId, text, isAdmin, timeZone) {
             continue;
         }
 
-        const statusData = await statusResponse.json();
+        const statusData = await statusResponse.json() as any;
         status = statusData.status;
 
         if (status === "completed") break;
@@ -138,7 +137,7 @@ export async function sendMessageToThread(threadId, text, isAdmin, timeZone) {
         throw new Error("Error al obtener los mensajes del hilo: " + messagesResponse.statusText);
     }
 
-    const messagesData = await messagesResponse.json();
+    const messagesData = await messagesResponse.json() as any;
     const assistantMessage = messagesData.data[0];
 
     if (!assistantMessage) {
@@ -205,7 +204,7 @@ export const SpeechToText = async (audioUrl: string) => {
             throw new Error(`error en la traduccion: ${await response.text()}`);
         }
 
-        const data = await response.json();
+        const data = await response.json() as any;
         return data.text;
     } catch (error) {
         console.error('Error:', error);

@@ -60,6 +60,9 @@ function createEnvFileApp() {
       VIRTUAL_HOST=app.whatsproy.com
       EMAIL_USER=${process.env.EMAIL_USER}
       SUPABASE_URL=${process.env.SUPABASE_URL}
+      FIREBASE_PROJECT_ID=${process.env.FIREBASE_PROJECT_ID}
+      FIREBASE_PRIVATE_KEY=${process.env.FIREBASE_PRIVATE_KEY}
+      FIREBASE_CLIENT_EMAIL=${process.env.FIREBASE_CLIENT_EMAIL}
       SUPABASE_KEY=${process.env.SUPABASE_KEY}
       SUPABASE_BUCKET=${process.env.SUPABASE_BUCKET}
       EMAIL_HOST=${process.env.EMAIL_HOST}
@@ -105,7 +108,7 @@ async function deployCompany(empresa) {
     `scp -i private_key -o StrictHostKeyChecking=no -r .env.${empresa.db_name} root@${dropletIp}:/projects/${empresa?.db_name}/.env`,
   );
   await execSync(
-    `ssh -i private_key root@${dropletIp} 'cd /projects/${empresa?.db_name} && docker-compose -f docker-compose.yml up -d --build --remove-orphans'`,
+    `ssh -i private_key root@${dropletIp} 'cd /projects/${empresa?.db_name} && docker-compose -f docker-compose.yml up -d --build'`,
   );
 }
 
