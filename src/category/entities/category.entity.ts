@@ -1,6 +1,7 @@
 import { Producto } from "src/producto/entities/producto.entity";
 import { BaseEntity } from "src/utils/base.entity";
-import { PrimaryGeneratedColumn, Column, Entity, ManyToMany } from "typeorm";
+
+import { PrimaryGeneratedColumn, Column, Entity, OneToMany, ManyToMany } from "typeorm";
 
 @Entity('category')
 export class Category extends BaseEntity {
