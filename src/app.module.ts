@@ -46,8 +46,11 @@ import { ChatGptThreadsController } from './chatGptThreads/chatGptThreads.contro
 import { MensajeController } from './mensaje/mensaje.controller';
 import { ImageModule } from './images/image.module';
 import { ImageController } from './images/image.controller';
+import { CategoryController } from './category/category.controller';
+import { CategoryModule } from './category/category.module';
 import { DeviceModule } from './device/device.module';
 import { DeviceController } from './device/device.controller';
+
 
 ConfigModule.forRoot();
 
@@ -91,6 +94,7 @@ const connection = handleGetConnection();
     PlanEmpresaModule,
     InfolineModule,
     ImageModule,
+    CategoryModule,
     DeviceModule
   ],
   controllers: [
@@ -119,7 +123,8 @@ export class AppModule {
         PedidoController,
         InfolineController,
         ChatGptThreadsController,
-        MensajeController
+        MensajeController,
+        CategoryController
       );
 
     //JWT MIDDLEWARE
