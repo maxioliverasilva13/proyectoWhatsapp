@@ -67,19 +67,19 @@ export class CategoryService {
 
   async getProductFromCategory(idCategory: number) {
     try {
-      const categoryExist = await this.categoryRepository.findOne({where: {id : idCategory}})
-
-      if(!categoryExist) {
-        throw new BadRequestException("No category could be found with that id")
+      const categoryExist = await this.categoryRepository.findOne({
+        where: { id: idCategory },
+        relations: ['producto']
+      });
+  
+      if (!categoryExist) {
+        throw new BadRequestException("No category could be found with that id");
       }
-
-      const allProducts = await this.productRepository.find({where : {category : categoryExist}})
-
+  
       return {
-        ok:true,
-        data : allProducts
-      }
-
+        ok: true,
+        data: categoryExist.producto,
+      };
     } catch (error) {
       throw new BadRequestException({
         ok: false,
