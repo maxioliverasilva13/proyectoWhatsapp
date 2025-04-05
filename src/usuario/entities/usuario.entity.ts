@@ -1,6 +1,7 @@
 import { Cambioestadopedido } from "src/cambioestadopedido/entities/cambioestadopedido.entity";
+import { Device } from "src/device/device.entity";
 import { BaseEntity } from "src/utils/base.entity";
-import { Column, Entity, Index, OneToMany, PrimaryGeneratedColumn, Unique } from "typeorm";
+import { Column, Entity, Index, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn, Unique } from "typeorm";
 
 @Entity('usuario')
 @Index("idx_usuario_id_correo", ["id", "correo"], { unique: true })
@@ -26,7 +27,7 @@ export class Usuario extends BaseEntity {
 
     @Column()
     id_rol: number;
-    
+
     @Column({ nullable: true })
     activo: boolean;
 
@@ -35,4 +36,8 @@ export class Usuario extends BaseEntity {
 
     @Column({ nullable: true, default: 'https://www.iconpacks.net/icons/2/free-user-icon-3296-thumb.png' })
     image: string;
+
+    @OneToOne(() => Device, dispositivo => dispositivo.usuario, { cascade: true, onDelete: "CASCADE" })
+    @JoinColumn()
+    dispositivo: Device;
 }

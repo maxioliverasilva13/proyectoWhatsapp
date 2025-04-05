@@ -365,7 +365,7 @@ export class PedidoService {
     }
   }
 
-  async getNextDateTimeAvailable(empresaId: number): Promise<any> {
+  async getNextDateTimeAvailable(empresaId: number, timeZone): Promise<any> {
     try {
       const empresaInfo = await this.empresaRepository.findOne({
         where: { id: empresaId },
@@ -385,12 +385,12 @@ export class PedidoService {
         throw new Error('La empresa no tiene horarios configurados.');
       }
 
-      const horaActual = moment().tz(LOCALE_TIMEZONE);
+      const horaActual = moment().tz(timeZone);
 
       const [aperturaHora, aperturaMinuto] = horaAperturaEmpresa
         .split(':')
         .map(Number);
-      const apertura = moment(horaActual)
+      const apertura = moment(horaActual).tz(timeZone)
         .hour(aperturaHora)
         .minute(aperturaMinuto)
         .second(0)
@@ -399,7 +399,7 @@ export class PedidoService {
       const [cierreHora, cierreMinuto] = horaCierreEmpresa
         .split(':')
         .map(Number);
-      const cierre = moment(horaActual)
+      const cierre = moment(horaActual).tz(timeZone)
         .hour(cierreHora)
         .minute(cierreMinuto)
         .second(0)
@@ -409,18 +409,17 @@ export class PedidoService {
       const minutosRedondeados =
         Math.ceil(minutosActuales / intervaloTiempoCalendario) *
         intervaloTiempoCalendario;
-      let proximoDisponible = moment(horaActual)
+      let proximoDisponible = moment(horaActual).tz(timeZone)
         .minute(minutosRedondeados)
         .second(0)
         .millisecond(0)
-        .utcOffset(0, true);
 
       console.log("proximoDisponible xd1", proximoDisponible)
 
       if (horaActual.isSameOrAfter(cierre)) {
         apertura.add(1, 'day');
         cierre.add(1, 'day');
-        proximoDisponible = apertura.clone();
+        proximoDisponible = apertura.clone().tz(timeZone);
       }
 
       while (true) {
@@ -445,8 +444,8 @@ export class PedidoService {
         const pedidosActivos = allPedidos;
 
         const intervalosOcupados = pedidosActivos.map((pedido) => {
-          const inicio = moment(pedido.fecha);
-          const fin = inicio.clone().add(intervaloTiempoCalendario, 'minutes');
+          const inicio = moment(pedido.fecha).tz(timeZone);
+          const fin = inicio.clone().tz(timeZone).add(intervaloTiempoCalendario, 'minutes');
           return { inicio, fin };
         });
 
@@ -464,9 +463,10 @@ export class PedidoService {
 
         let encontradoHueco = false;
 
-        if (intervalosOcupados?.length === 0 && pedidosActivos?.length === 0) {
-          proximoDisponible = apertura.clone();
+        if (intervalosOcupados?.length === 0 && pedidosActivos?.length === 0 && horaActual.isAfter(cierre)) {
+          proximoDisponible = apertura.clone().tz(timeZone);
         }
+        console.log("intervalosOcupados",  intervalosOcupados)
 
         for (let i = 0; i <= intervalosOcupados.length - 1; i++) {
           const actual = intervalosOcupados[i];
@@ -488,41 +488,49 @@ export class PedidoService {
           } else if (siguiente) {
             console.log('if 3');
             const finActual = actual.fin
-              .clone()
+              .clone().tz(timeZone)
             if (finActual.isBefore(siguiente.inicio)) {
               console.log('if 4');
               proximoDisponible = finActual;
               encontradoHueco = true;
               break;
             } else {
-              proximoDisponible = actual.fin.clone();
+              proximoDisponible = actual.fin.clone().tz(timeZone);
             }
           } else {
             console.log('if 5');
             encontradoHueco = true;
             proximoDisponible = actual.fin
-              .clone()
+              .clone().tz(timeZone)
+
+            if (proximoDisponible.isSameOrAfter(cierre)) {
+              console.log("add")
+              encontradoHueco = false;
+            }
+            console.log("if 5 desp", proximoDisponible)
           }
         }
 
         if (encontradoHueco && proximoDisponible.isBefore(cierre)) {
-          console.log('proximoDisponible', proximoDisponible);
-          console.log(
-            'Proximo disponible:',
-            proximoDisponible.format('YYYY-MM-DD HH:mm:ssZ'),
-          );
+          console.log("acap 3")
           return proximoDisponible.toISOString();
         } else if (
           intervalosOcupados?.length === 0 &&
           proximoDisponible.isBefore(cierre)
         ) {
-          return proximoDisponible.toISOString();
+          if (proximoDisponible.isSameOrAfter(cierre)) {
+            console.log("acap 1")
+            encontradoHueco = false;
+          } else {
+            console.log("acap 2")
+            return proximoDisponible.toISOString();
+          }
         }
 
         console.log('Pasando al siguiente día');
         apertura.add(1, 'day');
         cierre.add(1, 'day');
-        proximoDisponible = apertura.clone();
+        proximoDisponible = apertura.clone().tz(timeZone);
 
         if (apertura.diff(horaActual, 'days') > 30) {
           throw new Error(
