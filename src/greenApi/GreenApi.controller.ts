@@ -19,9 +19,15 @@ const retriveMessage = async (message, chatId) => {
             method: "POST",
             body: JSON.stringify(payload)
         })
-        const respF = await resp.json()
+        console.log("resp", resp)
+        console.log("payload", payload)
+        if (resp.ok) {
+            const respF = await resp.json()
+            return respF
+        } else {
+            throw new Error(resp.statusText)
+        }
 
-        return respF
     } catch (error) {
         console.log(error);
     }
