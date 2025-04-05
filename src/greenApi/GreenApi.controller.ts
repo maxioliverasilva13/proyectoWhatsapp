@@ -12,6 +12,8 @@ const retriveMessage = async (message, chatId) => {
         message
     }
 
+    console.log("payload", payload)
+
     try {
         const resp = await fetch(`https://greenapu.com//waInstance${process.env.ID_INSTANCE}/sendMessage/${process.env.API_TOKEN_INSTANCE}`,{
             headers: {
@@ -20,6 +22,7 @@ const retriveMessage = async (message, chatId) => {
             method: "POST",
             body: JSON.stringify(payload)
         })
+        console.log("resp is", resp);
 
         const respF = await resp.json()
 
