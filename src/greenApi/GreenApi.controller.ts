@@ -53,6 +53,7 @@ export class GrenApiController {
             const empresaType = request["empresaType"];
             const { typeWebhook, messageData, senderData, chatId } = body;
             const { sender } = senderData;
+            console.log("body", body)
             console.log('chat id es', chatId);
 
             const numberSender = sender.match(/^\d+/)[0];
