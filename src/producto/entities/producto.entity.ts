@@ -1,3 +1,4 @@
+import { Category } from 'src/category/entities/cliente.entity';
 import { Currency } from 'src/currencies/entities/currency.entity';
 import { ProductoPedido } from 'src/productopedido/entities/productopedido.entity';
 import { Entity, Column, PrimaryGeneratedColumn, BaseEntity, OneToMany, ManyToOne } from 'typeorm';
@@ -33,4 +34,8 @@ export class Producto extends BaseEntity {
 
   @OneToMany(() => ProductoPedido, (prod) => prod.producto)
   pedidosprod: ProductoPedido[];
+
+
+  @ManyToOne(()=> Category, (cat) => cat.producto )
+  category: Category
 }
