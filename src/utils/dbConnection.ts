@@ -16,6 +16,9 @@ export const handleGetCurrentConnection = async () => {
     entities:
       env === 'app' ? ENTITIES_TO_MAP_GLOBAL_DB : ENTITIES_TO_MAP_EMPRESA_DB,
     synchronize: true,
+    extra: {
+      max: 10,
+    },
     username: process.env.POSTGRES_USER,
     password: process.env.POSTGRES_PASSWORD,
     database: process.env.POSTGRES_DB,
@@ -55,6 +58,9 @@ export const handleGetConnection = async () => {
     entities:
       env === 'app' ? ENTITIES_TO_MAP_GLOBAL_DB : ENTITIES_TO_MAP_EMPRESA_DB,
     synchronize: true,
+    extra: {
+      max: 10,
+    },
     username: process.env.POSTGRES_USER,
     password: process.env.POSTGRES_PASSWORD,
     database: process.env.POSTGRES_DB,
@@ -86,6 +92,9 @@ export const handleGetGlobalConnection = async () => {
     entities: ENTITIES_TO_MAP_GLOBAL_DB,
     name: `${process.env.POSTGRES_DB_GLOBAL}`,
     synchronize: true,
+    extra: {
+      max: 10,
+    },
     username: process.env.POSTGRES_USER_GLOBAL,
     password: process.env.POSTGRES_PASSWORD_GLOBAL,
     database: process.env.POSTGRES_DB_GLOBAL,
@@ -120,6 +129,9 @@ export const handleGetConnectionByEmpresa = async (dbName: string) => {
     port: Number(process.env.POSTGRES_GLOBAL_DB_PORT || 5432) || 5432,
     entities: ENTITIES_TO_MAP_EMPRESA_DB,
     synchronize: true,
+    extra: {
+      max: 10,
+    },
     username: isDev ? dbName + "_user" : process.env.POSTGRES_USER_GLOBAL,
     password: isDev ? dbName + "_pass" : process.env.POSTGRES_PASSWORD,
     database: empresaDBName,
