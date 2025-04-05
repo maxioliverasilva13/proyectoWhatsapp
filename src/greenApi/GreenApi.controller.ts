@@ -11,9 +11,9 @@ const retriveMessage = async (message, chatId) => {
         chatId: chatId,
         message: message?.message,
     }
-    console.log("url", `https://greenapi.com/waInstance${process.env.ID_INSTANCE}/sendMessage/${process.env.API_TOKEN_INSTANCE}`)
+    console.log("url", `https://api.greenapi.com/waInstance${process.env.ID_INSTANCE}/sendMessage/${process.env.API_TOKEN_INSTANCE}`)
     try {
-        const resp = await fetch(`https://greenapi.com/waInstance${process.env.ID_INSTANCE}/sendMessage/${process.env.API_TOKEN_INSTANCE}`,{
+        const resp = await fetch(`https://api.greenapi.com/waInstance${process.env.ID_INSTANCE}/sendMessage/${process.env.API_TOKEN_INSTANCE}`,{
             headers: {
                 'Content-Type': 'application/json'
             },
