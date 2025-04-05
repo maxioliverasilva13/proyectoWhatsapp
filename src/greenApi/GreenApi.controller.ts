@@ -57,10 +57,11 @@ export class GrenApiController {
             const timeZone = request["timeZone"]
             const empresaId = request["empresaId"];
             const empresaType = request["empresaType"];
-            const { typeWebhook, messageData, senderData } = body;
-            const { sender, chatId } = senderData;
-            console.log("body", body)
-            console.log('chat id es', chatId);
+            const { typeWebhook, messageData } = body;
+
+            const senderData = body?.senderData;
+            const sender = senderData?.sender;
+            const chatId = senderData?.chatId;
 
             const numberSender = sender.match(/^\d+/)[0];
             const senderName = sender.senderName
@@ -68,7 +69,7 @@ export class GrenApiController {
             const numberExist = await this.numeroConfianza.getOne(numberSender, empresaId);
             
             if (numberExist.data) {
-                return
+                return;
             } else {
                 if (messageData.typeMessage === 'textMessage') {
                     const message = messageData.textMessageData?.textMessage || messageData.extendedTextMessageData?.text;
