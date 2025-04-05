@@ -19,9 +19,9 @@ export class DeviceService {
     @InjectRepository(Usuario)
     private readonly usuarioRepository: Repository<Usuario>,
   ) {
-    if (!admin.apps.length) {
-      const subdomain = process.env.SUBDOMAIN;
-      if (subdomain === 'app') {
+    const subdomain = process.env.SUBDOMAIN;
+    if (subdomain === 'app') {
+      if (!admin.apps.length) {
         admin.initializeApp({
           credential: admin.credential.cert({
             projectId: process.env.FIREBASE_PROJECT_ID,
@@ -30,8 +30,8 @@ export class DeviceService {
           }),
         });
       }
+      this.messaging = admin.messaging();
     }
-    this.messaging = admin.messaging();
   }
 
   async registrarDispositivo(
