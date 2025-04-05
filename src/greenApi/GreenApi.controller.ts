@@ -51,8 +51,8 @@ export class GrenApiController {
             const timeZone = request["timeZone"]
             const empresaId = request["empresaId"];
             const empresaType = request["empresaType"];
-            const { typeWebhook, messageData, senderData, chatId } = body;
-            const { sender } = senderData;
+            const { typeWebhook, messageData, senderData } = body;
+            const { sender, chatId } = senderData;
             console.log("body", body)
             console.log('chat id es', chatId);
 
