@@ -26,7 +26,7 @@ export class CategoryController {
     return this.categoryService.getAllCategories()
   }
 
-  @Get(':id/products')
+  @Get(':idCategory/products')
   async getProductFromCategory(@Param('idCategory') idCategory : string) {
     return this.categoryService.getProductFromCategory(parseInt(idCategory))
   }
