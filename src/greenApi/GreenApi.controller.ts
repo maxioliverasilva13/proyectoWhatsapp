@@ -11,19 +11,14 @@ const retriveMessage = async (message, chatId) => {
         chatId: chatId,
         message: message,
     }
-
-    console.log("payload", payload)
-
     try {
-        const resp = await fetch(`https://greenapu.com//waInstance${process.env.ID_INSTANCE}/sendMessage/${process.env.API_TOKEN_INSTANCE}`,{
+        const resp = await fetch(`https://greenapi.com/waInstance/${process.env.ID_INSTANCE}/sendMessage/${process.env.API_TOKEN_INSTANCE}`,{
             headers: {
                 'Content-Type': 'application/json'
             },
             method: "POST",
             body: JSON.stringify(payload)
         })
-        console.log("resp is", resp);
-
         const respF = await resp.json()
 
         return respF
