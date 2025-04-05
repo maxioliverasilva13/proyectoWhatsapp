@@ -13,7 +13,6 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
 
     handleDisconnect(client: any) {
         console.log('client dissconected');
-
     }
 
     @SubscribeMessage('greenApiStatus')

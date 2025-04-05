@@ -17,6 +17,7 @@ const retriveMessage = async (message, chatId) => {
             headers: {
                 'Content-Type': 'application/json'
             },
+            method: "POST",
             body: JSON.stringify(payload)
         })
 
