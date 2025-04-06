@@ -17,6 +17,7 @@ export class ChatGptThreadsService {
                 where: { numberPhone: numberPhone },
                 order: { id: 'DESC' }
             });
+            
 
             return {
                 ok: true,

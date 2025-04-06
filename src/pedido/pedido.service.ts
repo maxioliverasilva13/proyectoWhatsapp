@@ -77,7 +77,7 @@ export class PedidoService {
         );
       }
 
-      let messageFinal = "\n Gracias por realizar su orden, aqui estan los detalles de la misma: \n\nProductos:\n\n";
+      let messageFinal = "Gracias por realizar su orden, aqui estan los detalles de la misma:\n\nProductos:\n"
       let globalTotal = 0
 
       const crearNuevoPedido = async (products) => {
@@ -103,7 +103,8 @@ export class PedidoService {
         try {
           await Promise.all(
             products.map(async (product) => {
-              let producto: ""
+              let producto: "";
+
               const productExist = existingProducts.find(
                 (p) => p.id === product.productoId,
               );
@@ -112,16 +113,13 @@ export class PedidoService {
                   `Producto con ID ${product.productoId} no encontrado`,
                 );
               }
-
-              const infoLineAsJson = JSON.parse(createPedidoDto.infoLinesJson);
-
-
-              producto += "\n--Nombre: " + productExist.nombre
+              
+              producto += "\n--Nombre: " + (productExist.nombre ?? "No hay nombre")
               producto += "\n--Precio: " + (productExist.precio ?? 0)
               producto += "\n--Cantidad: " + product.cantidad
               producto += "\n--Detalle: " + (product.detalle ?? "No hay detalle")
-              Object.keys(infoLineAsJson).forEach((key) => {
-                const value = infoLineAsJson[key];
+              Object.keys(createPedidoDto.infoLinesJson).forEach((key) => {
+                const value = createPedidoDto.infoLinesJson[key];
                 producto += `\n--${key}: ${value}`;
               });
               
@@ -135,7 +133,7 @@ export class PedidoService {
                 detalle: product.detalle,
               });
 
-              messageFinal+= '\n' + producto + '\n'
+              messageFinal += ('\n' + producto + '\n')
             })
           );
 
