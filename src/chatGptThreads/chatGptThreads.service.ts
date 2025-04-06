@@ -40,13 +40,15 @@ export class ChatGptThreadsService {
             if (!data) {
                 throw new BadRequestException("debe de proveer la data correctamente")
             }
+
             const newThreads = new ChatGptThreads;
             newThreads.numberPhone = data.numberPhone
             newThreads.threadId = data.threadId
             newThreads.sesionStatus = true
 
             await this.threadsRepository.save(newThreads)
-
+            console.log('se creo con id', newThreads.threadId);
+            
             return {
                 ok: true,
                 message: "Thread creado exitosamente",
@@ -63,7 +65,7 @@ export class ChatGptThreadsService {
         }
     }
 
-    async updateThreadStatus(threadId: string, timeZone : string) {
+    async updateThreadStatus(threadId: string, timeZone: string) {
         try {
             const thread = await this.threadsRepository.findOne({ where: { threadId } });
 
@@ -99,14 +101,14 @@ export class ChatGptThreadsService {
             if (!threadId) {
                 throw new BadRequestException("debe de espesificar el threadId")
             }
-            const resp = await this.threadsRepository.delete({ threadId: threadId });
-            if (resp) {
-                return {
-                    ok: true,
-                    statusCode: 200,
-                    message: "thread borrado exitosamente"
-                }
+            await this.threadsRepository.delete({ threadId });
+
+            return {
+                ok: true,
+                statusCode: 200,
+                message: "thread borrado exitosamente"
             }
+
         } catch (error) {
             throw new BadRequestException({
                 ok: false,

@@ -2,6 +2,7 @@ import getCurrentDate from "./getCurrentDate";
 import * as moment from 'moment-timezone';
 import * as FormData from 'form-data';
 import { Readable } from "stream";
+import axios from 'axios'
 
 export const askAssistant = async (question, instrucciones) => {
     try {
@@ -173,40 +174,36 @@ export async function closeThread(threadId) {
 export const SpeechToText = async (audioUrl: string) => {
     try {
         const responseAudio = await fetch(audioUrl);
-        
         if (!responseAudio.ok) {
             throw new Error(`Error al descargar el audio: ${responseAudio.statusText}`);
         }
 
         const audioBuffer = Buffer.from(await responseAudio.arrayBuffer());
 
-        const readableStream = new Readable();
-        readableStream.push(audioBuffer);
-        readableStream.push(null);
+        const stream = new Readable();
+        stream.push(audioBuffer);
+        stream.push(null);
 
         const formData = new FormData();
-        formData.append('file', readableStream, {
-            filename: 'audio.wav', 
+        formData.append('file', stream, {
+            filename: 'audio.wav',
             contentType: 'audio/wav'
         });
-        formData.append('model', 'whisper-1'); 
+        formData.append('model', 'whisper-1');
 
-        const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${process.env.OPEN_AI_TOKEN}`, 
-                ...formData.getHeaders(),
-            },
-            body: formData as any,
-        });
+        const response = await axios.post(
+            'https://api.openai.com/v1/audio/transcriptions',
+            formData,
+            {
+                headers: {
+                    'Authorization': `Bearer ${process.env.OPEN_AI_TOKEN}`,
+                    ...formData.getHeaders(),
+                },
+            }
+        );
 
-        if (!response.ok) {
-            throw new Error(`error en la traduccion: ${await response.text()}`);
-        }
-
-        const data = await response.json() as any;
-        return data.text;
-    } catch (error) {
-        console.error('Error:', error);
+        return response.data.text;
+    } catch (error: any) {
+        console.error('Error:', error?.response?.data || error.message);
     }
 };

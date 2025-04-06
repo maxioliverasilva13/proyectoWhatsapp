@@ -77,6 +77,9 @@ export class PedidoService {
         );
       }
 
+      let messageFinal = "\n Gracias por realizar su orden, aqui estan los detalles de la misma: \n\nProductos:\n\n";
+      let globalTotal = 0
+
       const crearNuevoPedido = async (products) => {
         let total = 0;
         const infoLineToJson = JSON.stringify(createPedidoDto.infoLinesJson);
@@ -86,17 +89,6 @@ export class PedidoService {
         newPedido.cliente_id = createPedidoDto.clienteId;
         newPedido.estado = estado;
         newPedido.tipo_servicio_id = tipoServicio.id;
-
-        console.log(createPedidoDto.empresaType === 'RESERVA');
-
-        console.log(
-          createPedidoDto.empresaType === 'RESERVA'
-            ? createPedidoDto.fecha
-              ? createPedidoDto.fecha
-              : products[0].fecha
-            : getCurrentDate(),
-        );
-
         newPedido.fecha =
           createPedidoDto.empresaType === 'RESERVA'
             ? createPedidoDto.fecha || products[0].fecha
@@ -108,21 +100,30 @@ export class PedidoService {
         const productIds = products.map((product) => product.productoId);
         const existingProducts =
           await this.productoRespitory.findByIds(productIds);
-
         try {
           await Promise.all(
             products.map(async (product) => {
+              let producto: ""
               const productExist = existingProducts.find(
                 (p) => p.id === product.productoId,
               );
-
               if (!productExist) {
                 throw new Error(
                   `Producto con ID ${product.productoId} no encontrado`,
                 );
               }
 
+              producto += "\n--Nombre: " + productExist.nombre
+              producto += "\n--Precio: " + (productExist.precio ?? 0)
+              producto += "\n--Cantidad: " + product.cantidad
+              producto += "\n--Detalle: " + (product.detalle ?? "No hay detalle")
+              Object.keys(infoLineToJson).forEach((key) => {
+                const value = infoLineToJson[key];
+                producto += `\n--${key}: ${value}`;
+              });
+              
               total += productExist.precio * product.cantidad;
+              producto += "\nTotal: " + total
 
               await this.productoPedidoService.create({
                 cantidad: product.cantidad,
@@ -130,7 +131,9 @@ export class PedidoService {
                 pedidoId: savedPedido.id,
                 detalle: product.detalle,
               });
-            }),
+
+              messageFinal+= '\n' + producto + '\n'
+            })
           );
 
           console.log('Productos creados correctamente');
@@ -169,6 +172,8 @@ export class PedidoService {
           status: savedPedido.confirmado,
         };
 
+
+        globalTotal += total
         this.webSocketService.sendOrder(formatToSendFrontend);
         return formatToSendFrontend;
       };
@@ -183,10 +188,13 @@ export class PedidoService {
         await crearNuevoPedido(createPedidoDto.products);
       }
 
+      messageFinal
+
       return {
         statusCode: 200,
         ok: true,
         message: 'Pedido creado exitosamente',
+        messageToUser: messageFinal + '\n\nTotal:' + globalTotal 
       };
     } catch (error) {
       throw new BadRequestException({

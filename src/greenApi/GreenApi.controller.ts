@@ -6,31 +6,26 @@ import { WebsocketGateway } from 'src/websocket/websocket.gatewat';
 import { SpeechToText } from 'src/utils/openAIServices';
 
 const retriveMessage = async (message, chatId) => {
+    console.log('recibo', message);
 
     const payload = {
         chatId: chatId,
         message: message?.message,
     }
-    console.log("url", `https://api.greenapi.com/waInstance${process.env.ID_INSTANCE}/sendMessage/${process.env.API_TOKEN_INSTANCE}`)
     try {
-        const resp = await fetch(`https://api.greenapi.com/waInstance${process.env.ID_INSTANCE}/sendMessage/${process.env.API_TOKEN_INSTANCE}`,{
+        const resp = await fetch(`https://api.greenapi.com/waInstance${process.env.ID_INSTANCE}/sendMessage/${process.env.API_TOKEN_INSTANCE}`, {
             headers: {
                 'Content-Type': 'application/json'
             },
             method: "POST",
             body: JSON.stringify(payload)
         })
-        console.log("resp", resp)
-        console.log("payload", payload)
-        if (resp.ok) {
-            const respF = await resp.json()
-            return respF
-        } else {
-            console.log(resp.statusText);
-            return null;
-        }
-    } catch (error) {
-        console.log(error);
+
+        const respF = await resp.json()
+        return respF
+
+    } catch (error: any) {
+        console.log(error.response.data.message);
     }
 }
 
@@ -43,8 +38,9 @@ export class GrenApiController {
     ) { }
 
     @Post('/webhooks')
-    async handleWebhook(@Req() request: Request, @Body() body: any) {           
-        if(body.stateInstance) {
+    async handleWebhook(@Req() request: Request, @Body() body: any) {
+
+        if (body.stateInstance) {
             const greenApiStatus = body.stateInstance;
             console.log("greenApiStatus", greenApiStatus)
             if (greenApiStatus) {
@@ -59,52 +55,53 @@ export class GrenApiController {
             const empresaType = request["empresaType"];
             const { typeWebhook, messageData } = body;
 
-            console.log("body", body)
-            const senderData = body?.senderData;
-            console.log("senderData", senderData)
-            const sender = senderData?.sender;
-            const chatId = senderData?.chatId;
+            if (typeWebhook === 'incomingMessageReceived') {
+                const senderData = body?.senderData;
 
-            const numberSender = sender.match(/^\d+/)[0];
-            const senderName = sender.senderName
-            // Valido si el número es un número de confianza o no
-            const numberExist = await this.numeroConfianza.getOne(numberSender, empresaId);
-            
-            if (numberExist.data) {
-                return;
-            } else {
-                if (messageData.typeMessage === 'textMessage') {
-                    const message = messageData.textMessageData?.textMessage || messageData.extendedTextMessageData?.text;
+                const sender = senderData?.sender;
+                const chatId = senderData?.chatId;
+                const numberSender = sender.match(/^\d+/)[0];
+                const senderName = sender.senderName
+                const numberExist = await this.numeroConfianza.getOne(numberSender, empresaId);
 
-                    const respText = await this.greenApi.handleMessagetText(
-                        message,
-                        numberSender,
-                        empresaType,
-                        empresaId,
-                        senderName,
-                        timeZone
-                    );
-                    await retriveMessage(respText, chatId)
-                }
-                else if (messageData.typeMessage === 'audioMessage') {
-                    const fileUrl = messageData.fileMessageData.downloadUrl
-
-                    const speechToText = await SpeechToText(fileUrl)
-                    const respText = await this.greenApi.handleMessagetText(
-                        speechToText,
-                        numberSender,
-                        empresaType,
-                        empresaId,
-                        senderName,
-                        timeZone
-                    );
-
-                    await retriveMessage(respText, chatId)
+                if (numberExist.data) {
+                    return;
                 } else {
-                    // Manejo de otros tipos de eventos
-                    console.log('Evento desconocido del webhook:', typeWebhook);
-                }
+                    if (messageData.typeMessage === 'textMessage') {
+                        const message = messageData.textMessageData?.textMessage || messageData.extendedTextMessageData?.text;
 
+                        const respText = await this.greenApi.handleMessagetText(
+                            message,
+                            numberSender,
+                            empresaType,
+                            empresaId,
+                            senderName,
+                            timeZone
+                        );
+
+                        await retriveMessage(respText, chatId)
+                    }
+                    else if (messageData.typeMessage === 'audioMessage') {
+                        const fileUrl = messageData.fileMessageData.downloadUrl
+
+                        const speechToText = await SpeechToText(fileUrl)
+
+                        const respText = await this.greenApi.handleMessagetText(
+                            speechToText,
+                            numberSender,
+                            empresaType,
+                            empresaId,
+                            senderName,
+                            timeZone
+                        );
+
+                        await retriveMessage(respText, chatId)
+                    } else {
+                        console.log('Evento desconocido del webhook:', typeWebhook);
+                    }
+                }
+            } else {
+                return;
             }
 
         }

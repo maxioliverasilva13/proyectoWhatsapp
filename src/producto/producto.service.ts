@@ -12,8 +12,8 @@ import { Category } from 'src/category/entities/category.entity';
 
 @Injectable()
 export class ProductoService {
-    private currencyRepo: Repository<Currency>;
-    
+  private currencyRepo: Repository<Currency>;
+
   constructor(
     @InjectRepository(Producto)
     private productoRepository: Repository<Producto>,
@@ -34,8 +34,7 @@ export class ProductoService {
     empresaId: number,
   ) {
     try {
-      const currencyExist = await this.currencyRepo.findOne({ where : { id: createProduct?.currency_id ?? 0 }  });
-
+      const currencyExist = await this.currencyRepo.findOne({ where: { id: createProduct?.currency_id ?? 0 } });
       if (!currencyExist) {
         throw new BadRequestException({
           ok: false,
@@ -46,15 +45,15 @@ export class ProductoService {
       }
 
       const categories = await this.categoryRepo.find({ where: { id: In(createProduct.categoryIds) } });
-    if (createProduct.categoryIds && categories.length !== createProduct.categoryIds.length) {
-      throw new BadRequestException({
-        ok: false,
-        statusCode: 400,
-        message: "Una o más categorías no fueron encontradas",
-        error: 'Bad Request',
-      });
-    }
-      
+      if (createProduct.categoryIds && categories.length !== createProduct.categoryIds.length) {
+        throw new BadRequestException({
+          ok: false,
+          statusCode: 400,
+          message: "Una o más categorías no fueron encontradas",
+          error: 'Bad Request',
+        });
+      }
+
       const product = new Producto();
       product.nombre = createProduct.nombre;
       product.precio = createProduct.precio;
@@ -63,10 +62,10 @@ export class ProductoService {
       product.disponible = createProduct.disponible;
       product.currency_id = currencyExist?.id;
       product.plazoDuracionEstimadoMinutos = createProduct.plazoDuracionEstimadoMinutos;
-      if (categories?.length > 0) { 
+      if (categories?.length > 0) {
         product.category = categories;
       }
-    
+
       if (createProduct.imagen) {
         product.imagen = createProduct.imagen;
       }
@@ -128,7 +127,7 @@ export class ProductoService {
   }
 
   async findAllInText() {
-    const productsAll = await this.productoRepository.find({where: {disponible: true}});
+    const productsAll = await this.productoRepository.find({ where: { disponible: true } });
 
     const productsFormated = productsAll.map((product) => {
       return `${product.id}-Procuto: ${product.nombre},Precio: ${product.precio}, Descripcion:${product.descripcion}$`;
@@ -165,11 +164,11 @@ export class ProductoService {
           where: { id: In([...updateProductoDto.categoryIds]) },
         });
         console.log("categories", categories)
-  
+
         if (categories.length !== updateProductoDto.categoryIds.length) {
           throw new BadRequestException('Una o más categorías no fueron encontradas');
         }
-  
+
         existProduct.category = categories;
       } else if (updateProductoDto?.categoryIds?.length === 0) {
         existProduct.category = [] as Category[];

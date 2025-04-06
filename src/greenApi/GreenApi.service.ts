@@ -25,16 +25,15 @@ export class GreenApiService {
     }
 
     async handleMessagetText(textMessage, numberSender, empresaType, empresaId, senderName, timeZone) {
-        
         const { threadId } = await this.chatGptThreadsService.getLastThreads(numberSender);
-        
-        const { clienteId, clientName } = await this.clienteService.createOrReturnExistClient({ empresaId: empresaId, nombre:senderName, telefono: numberSender })
+
+        const { clienteId, clientName } = await this.clienteService.createOrReturnExistClient({ empresaId: empresaId, nombre: senderName, telefono: numberSender })
 
         let currentThreadId = threadId;
         if (!threadId) {
             // cargo los productos
             const textProducts = await this.productoService.findAllInText()
-            const textInfoLines = await this.infoLineService.findAllFormatedText(empresaType)            
+            const textInfoLines = await this.infoLineService.findAllFormatedText(empresaType)
             currentThreadId = await createThread(textProducts, textInfoLines, empresaType);
             await this.chatGptThreadsService.createThreads({
                 numberPhone: numberSender,
@@ -43,38 +42,38 @@ export class GreenApiService {
         }
 
         const openAIResponse = await sendMessageToThread(currentThreadId, textMessage, false, timeZone);
-        
+
         const cleanJSON = (jsonString: string) => {
             return jsonString
-                .replace(/```json/g, '')       
-                .replace(/```/g, '')          
-                .replace(/[\u2028\u2029]/g, '') 
-                .replace(/[“”]/g, '"')         
-                .trim();                       
+                .replace(/```json/g, '')
+                .replace(/```/g, '')
+                .replace(/[\u2028\u2029]/g, '')
+                .replace(/[“”]/g, '"')
+                .trim();
         };
-        
+
         let openAIResponseFormatted;
-        try {            
-            const openAIResponseRaw = openAIResponse.content[0].text.value;            
-            
-            openAIResponseFormatted = JSON.parse(cleanJSON(openAIResponseRaw));            
+        try {
+            const openAIResponseRaw = openAIResponse.content[0].text.value;
+
+            openAIResponseFormatted = JSON.parse(cleanJSON(openAIResponseRaw));
         } catch (error) {
             console.error('Error al parsear el JSON:', error);
         }
         let textError;
-        
-        if (openAIResponseFormatted?.placeOrder) {        
+        let respFinalToUser;
+        if (openAIResponseFormatted?.placeOrder) {
             if (empresaType === "RESERVA") {
                 let status = true;
-                for(const items of openAIResponseFormatted.data) {
-                    
+                for (const items of openAIResponseFormatted.data) {
+
                     const res = await this.pedidoService.consultarHorario(items.fecha, items, timeZone, empresaId);
-                    if(res.ok === false) {
+                    if (res.ok === false) {
                         console.log(`para el producto ${items.nombre} la fecha ${items.fecha} no se encuentra disponible`)
                         const res = await sendMessageToThread(currentThreadId, `lo siento, vuelveme a solicitar la fecha para el producto ${items.nombre} ya que la fecha ${items.fecha} no se encuentra disponible`, true, timeZone);
-                        const openAIResponseRaw = res.content[0].text.value;            
-            
-                        textError = JSON.parse(cleanJSON(openAIResponseRaw));            
+                        const openAIResponseRaw = res.content[0].text.value;
+
+                        textError = JSON.parse(cleanJSON(openAIResponseRaw));
                         status = false
                         break;
                     }
@@ -82,35 +81,36 @@ export class GreenApiService {
                 if (status === false) {
                     return;
                 } else {
-                    await this.hacerPedido(currentThreadId, clienteId, openAIResponseFormatted, empresaType, clientName, numberSender);
+                    respFinalToUser = await this.hacerPedido(currentThreadId, clienteId, openAIResponseFormatted, empresaType, clientName, numberSender);
                 }
             } else {
-                await this.hacerPedido(currentThreadId, clienteId, openAIResponseFormatted, empresaType, clientName, numberSender);
+                respFinalToUser = await this.hacerPedido(currentThreadId, clienteId, openAIResponseFormatted, empresaType, clientName, numberSender);
             }
         } else {
             const respToUser = textError ? textError : openAIResponseFormatted
             return respToUser
         }
-
-        if (!openAIResponseFormatted?.placeOrder) {
+        if(openAIResponseFormatted.placeOrder) {
+            return { ok: true, message: respFinalToUser }
+        } else{
             await this.chatGptThreadsService.updateThreadStatus(threadId, timeZone)
         }
     }
 
-    async hacerPedido(currentThreadId, clienteId, openAIResponse, empresaType ,clientName, numberSender) {        
-        await this.pedidoService.create({
+    async hacerPedido(currentThreadId, clienteId, openAIResponse, empresaType, clientName, numberSender) {
+        const newOrder = await this.pedidoService.create({
             clienteId: clienteId,
             clientName: clientName,
             confirmado: false,
             estadoId: 1,
             products: openAIResponse.data,
             empresaType,
-            messages:openAIResponse.messages,
+            messages: openAIResponse.messages,
             numberSender,
             infoLinesJson: openAIResponse.infoLines,
             fecha: openAIResponse.fecha
         })
-        await closeThread(currentThreadId);
         await this.chatGptThreadsService.deleteThread(currentThreadId)
+        return newOrder.messageToUser
     }
 }
