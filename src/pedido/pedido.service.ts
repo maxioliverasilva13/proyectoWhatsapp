@@ -103,7 +103,7 @@ export class PedidoService {
         try {
           await Promise.all(
             products.map(async (product) => {
-              let producto: "";
+              let producto = "";
 
               const productExist = existingProducts.find(
                 (p) => p.id === product.productoId,
