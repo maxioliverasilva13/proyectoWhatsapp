@@ -59,7 +59,7 @@ export class ProductoService {
       product.precio = createProduct.precio;
       product.empresa_id = empresaId;
       product.descripcion = createProduct.descripcion;
-      product.disponible = createProduct.disponible;
+      product.disponible = true;
       product.currency_id = currencyExist?.id;
       product.plazoDuracionEstimadoMinutos = createProduct.plazoDuracionEstimadoMinutos;
       if (categories?.length > 0) {
