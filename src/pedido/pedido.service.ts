@@ -113,12 +113,15 @@ export class PedidoService {
                 );
               }
 
+              const infoLineAsJson = JSON.parse(createPedidoDto.infoLinesJson);
+
+
               producto += "\n--Nombre: " + productExist.nombre
               producto += "\n--Precio: " + (productExist.precio ?? 0)
               producto += "\n--Cantidad: " + product.cantidad
               producto += "\n--Detalle: " + (product.detalle ?? "No hay detalle")
-              Object.keys(infoLineToJson).forEach((key) => {
-                const value = infoLineToJson[key];
+              Object.keys(infoLineAsJson).forEach((key) => {
+                const value = infoLineAsJson[key];
                 producto += `\n--${key}: ${value}`;
               });
               
