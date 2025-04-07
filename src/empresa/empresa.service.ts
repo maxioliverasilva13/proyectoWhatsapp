@@ -16,8 +16,7 @@ import { isValidTimeFormat } from 'src/utils/time';
 import { Tiposervicio } from 'src/tiposervicio/entities/tiposervicio.entity';
 import { Usuario } from 'src/usuario/entities/usuario.entity';
 import * as bcrypt from 'bcryptjs';
-import { METHODS } from 'http';
-import { handleGetConnection, handleGetConnectionByEmpresa, handleGetCurrentConnection } from 'src/utils/dbConnection';
+import { handleGetConnectionByEmpresa } from 'src/utils/dbConnection';
 import { Producto } from 'src/producto/entities/producto.entity';
 
 @Injectable()
@@ -235,6 +234,7 @@ export class EmpresaService {
 
       const allProducts = await productoRepository.find()
 
+      connection.destroy();
       return {
         ok:true,
         data : empresaData,

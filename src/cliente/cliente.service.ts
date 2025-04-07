@@ -1,19 +1,28 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, OnModuleDestroy } from '@nestjs/common';
 import { CreateClienteDto } from './dto/create-cliente.dto';
 import { UpdateClienteDto } from './dto/update-cliente.dto';
 import { Cliente } from './entities/cliente.entity';
-import { ILike, Repository } from 'typeorm';
+import { DataSource, ILike, Repository } from 'typeorm';
 import { handleGetGlobalConnection } from 'src/utils/dbConnection';
 import { GetEmpresaDTO } from './dto/get-empresa-.dto';
 
 @Injectable()
-export class ClienteService {
+export class ClienteService implements OnModuleDestroy {
 
   private clienteRepository: Repository<Cliente>;
+  private globalConnection: DataSource;
 
   async onModuleInit() {
-    const globalConnection = await handleGetGlobalConnection();
-    this.clienteRepository = globalConnection.getRepository(Cliente); 
+    if (!this.globalConnection) {
+      this.globalConnection = await handleGetGlobalConnection();
+    }
+    this.clienteRepository = this.globalConnection.getRepository(Cliente); 
+  }
+
+  async onModuleDestroy() {
+    if (this.globalConnection && this.globalConnection.isInitialized) {
+      await this.globalConnection.destroy();
+    }
   }
 
   async createOrReturnExistClient(createClienteDto: CreateClienteDto) {

@@ -21,21 +21,27 @@ export class SubdomainMiddleware implements NestMiddleware {
     const connection = await handleGetGlobalConnection();
     const empresaRepository = connection?.getRepository(Empresa);
     
-    const empresaExists = await empresaRepository.findOne({
-      where: { db_name: subdomain },
-      relations: ['tipoServicioId']
-    });
-
-    if (!empresaExists) {
-      throw new BadRequestException('Subdominio invalido');
-    }    
-
-    req['subdomain'] = subdomain;
-    req['empresaId'] = empresaExists?.id;
-    req['empresaType'] = empresaExists?.tipoServicioId?.tipo
-    req['timeZone'] = empresaExists?.timeZone
-
-    next();
+    try {
+      const empresaExists = await empresaRepository.findOne({
+        where: { db_name: subdomain },
+        relations: ['tipoServicioId']
+      });
+  
+      if (!empresaExists) {
+        throw new BadRequestException('Subdominio invalido');
+      }    
+  
+      req['subdomain'] = subdomain;
+      req['empresaId'] = empresaExists?.id;
+      req['empresaType'] = empresaExists?.tipoServicioId?.tipo
+      req['timeZone'] = empresaExists?.timeZone
+  
+      next();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      connection.destroy();
+    }
   }
 }
 

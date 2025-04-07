@@ -1,7 +1,7 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, OnModuleDestroy } from '@nestjs/common';
 import { CreateInfolineDto } from './dto/create-infoline.dto';
 import { UpdateInfolineDto } from './dto/update-infoline.dto';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { Infoline } from './entities/infoline.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Tiposervicio } from 'src/tiposervicio/entities/tiposervicio.entity';
@@ -10,8 +10,9 @@ import { TipoPedido } from 'src/enums/tipopedido';
 import getCurrentDate from 'src/utils/getCurrentDate';
 
 @Injectable()
-export class InfolineService {
+export class InfolineService implements OnModuleDestroy {
   private tipoServicioRepository: Repository<Tiposervicio>
+  private globalConnection: DataSource;
 
   constructor(
     @InjectRepository(Infoline)
@@ -19,10 +20,17 @@ export class InfolineService {
   ) { }
 
   async onModuleInit() {
-    const globalConnection = await handleGetGlobalConnection();
-    this.tipoServicioRepository = globalConnection.getRepository(Tiposervicio);
+    if (!this.globalConnection) {
+      this.globalConnection = await handleGetGlobalConnection();
+    }
+    this.tipoServicioRepository = this.globalConnection.getRepository(Tiposervicio);
   }
 
+  async onModuleDestroy() {
+    if (this.globalConnection && this.globalConnection.isInitialized) {
+      await this.globalConnection.destroy();
+    }
+  }
 
   async create(createInfolineDto: CreateInfolineDto) {
     const idTipoServicio = createInfolineDto.id_tipo_servicio;
@@ -34,17 +42,22 @@ export class InfolineService {
     const tipoServicioSelectedWithName = await tipoServicioEntity.findOne({
       where: { nombre: createInfolineDto.nombre },
     });
-
-    if (tipoServicioSelected === null || tipoServicioSelectedWithName !== null) {
-      throw new BadRequestException({
-        ok: false,
-        statusCode: 400,
-        message: 'Invalid service type',
-        error: 'Invalid service type',
-      });
-    };
-    const resp = await this.infoLineRepository.save(createInfolineDto);
-    return resp;
+    try {
+      if (tipoServicioSelected === null || tipoServicioSelectedWithName !== null) {
+        throw new BadRequestException({
+          ok: false,
+          statusCode: 400,
+          message: 'Invalid service type',
+          error: 'Invalid service type',
+        });
+      };
+      const resp = await this.infoLineRepository.save(createInfolineDto);
+      return resp;
+    } catch (error) {
+      console.error(error);
+    } finally {
+      globalConnection.destroy();
+    }
   }
 
   findAll() {

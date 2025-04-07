@@ -1,6 +1,6 @@
-import { BadRequestException, Injectable, Req } from "@nestjs/common";
+import { BadRequestException, Injectable, OnModuleDestroy, Req } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { DataSource, Repository } from "typeorm";
 import { NumeroConfianza } from "./entities/numeroConfianza.entity";
 import { numeroConfianzaDto } from "./dto/numeroConfianza.create";
 import { Empresa } from "src/empresa/entities/empresa.entity";
@@ -8,16 +8,27 @@ import { handleGetGlobalConnection } from "src/utils/dbConnection";
 
 
 @Injectable()
-export class NumeroConfianzaService {
+export class NumeroConfianzaService implements OnModuleDestroy {
 
     private NmroConfianzaRepository: Repository<NumeroConfianza>;
 
-    private empresaRepository : Repository<Empresa>
+    private empresaRepository : Repository<Empresa>;
+
+    private globalConnection: DataSource;
+    
 
     async onModuleInit() {
-      const globalConnection = await handleGetGlobalConnection();
-      this.NmroConfianzaRepository = globalConnection.getRepository(NumeroConfianza); 
-      this.empresaRepository = globalConnection.getRepository(Empresa); 
+      if (!this.globalConnection) {
+      this.globalConnection = await handleGetGlobalConnection();
+    }
+      this.NmroConfianzaRepository = this.globalConnection.getRepository(NumeroConfianza); 
+      this.empresaRepository = this.globalConnection.getRepository(Empresa); 
+    }
+
+    async onModuleDestroy() {
+      if (this.globalConnection && this.globalConnection.isInitialized) {
+        await this.globalConnection.destroy();
+      }
     }
 
     async getAll(empresaId) {

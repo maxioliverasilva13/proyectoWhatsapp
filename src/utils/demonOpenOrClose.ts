@@ -4,8 +4,8 @@ import { handleGetGlobalConnection } from "src/utils/dbConnection";
 import * as moment from 'moment-timezone';
 
 export const OpenOrClose = async () => {
+    const globalConnection = await handleGetGlobalConnection();
     try {
-        const globalConnection = await handleGetGlobalConnection();
 
         const repoEmpresa = globalConnection.getRepository(Empresa);
         const repoCierreProvisorio = globalConnection.getRepository(CierreProvisorio);
@@ -38,5 +38,7 @@ export const OpenOrClose = async () => {
         }));
     } catch (error) {
         console.error('Error en OpenOrClose:', error);
+    } finally {
+        globalConnection.destroy();
     }
 };

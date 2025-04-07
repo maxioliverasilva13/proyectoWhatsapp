@@ -1,7 +1,7 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, OnModuleDestroy } from '@nestjs/common';
 import { Producto } from './entities/producto.entity';
 import { CreateProductoDto } from './dto/create-producto.dto';
-import { ILike, In, Repository } from 'typeorm';
+import { DataSource, ILike, In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UpdateProductoDto } from './dto/update-producto.dto';
 import { ProductoPedido } from 'src/productopedido/entities/productopedido.entity';
@@ -11,8 +11,9 @@ import { Currency } from 'src/currencies/entities/currency.entity';
 import { Category } from 'src/category/entities/category.entity';
 
 @Injectable()
-export class ProductoService {
+export class ProductoService implements OnModuleDestroy {
   private currencyRepo: Repository<Currency>;
+  private globalConnection: DataSource;
 
   constructor(
     @InjectRepository(Producto)
@@ -25,8 +26,16 @@ export class ProductoService {
   ) { }
 
   async onModuleInit() {
-    const globalConnection = await handleGetGlobalConnection();
-    this.currencyRepo = globalConnection.getRepository(Currency);
+    if (!this.globalConnection) {
+      this.globalConnection = await handleGetGlobalConnection();
+    }
+    this.currencyRepo = this.globalConnection.getRepository(Currency);
+  }
+
+  async onModuleDestroy() {
+    if (this.globalConnection && this.globalConnection.isInitialized) {
+      await this.globalConnection.destroy();
+    }
   }
 
   async create(

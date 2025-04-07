@@ -10,8 +10,8 @@ import moment from 'moment';
 import { ProductoPedido } from 'src/productopedido/entities/productopedido.entity';
 
 export const SendRemainders = async () => {
+  const connection = await handleGetCurrentConnection();
   try {
-    const connection = await handleGetCurrentConnection();
     const globalConnection = await handleGetGlobalConnection();
 
     const pedidoRepo = connection.getRepository(Pedido);
@@ -58,6 +58,8 @@ export const SendRemainders = async () => {
     }
   } catch (error) {
     console.error('Error en SendRemainders:', error);
+  } finally {
+    connection.destroy();
   }
 };
 

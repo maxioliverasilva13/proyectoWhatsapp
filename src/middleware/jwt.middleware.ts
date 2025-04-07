@@ -27,10 +27,12 @@ export class JwtMiddleware implements NestMiddleware {
          });
          if (subdomain !== 'app') {
           if ((empresaExists?.id !== tokenEmpresaId) || (!empresaExists?.id || !tokenEmpresaId)) {
+            connection.destroy();
             throw new HttpException("No tienes permiso para esta empresa", 401);
            }
          }
         (req as any).user = decoded;
+        connection.destroy();
       }
       next();
     } catch (err) {

@@ -38,16 +38,6 @@ export const handleGetCurrentConnection = async () => {
   return empresaConnection;
 };
 
-export const handleGetConnectionValuesToCreateEmpresaDb = () => {
-  return {
-    host: 'db-global',
-    port: Number(process.env.POSTGRES_GLOBAL_DB_PORT || 5432),
-    database: process.env.DB_DATABASE || 'postgres',
-    user: process.env.POSTGRES_USER,
-    password: process.env.POSTGRES_PASSWORD,
-  } as any;
-};
-
 export const handleGetConnection = async () => {
   const env = process.env.SUBDOMAIN;
   const isDev = process.env.ENV === 'dev';

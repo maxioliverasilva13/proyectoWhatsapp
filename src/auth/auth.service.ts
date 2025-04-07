@@ -1,8 +1,8 @@
-import { BadRequestException, HttpException, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, Injectable, OnModuleDestroy } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Usuario } from 'src/usuario/entities/usuario.entity';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { RegisterDTO } from './dto/register.dto';
 import { handleGetGlobalConnection } from 'src/utils/dbConnection';
@@ -14,16 +14,25 @@ import * as moment from 'moment-timezone';
 import { Currency } from 'src/currencies/entities/currency.entity';
 
 @Injectable()
-export class AuthService {
+export class AuthService implements OnModuleDestroy {
   private empresaRepository: Repository<Empresa>;
   private planesRepository: Repository<Plan>;
   private planesEmpresaRepository: Repository<PlanEmpresa>;
+  private globalConnection: DataSource;
 
   async onModuleInit() {
-    const globalConnection = await handleGetGlobalConnection();
-    this.empresaRepository = globalConnection.getRepository(Empresa);
-    this.planesEmpresaRepository = globalConnection.getRepository(PlanEmpresa);
-    this.planesRepository = globalConnection.getRepository(Plan);
+    if (!this.globalConnection) {
+      this.globalConnection = await handleGetGlobalConnection();
+    }
+    this.empresaRepository = this.globalConnection.getRepository(Empresa);
+    this.planesEmpresaRepository = this.globalConnection.getRepository(PlanEmpresa);
+    this.planesRepository = this.globalConnection.getRepository(Plan);
+  }
+
+  async onModuleDestroy() {
+    if (this.globalConnection && this.globalConnection.isInitialized) {
+      await this.globalConnection.destroy();
+    }
   }
 
   constructor(
@@ -65,8 +74,9 @@ export class AuthService {
   }
 
   async currentUser(userId: any, timeZoneCompany: string) {
+    const globalConnection = await handleGetGlobalConnection();
+
     try {
-      const globalConnection = await handleGetGlobalConnection();
       const userRepository = globalConnection.getRepository(Usuario);
       const currencyRepository = globalConnection.getRepository(Currency);
 
@@ -179,6 +189,8 @@ export class AuthService {
         message: error?.message || 'Error al obtener el numero',
         error: 'Bad Request',
       });
+    } finally {
+      globalConnection.destroy();
     }
   }
 

@@ -1,7 +1,7 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, OnModuleDestroy } from '@nestjs/common';
 import { UpdatePedidoDto } from './dto/update-pedido.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, MoreThan, Repository } from 'typeorm';
+import { Between, DataSource, MoreThan, Repository } from 'typeorm';
 import { Pedido } from './entities/pedido.entity';
 import { Estado } from 'src/estado/entities/estado.entity';
 import { CreatePedidoDto } from './dto/create-pedido.dto';
@@ -25,10 +25,12 @@ import * as moment from 'moment-timezone';
 
 const LOCALE_TIMEZONE = 'America/Montevideo';
 @Injectable()
-export class PedidoService {
+export class PedidoService implements OnModuleDestroy {
   private tipoServicioRepository: Repository<Tiposervicio>;
   private clienteRepository: Repository<Cliente>;
   private empresaRepository: Repository<Empresa>;
+  private globalConnection: DataSource;
+  
   constructor(
     @InjectRepository(Pedido)
     private pedidoRepository: Repository<Pedido>,
@@ -51,10 +53,18 @@ export class PedidoService {
   ) { }
 
   async onModuleInit() {
-    const globalConnection = await handleGetGlobalConnection();
-    this.tipoServicioRepository = globalConnection.getRepository(Tiposervicio);
-    this.clienteRepository = globalConnection.getRepository(Cliente);
-    this.empresaRepository = globalConnection.getRepository(Empresa);
+    if (!this.globalConnection) {
+      this.globalConnection = await handleGetGlobalConnection();
+    }
+    this.tipoServicioRepository = this.globalConnection.getRepository(Tiposervicio);
+    this.clienteRepository = this.globalConnection.getRepository(Cliente);
+    this.empresaRepository = this.globalConnection.getRepository(Empresa);
+  }
+
+  async onModuleDestroy() {
+    if (this.globalConnection && this.globalConnection.isInitialized) {
+      await this.globalConnection.destroy();
+    }
   }
 
   async create(createPedidoDto: CreatePedidoDto) {
