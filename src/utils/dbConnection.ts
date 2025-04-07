@@ -18,7 +18,9 @@ export const handleGetCurrentConnection = async () => {
     synchronize: true,
     extra: {
       max: 100,
+      poolSize: 100,
     },
+    poolSize: 100,
     username: process.env.POSTGRES_USER,
     password: process.env.POSTGRES_PASSWORD,
     database: process.env.POSTGRES_DB,
@@ -60,7 +62,9 @@ export const handleGetConnection = async () => {
     synchronize: true,
     extra: {
       max: 100,
+      poolSize: 100,
     },
+    poolSize: 100,
     username: process.env.POSTGRES_USER,
     password: process.env.POSTGRES_PASSWORD,
     database: process.env.POSTGRES_DB,
@@ -94,7 +98,9 @@ export const handleGetGlobalConnection = async () => {
     synchronize: true,
     extra: {
       max: 100,
+      poolSize: 100,
     },
+    poolSize: 100,
     username: process.env.POSTGRES_USER_GLOBAL,
     password: process.env.POSTGRES_PASSWORD_GLOBAL,
     database: process.env.POSTGRES_DB_GLOBAL,
@@ -133,7 +139,9 @@ export const handleGetConnectionByEmpresa = async (dbName: string) => {
     synchronize: true,
     extra: {
       max: 100,
+      poolSize: 100,
     },
+    poolSize: 100,
     username: isDev ? dbName + "_user" : process.env.POSTGRES_USER_GLOBAL,
     password: isDev ? dbName + "_pass" : process.env.POSTGRES_PASSWORD,
     database: empresaDBName,
