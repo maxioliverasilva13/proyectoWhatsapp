@@ -153,7 +153,9 @@ export class ProductoService implements OnModuleDestroy {
   async updateProducto(id: number, updateProductoDto: UpdateProductoDto) {
 
     try {
-      const existProduct = await this.productoRepository.findOne({ where: { id: id } })
+      const existProduct = await this.productoRepository.findOne({ where: { id: id },
+        relations: ['category'],
+      })
 
       if (!existProduct) {
         throw new BadRequestException('El producto no existe')
@@ -189,8 +191,13 @@ export class ProductoService implements OnModuleDestroy {
       existProduct.currency_id = newCurrency?.id;
       await this.productoRepository.save(existProduct)
 
+      const updatedProduct = await this.productoRepository.findOne({
+        where: { id: existProduct.id },
+        relations: ['category'],
+      });
+
       return {
-        data: existProduct,
+        data: updatedProduct,
         statusCode: 200,
         ok: true,
         message: 'Producto actualizado correctamente'

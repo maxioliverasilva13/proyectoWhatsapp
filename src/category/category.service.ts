@@ -80,7 +80,7 @@ export class CategoryService {
       const productsWithCategories = categoryExist.producto.map(product => {
         return {
           ...product,
-          categories: product.category, 
+          category: product.category, 
         };
       });
   
