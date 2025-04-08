@@ -177,7 +177,6 @@ export class ProductoService implements OnModuleDestroy {
         const categories = await this.categoryRepo.find({
           where: { id: In([...updateProductoDto.categoryIds]) },
         });
-        console.log("categories", categories)
 
         if (categories.length !== updateProductoDto.categoryIds.length) {
           throw new BadRequestException('Una o más categorías no fueron encontradas');
@@ -191,6 +190,7 @@ export class ProductoService implements OnModuleDestroy {
       await this.productoRepository.save(existProduct)
 
       return {
+        data: existProduct,
         statusCode: 200,
         ok: true,
         message: 'Producto actualizado correctamente'
