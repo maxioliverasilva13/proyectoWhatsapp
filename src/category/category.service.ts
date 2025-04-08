@@ -67,18 +67,26 @@ export class CategoryService {
 
   async getProductFromCategory(idCategory: number) {
     try {
+
       const categoryExist = await this.categoryRepository.findOne({
         where: { id: idCategory },
-        relations: ['producto']
+        relations: ['producto', 'producto.category'],
       });
   
       if (!categoryExist) {
         throw new BadRequestException("No category could be found with that id");
       }
   
+      const productsWithCategories = categoryExist.producto.map(product => {
+        return {
+          ...product,
+          categories: product.category, 
+        };
+      });
+  
       return {
         ok: true,
-        data: categoryExist.producto,
+        data: productsWithCategories, 
       };
     } catch (error) {
       throw new BadRequestException({
@@ -89,6 +97,7 @@ export class CategoryService {
       });
     }
   }
+  
 
   async deleteCategory(idCategory: number) {
     try {
