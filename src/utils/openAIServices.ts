@@ -38,10 +38,10 @@ export const askAssistant = async (question, instrucciones) => {
     }
 };
 
-export async function createThread(products, infoLines, empresaType) {
-        
-    const formatedText = `empresaType: ${empresaType}\nINFO-LINES: ${infoLines}\nLISTA-PRODUCTOS: ${products}\n CURRENT_TIME:${getCurrentDate()}`
-    
+export async function createThread(products, infoLines, currentPedidosInText, empresaType, currenciesText = '') {
+    console.log("currentPedidosInText", currentPedidosInText)
+    const formatedText = `empresaType: ${empresaType}\nINFO-LINES: ${infoLines}\nLISTA-PRODUCTOS: ${products}\n LISTA-PEDIDOS-USUARIO: ${currentPedidosInText} \n CURRENT_TIME:${getCurrentDate()}, CURRENCIES:${currenciesText}`
+
     const response = await fetch(`https://api.openai.com/v1/threads`, {
         method: "POST",
         headers: {

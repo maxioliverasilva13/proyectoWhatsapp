@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ChatGptThreadsService } from 'src/chatGptThreads/chatGptThreads.service';
 import { ClienteService } from 'src/cliente/cliente.service';
 import { InfolineService } from 'src/infoline/infoline.service';
+import { Pedido } from 'src/pedido/entities/pedido.entity';
 import { PedidoService } from 'src/pedido/pedido.service';
 import { ProductoService } from 'src/producto/producto.service';
 import { connectToGreenApi } from 'src/utils/greenApi';
@@ -23,18 +24,22 @@ export class GreenApiService {
             await connectToGreenApi();
         }
     }
-
+    
     async handleMessagetText(textMessage, numberSender, empresaType, empresaId, senderName, timeZone) {
         const { threadId } = await this.chatGptThreadsService.getLastThreads(numberSender);
 
         const { clienteId, clientName } = await this.clienteService.createOrReturnExistClient({ empresaId: empresaId, nombre: senderName, telefono: numberSender })
+        let currentPedidosInText = "";
 
         let currentThreadId = threadId;
         if (!threadId) {
-            // cargo los productos
+            if (clienteId) {
+                currentPedidosInText = await this.pedidoService.getMyOrders(clienteId);
+            }
+            const currenciesText = await this.productoService.getCurrencies();
             const textProducts = await this.productoService.findAllInText()
             const textInfoLines = await this.infoLineService.findAllFormatedText(empresaType)
-            currentThreadId = await createThread(textProducts, textInfoLines, empresaType);
+            currentThreadId = await createThread(textProducts, textInfoLines, currentPedidosInText, empresaType, currenciesText);
             await this.chatGptThreadsService.createThreads({
                 numberPhone: numberSender,
                 threadId: currentThreadId,
@@ -62,7 +67,10 @@ export class GreenApiService {
         }
         let textError;
         let respFinalToUser;
-        if (openAIResponseFormatted?.placeOrder) {
+        if (openAIResponseFormatted?.pedidoIdToCancel) {
+            this.pedidoService.cancel(openAIResponseFormatted?.pedidoIdToCancel);
+            return openAIResponseFormatted;
+        } else if (openAIResponseFormatted?.placeOrder) {
             if (empresaType === "RESERVA") {
                 let status = true;
                 for (const items of openAIResponseFormatted.data) {

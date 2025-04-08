@@ -38,6 +38,11 @@ export class ProductoService implements OnModuleDestroy {
     }
   }
 
+  async getCurrencies() {
+    const currencies = await this.currencyRepo.find();
+    return JSON.stringify(currencies ?? [])
+  }
+
   async create(
     createProduct: CreateProductoDto,
     empresaId: number,

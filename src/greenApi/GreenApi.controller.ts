@@ -25,7 +25,7 @@ const retriveMessage = async (message, chatId) => {
         return respF
 
     } catch (error: any) {
-        console.log(error.response.data.message);
+        console.log(error?.response?.data?.message ?? error);
     }
 }
 
@@ -39,7 +39,7 @@ export class GrenApiController {
 
     @Post('/webhooks')
     async handleWebhook(@Req() request: Request, @Body() body: any) {
-
+        console.log("aca 1", body)
         if (body.stateInstance) {
             const greenApiStatus = body.stateInstance;
             console.log("greenApiStatus", greenApiStatus)
@@ -64,7 +64,7 @@ export class GrenApiController {
                 const senderName = sender.senderName
                 const numberExist = await this.numeroConfianza.getOne(numberSender, empresaId);
 
-                if (numberExist.data) {
+                if (numberExist?.data) {
                     return;
                 } else {
                     if (messageData.typeMessage === 'textMessage') {

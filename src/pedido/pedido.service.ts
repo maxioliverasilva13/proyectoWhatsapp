@@ -61,11 +61,35 @@ export class PedidoService implements OnModuleDestroy {
     this.empresaRepository = this.globalConnection.getRepository(Empresa);
   }
 
+  async cancel(pedidoId: any) {
+    const pedido = await this.pedidoRepository.findOne({ where: { id: pedidoId } });
+    if (pedido) {
+      pedido.finalizado = true;
+      const statusFinalizador = await this.estadoRepository.findOne({ where: { finalizador: true } });
+      if (statusFinalizador) {
+        pedido.estado = statusFinalizador;
+      }
+      await this.pedidoRepository.save(pedido);
+    }
+  }
+
   async onModuleDestroy() {
     if (this.globalConnection && this.globalConnection.isInitialized) {
       await this.globalConnection.destroy();
     }
   }
+
+  async getMyOrders(client_id: any) {
+    if (client_id) {
+      const allPedidos = (await this.pedidoRepository.find({ where: { cliente_id: client_id, available: true, finalizado: false }, relations: ['pedidosprod', 'pedidosprod.producto', 'estado'] })).map((pedido) => {
+        return pedido;
+      });
+      return JSON.stringify(allPedidos);
+    } else {
+      return "No hay pedidos recientes";
+    }
+  }
+
 
   async create(createPedidoDto: CreatePedidoDto) {
     try {

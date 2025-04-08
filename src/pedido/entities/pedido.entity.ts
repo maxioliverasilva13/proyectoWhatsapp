@@ -39,7 +39,10 @@ export class Pedido extends BaseEntity {
     pedidosprod: ProductoPedido[];
 
     @Column({default:true})
-    available : boolean
+    available : boolean;
+
+    @Column({default:false})
+    finalizado : boolean;
 
     @Column({ nullable: true, length: 99999 })
     infoLinesJson: string;

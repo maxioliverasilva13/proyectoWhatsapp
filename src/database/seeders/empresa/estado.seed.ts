@@ -31,11 +31,13 @@ export class EstadoSeed implements Seeder {
             nombre: EstadoDefecto.FINALIZADO,
             tipoServicioId: itm,
             es_defecto: true,
+            finalizador: true,
           },
           {
             id: EstadoDefectoIds.CANCELADO,
             nombre: EstadoDefecto.CANCELADO,
             tipoServicioId: itm,
+            finalizador: true,
             es_defecto: true,
           },
         ];
