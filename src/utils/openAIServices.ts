@@ -112,6 +112,7 @@ export async function sendMessageToThread(threadId, text, isAdmin, timeZone) {
         const statusResponse = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs/${runId}`, {
             headers
         });
+        console.log("statusResponse", statusResponse)
 
         if (!statusResponse.ok) {
             console.warn("Reintentando después de un error de estado:", statusResponse.statusText);
