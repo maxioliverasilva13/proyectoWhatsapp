@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, OnModuleDestroy } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  OnModuleDestroy,
+} from '@nestjs/common';
 import { UpdatePedidoDto } from './dto/update-pedido.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, DataSource, MoreThan, Repository } from 'typeorm';
@@ -22,7 +26,6 @@ import { Empresa } from 'src/empresa/entities/empresa.entity';
 import { EstadoDefectoIds } from 'src/enums/estadoDefecto';
 import * as moment from 'moment-timezone';
 
-
 const LOCALE_TIMEZONE = 'America/Montevideo';
 @Injectable()
 export class PedidoService implements OnModuleDestroy {
@@ -30,7 +33,7 @@ export class PedidoService implements OnModuleDestroy {
   private clienteRepository: Repository<Cliente>;
   private empresaRepository: Repository<Empresa>;
   private globalConnection: DataSource;
-  
+
   constructor(
     @InjectRepository(Pedido)
     private pedidoRepository: Repository<Pedido>,
@@ -50,22 +53,27 @@ export class PedidoService implements OnModuleDestroy {
     private readonly chatServices: ChatService,
     private readonly mensajesService: MensajeService,
     private readonly webSocketService: WebsocketGateway,
-  ) { }
+  ) {}
 
   async onModuleInit() {
     if (!this.globalConnection) {
       this.globalConnection = await handleGetGlobalConnection();
     }
-    this.tipoServicioRepository = this.globalConnection.getRepository(Tiposervicio);
+    this.tipoServicioRepository =
+      this.globalConnection.getRepository(Tiposervicio);
     this.clienteRepository = this.globalConnection.getRepository(Cliente);
     this.empresaRepository = this.globalConnection.getRepository(Empresa);
   }
 
   async cancel(pedidoId: any) {
-    const pedido = await this.pedidoRepository.findOne({ where: { id: pedidoId } });
+    const pedido = await this.pedidoRepository.findOne({
+      where: { id: pedidoId },
+    });
     if (pedido) {
       pedido.finalizado = true;
-      const statusFinalizador = await this.estadoRepository.findOne({ where: { finalizador: true } });
+      const statusFinalizador = await this.estadoRepository.findOne({
+        where: { finalizador: true },
+      });
       if (statusFinalizador) {
         pedido.estado = statusFinalizador;
       }
@@ -81,15 +89,19 @@ export class PedidoService implements OnModuleDestroy {
 
   async getMyOrders(client_id: any) {
     if (client_id) {
-      const allPedidos = (await this.pedidoRepository.find({ where: { cliente_id: client_id, available: true, finalizado: false }, relations: ['pedidosprod', 'pedidosprod.producto', 'estado'] })).map((pedido) => {
+      const allPedidos = (
+        await this.pedidoRepository.find({
+          where: { cliente_id: client_id, available: true, finalizado: false },
+          relations: ['pedidosprod', 'pedidosprod.producto', 'estado'],
+        })
+      ).map((pedido) => {
         return pedido;
       });
       return JSON.stringify(allPedidos);
     } else {
-      return "No hay pedidos recientes";
+      return 'No hay pedidos recientes';
     }
   }
-
 
   async create(createPedidoDto: CreatePedidoDto) {
     try {
@@ -111,8 +123,10 @@ export class PedidoService implements OnModuleDestroy {
         );
       }
 
-      let messageFinal = "Gracias por realizar su orden, aqui estan los detalles de la misma:\n\nProductos:\n"
-      let globalTotal = 0
+      let messageFinal = createPedidoDto?.messageToUser
+        ? createPedidoDto?.messageToUser
+        : 'Gracias por realizar su orden, aqui estan los detalles de la misma:\n\nProductos:\n';
+      let globalTotal = 0;
 
       const crearNuevoPedido = async (products) => {
         let total = 0;
@@ -137,7 +151,7 @@ export class PedidoService implements OnModuleDestroy {
         try {
           await Promise.all(
             products.map(async (product) => {
-              let producto = "";
+              let producto = '';
 
               const productExist = existingProducts.find(
                 (p) => p.id === product.productoId,
@@ -147,18 +161,20 @@ export class PedidoService implements OnModuleDestroy {
                   `Producto con ID ${product.productoId} no encontrado`,
                 );
               }
-              
-              producto += "\n--Nombre: " + (productExist.nombre ?? "No hay nombre")
-              producto += "\n--Precio: " + (productExist.precio ?? 0)
-              producto += "\n--Cantidad: " + product.cantidad
-              producto += "\n--Detalle: " + (product.detalle ?? "No hay detalle")
+
+              producto +=
+                '\n--Nombre: ' + (productExist.nombre ?? 'No hay nombre');
+              producto += '\n--Precio: ' + (productExist.precio ?? 0);
+              producto += '\n--Cantidad: ' + product.cantidad;
+              producto +=
+                '\n--Detalle: ' + (product.detalle ?? 'No hay detalle');
               Object.keys(createPedidoDto.infoLinesJson).forEach((key) => {
                 const value = createPedidoDto.infoLinesJson[key];
                 producto += `\n--${key}: ${value}`;
               });
-              
+
               total += productExist.precio * product.cantidad;
-              producto += "\nTotal: " + total
+              producto += '\nTotal: ' + total;
 
               await this.productoPedidoService.create({
                 cantidad: product.cantidad,
@@ -167,11 +183,10 @@ export class PedidoService implements OnModuleDestroy {
                 detalle: product.detalle,
               });
 
-              messageFinal += ('\n' + producto + '\n')
-            })
+              messageFinal += '\n' + producto + '\n';
+            }),
           );
 
-          console.log('Productos creados correctamente');
         } catch (error) {
           console.error('Error al crear productos:', error);
         }
@@ -207,8 +222,7 @@ export class PedidoService implements OnModuleDestroy {
           status: savedPedido.confirmado,
         };
 
-
-        globalTotal += total
+        globalTotal += total;
         this.webSocketService.sendOrder(formatToSendFrontend);
         return formatToSendFrontend;
       };
@@ -223,13 +237,13 @@ export class PedidoService implements OnModuleDestroy {
         await crearNuevoPedido(createPedidoDto.products);
       }
 
-      messageFinal
-
       return {
         statusCode: 200,
         ok: true,
         message: 'Pedido creado exitosamente',
-        messageToUser: messageFinal + '\n\nTotal:' + globalTotal 
+        messageToUser: createPedidoDto?.messageToUser
+          ? createPedidoDto?.messageToUser
+          : messageFinal + '\n\nTotal:' + globalTotal,
       };
     } catch (error) {
       throw new BadRequestException({
@@ -243,8 +257,8 @@ export class PedidoService implements OnModuleDestroy {
 
   async consultarHorario(hora, producto, timeZone, empresaId) {
     const empresa = await this.empresaRepository.findOne({
-      where: { id: empresaId }
-    })
+      where: { id: empresaId },
+    });
 
     const allServices = await this.pedidoRepository.find({
       relations: ['pedidosprod', 'pedidosprod.producto'],
@@ -252,25 +266,26 @@ export class PedidoService implements OnModuleDestroy {
 
     let isAviable = true;
 
-    const intervaloEmpresa = empresa.intervaloTiempoCalendario
+    const intervaloEmpresa = empresa.intervaloTiempoCalendario;
 
     const horaFormated = moment.tz(hora, timeZone);
-    const horaFinSolicitadad = moment.tz(horaFormated, timeZone).add(
-      intervaloEmpresa,
-      'minutes'
-    );
+    const horaFinSolicitadad = moment
+      .tz(horaFormated, timeZone)
+      .add(intervaloEmpresa, 'minutes');
 
     for (const service of allServices) {
       const fechaInicial = moment.tz(service.fecha, timeZone);
 
       const fechaFinal = moment(fechaInicial, timeZone).add(
         intervaloEmpresa,
-        'minutes'
+        'minutes',
       );
 
       if (
-        (horaFormated.isBefore(fechaFinal) && horaFinSolicitadad.isAfter(fechaInicial)) ||
-        (horaFormated.isSameOrAfter(fechaInicial) && horaFormated.isBefore(fechaFinal))
+        (horaFormated.isBefore(fechaFinal) &&
+          horaFinSolicitadad.isAfter(fechaInicial)) ||
+        (horaFormated.isSameOrAfter(fechaInicial) &&
+          horaFormated.isBefore(fechaFinal))
       ) {
         isAviable = false;
         break;
@@ -282,7 +297,6 @@ export class PedidoService implements OnModuleDestroy {
       isAviable: isAviable,
     };
   }
-
 
   async getDetailsOfOrder(id: number) {
     try {
@@ -433,7 +447,8 @@ export class PedidoService implements OnModuleDestroy {
       const [aperturaHora, aperturaMinuto] = horaAperturaEmpresa
         .split(':')
         .map(Number);
-      const apertura = moment(horaActual).tz(timeZone)
+      const apertura = moment(horaActual)
+        .tz(timeZone)
         .hour(aperturaHora)
         .minute(aperturaMinuto)
         .second(0)
@@ -442,7 +457,8 @@ export class PedidoService implements OnModuleDestroy {
       const [cierreHora, cierreMinuto] = horaCierreEmpresa
         .split(':')
         .map(Number);
-      const cierre = moment(horaActual).tz(timeZone)
+      const cierre = moment(horaActual)
+        .tz(timeZone)
         .hour(cierreHora)
         .minute(cierreMinuto)
         .second(0)
@@ -452,12 +468,13 @@ export class PedidoService implements OnModuleDestroy {
       const minutosRedondeados =
         Math.ceil(minutosActuales / intervaloTiempoCalendario) *
         intervaloTiempoCalendario;
-      let proximoDisponible = moment(horaActual).tz(timeZone)
+      let proximoDisponible = moment(horaActual)
+        .tz(timeZone)
         .minute(minutosRedondeados)
         .second(0)
-        .millisecond(0)
+        .millisecond(0);
 
-      console.log("proximoDisponible xd1", proximoDisponible)
+      console.log('proximoDisponible xd1', proximoDisponible);
 
       if (horaActual.isSameOrAfter(cierre)) {
         apertura.add(1, 'day');
@@ -488,7 +505,10 @@ export class PedidoService implements OnModuleDestroy {
 
         const intervalosOcupados = pedidosActivos.map((pedido) => {
           const inicio = moment(pedido.fecha).tz(timeZone);
-          const fin = inicio.clone().tz(timeZone).add(intervaloTiempoCalendario, 'minutes');
+          const fin = inicio
+            .clone()
+            .tz(timeZone)
+            .add(intervaloTiempoCalendario, 'minutes');
           return { inicio, fin };
         });
 
@@ -506,10 +526,14 @@ export class PedidoService implements OnModuleDestroy {
 
         let encontradoHueco = false;
 
-        if (intervalosOcupados?.length === 0 && pedidosActivos?.length === 0 && horaActual.isAfter(cierre)) {
+        if (
+          intervalosOcupados?.length === 0 &&
+          pedidosActivos?.length === 0 &&
+          horaActual.isAfter(cierre)
+        ) {
           proximoDisponible = apertura.clone().tz(timeZone);
         }
-        console.log("intervalosOcupados",  intervalosOcupados)
+        console.log('intervalosOcupados', intervalosOcupados);
 
         for (let i = 0; i <= intervalosOcupados.length - 1; i++) {
           const actual = intervalosOcupados[i];
@@ -530,8 +554,7 @@ export class PedidoService implements OnModuleDestroy {
             break;
           } else if (siguiente) {
             console.log('if 3');
-            const finActual = actual.fin
-              .clone().tz(timeZone)
+            const finActual = actual.fin.clone().tz(timeZone);
             if (finActual.isBefore(siguiente.inicio)) {
               console.log('if 4');
               proximoDisponible = finActual;
@@ -543,29 +566,28 @@ export class PedidoService implements OnModuleDestroy {
           } else {
             console.log('if 5');
             encontradoHueco = true;
-            proximoDisponible = actual.fin
-              .clone().tz(timeZone)
+            proximoDisponible = actual.fin.clone().tz(timeZone);
 
             if (proximoDisponible.isSameOrAfter(cierre)) {
-              console.log("add")
+              console.log('add');
               encontradoHueco = false;
             }
-            console.log("if 5 desp", proximoDisponible)
+            console.log('if 5 desp', proximoDisponible);
           }
         }
 
         if (encontradoHueco && proximoDisponible.isBefore(cierre)) {
-          console.log("acap 3")
+          console.log('acap 3');
           return proximoDisponible.toISOString();
         } else if (
           intervalosOcupados?.length === 0 &&
           proximoDisponible.isBefore(cierre)
         ) {
           if (proximoDisponible.isSameOrAfter(cierre)) {
-            console.log("acap 1")
+            console.log('acap 1');
             encontradoHueco = false;
           } else {
-            console.log("acap 2")
+            console.log('acap 2');
             return proximoDisponible.toISOString();
           }
         }
@@ -622,13 +644,9 @@ export class PedidoService implements OnModuleDestroy {
           const pedidoDate = moment.tz(
             JSON.stringify(pedido.fecha),
             'YYYY-MM-DD HH:mm:ss',
-            timeZone
+            timeZone,
           );
-          const nowMoment = moment.tz(
-            now,
-            'YYYY-MM-DD HH:mm:ss',
-            timeZone
-          );
+          const nowMoment = moment.tz(now, 'YYYY-MM-DD HH:mm:ss', timeZone);
 
           const isOlder = pedidoDate.isAfter(nowMoment);
 
@@ -640,7 +658,7 @@ export class PedidoService implements OnModuleDestroy {
             total: pedidoProd?.cantidad * pedidoProd?.producto.precio,
             date: isOlder ? pedidoDate.format('LT') : pedidoDate.fromNow(),
             status: pedido.confirmado,
-            product: pedidoProd.producto.nombre
+            product: pedidoProd.producto.nombre,
           };
 
           if (formattedDate in dates) {
@@ -697,9 +715,41 @@ export class PedidoService implements OnModuleDestroy {
     return `This action returns a #${id} pedido 1`;
   }
 
-  update(id: number, updatePedidoDto: UpdatePedidoDto) {
-    return `This action updates a #${id} pedido 2`;
+  async update(id: number, updatePedidoDto: UpdatePedidoDto) {
+    const pedido = await this.pedidoRepository.findOne({ where: { id } });
+
+    if (!pedido) {
+      throw new Error(`Pedido con id ${id} no encontrado`);
+    }
+
+    for (const [key, value] of Object.entries(updatePedidoDto)) {
+      if (key === 'infoLinesJson') {
+        let currentInfoLines = {};
+        try {
+          currentInfoLines = pedido.infoLinesJson
+            ? JSON.parse(pedido.infoLinesJson)
+            : {};
+        } catch (e) {
+          console.error('Error al parsear infoLinesJson actual:', e);
+        }
+
+        const mergedInfo = {
+          ...currentInfoLines,
+          ...value,
+        };
+
+        pedido.infoLinesJson = JSON.stringify(mergedInfo);
+      } else {
+        if (key in pedido) {
+          (pedido as any)[key] = value;
+        }
+      }
+    }
+
+    await this.pedidoRepository.save(pedido);
+    return pedido;
   }
+
 
   async remove(id: number) {
     try {
@@ -729,16 +779,17 @@ export class PedidoService implements OnModuleDestroy {
 
   async getOrdersOfTheDay(date: string, timeZone: string) {
     try {
-      const startDay = moment.tz(date, timeZone).startOf('day').toDate()
-      const endDay = moment.tz(date, timeZone).endOf('day').toDate()
+      const startDay = moment.tz(date, timeZone).startOf('day').toDate();
+      const endDay = moment.tz(date, timeZone).endOf('day').toDate();
 
-      const orderCount = await this.pedidoRepository.count({ where: { fecha: Between(startDay, endDay) } });
+      const orderCount = await this.pedidoRepository.count({
+        where: { fecha: Between(startDay, endDay) },
+      });
 
       return {
         ok: true,
-        ordersDay: orderCount
-      }
-
+        ordersDay: orderCount,
+      };
     } catch (error) {
       throw new BadRequestException({
         ok: false,
@@ -750,31 +801,32 @@ export class PedidoService implements OnModuleDestroy {
   }
   async getMoneyOfTheDay(date: string, timeZone: string) {
     try {
-      const startDay = moment.tz(date, timeZone).startOf('day').toDate()
-      const endDay = moment.tz(date, timeZone).endOf('day').toDate()
+      const startDay = moment.tz(date, timeZone).startOf('day').toDate();
+      const endDay = moment.tz(date, timeZone).endOf('day').toDate();
 
-      const ordersDay = await this.pedidoRepository.find({ where: { fecha: Between(startDay, endDay) }, relations: ['pedidosprod', 'pedidosprod.producto'] });
+      const ordersDay = await this.pedidoRepository.find({
+        where: { fecha: Between(startDay, endDay) },
+        relations: ['pedidosprod', 'pedidosprod.producto'],
+      });
       console.log();
       console.log(ordersDay.length);
 
-      let ganancia = 0
-
+      let ganancia = 0;
 
       ordersDay.map((order) => {
         if (order.pedidosprod.length > 0) {
           console.log('entro');
 
           order.pedidosprod.map((pedidoProd) => {
-            ganancia += pedidoProd.cantidad * pedidoProd.producto.precio
-          })
+            ganancia += pedidoProd.cantidad * pedidoProd.producto.precio;
+          });
         }
-      })
+      });
 
       return {
         ok: true,
-        ganancia
-      }
-
+        ganancia,
+      };
     } catch (error) {
       throw new BadRequestException({
         ok: false,
@@ -787,12 +839,15 @@ export class PedidoService implements OnModuleDestroy {
 
   async getLastThreeOrders() {
     try {
-      const lastOrders = await this.pedidoRepository.find({ order: { id: 'DESC' }, take: 3 })
+      const lastOrders = await this.pedidoRepository.find({
+        order: { id: 'DESC' },
+        take: 3,
+      });
 
       return {
         ok: true,
-        data: lastOrders
-      }
+        data: lastOrders,
+      };
     } catch (error) {
       throw new BadRequestException({
         ok: false,
@@ -806,33 +861,39 @@ export class PedidoService implements OnModuleDestroy {
   async getOrdersOfTimePeriods() {
     try {
       const now = moment();
-  
+
       const periods = {
-        weekly: now.clone().startOf('isoWeek'), 
-        monthly: now.clone().startOf('month'), 
-        quarterly: now.clone().startOf('quarter'), 
-        yearly: now.clone().startOf('year'), 
+        weekly: now.clone().startOf('isoWeek'),
+        monthly: now.clone().startOf('month'),
+        quarterly: now.clone().startOf('quarter'),
+        yearly: now.clone().startOf('year'),
       };
-  
+
       const orders = await this.pedidoRepository.find({
-        where: { fecha: MoreThan(periods.yearly.toDate()) }, relations: ['pedidosprod', 'pedidosprod.producto']
+        where: { fecha: MoreThan(periods.yearly.toDate()) },
+        relations: ['pedidosprod', 'pedidosprod.producto'],
       });
-      
+
       const groupedOrders = {
-        weekly: orders.filter(order => moment(order.fecha).isSameOrAfter(periods.weekly)),
-        monthly: orders.filter(order => moment(order.fecha).isSameOrAfter(periods.monthly)),
-        quarterly: orders.filter(order => moment(order.fecha).isSameOrAfter(periods.quarterly)),
-        yearly: orders
+        weekly: orders.filter((order) =>
+          moment(order.fecha).isSameOrAfter(periods.weekly),
+        ),
+        monthly: orders.filter((order) =>
+          moment(order.fecha).isSameOrAfter(periods.monthly),
+        ),
+        quarterly: orders.filter((order) =>
+          moment(order.fecha).isSameOrAfter(periods.quarterly),
+        ),
+        yearly: orders,
       };
-      
+
       return {
-        ok:true,
+        ok: true,
         weekly: getTotalOfPeriod(groupedOrders.weekly),
         monthly: getTotalOfPeriod(groupedOrders.monthly),
         quarterly: getTotalOfPeriod(groupedOrders.quarterly),
-        yearly: getTotalOfPeriod(groupedOrders.yearly)
-      }
-
+        yearly: getTotalOfPeriod(groupedOrders.yearly),
+      };
     } catch (error) {
       throw new BadRequestException({
         ok: false,
@@ -845,12 +906,12 @@ export class PedidoService implements OnModuleDestroy {
 }
 
 const getTotalOfPeriod = (orders) => {
-  let total = 0
-  orders.map((order)=> {
-    order.pedidosprod.map((pedidoProd)=> {
-      total += pedidoProd.cantidad * pedidoProd.producto.precio
-    })
-  })
+  let total = 0;
+  orders.map((order) => {
+    order.pedidosprod.map((pedidoProd) => {
+      total += pedidoProd.cantidad * pedidoProd.producto.precio;
+    });
+  });
 
-  return total
-}
+  return total;
+};

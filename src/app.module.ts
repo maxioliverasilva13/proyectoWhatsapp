@@ -59,19 +59,21 @@ const connection = handleGetConnection();
   imports: [
     connection,
     ...(process.env.SUBDOMAIN === 'app'
-      ? [
-          BullModule.forRoot({
-            redis: {
-              host: process.env.REDIS_HOST || 'localhost',
-              port: parseInt(process.env.REDIS_PORT, 10) || 6379,
-            },
-          }),
-          EmailModule,
-          EmailQueueModule,
-        ]
+      ? []
       : [
         WebSocketModule
       ]),
+    BullModule.forRoot({
+      redis: {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT, 10) || 6379,
+      },
+    }),
+    BullModule.registerQueue({
+      name: 'green-api-response-message',
+    }),
+    EmailModule,
+    EmailQueueModule,
     ScheduleModule.forRoot(),
     EmpresaModule,
     ProductoModule,

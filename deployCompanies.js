@@ -40,6 +40,8 @@ function createEnvFile(empresa) {
     POSTGRES_GLOBAL_DB_HOST=${process.env.POSTGRES_GLOBAL_DB_HOST}
     POSTGRES_GLOBAL_DB_PORT=${process.env.POSTGRES_GLOBAL_DB_PORT}
     ID_INSTANCE=${empresa?.greenApiInstance}
+    REDIS_HOST=${process.env.REDIS_HOST}
+    REDIS_PORT=${process.env.REDIS_PORT}
     API_TOKEN_INSTANCE=${empresa?.greenApiInstanceToken}
     OPEN_AI_TOKEN=${process.env.OPEN_AI_TOKEN}
     JWT_SECRET_KEY=${process.env.JWT_SECRET_KEY}

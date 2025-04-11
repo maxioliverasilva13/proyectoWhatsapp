@@ -12,4 +12,5 @@ export class CreatePedidoDto {
     infoLinesJson: any;
     fecha?: any;
     detalles?: string;
+    messageToUser?: string;
 }

@@ -60,6 +60,7 @@ export class GreenApiService {
         let openAIResponseFormatted;
         try {
             const openAIResponseRaw = openAIResponse.content[0].text.value;
+            console.log("openAIResponseRaw", openAIResponseRaw);
 
             openAIResponseFormatted = JSON.parse(cleanJSON(openAIResponseRaw));
         } catch (error) {
@@ -67,7 +68,11 @@ export class GreenApiService {
         }
         let textError;
         let respFinalToUser;
-        if (openAIResponseFormatted?.pedidoIdToCancel) {
+
+        if (openAIResponseFormatted?.pedidoIdToEdit) {
+            this.pedidoService.update(openAIResponseFormatted?.pedidoIdToEdit, openAIResponseFormatted?.pedidoEdited);
+            return openAIResponseFormatted;
+        } else if (openAIResponseFormatted?.pedidoIdToCancel) {
             this.pedidoService.cancel(openAIResponseFormatted?.pedidoIdToCancel);
             return openAIResponseFormatted;
         } else if (openAIResponseFormatted?.placeOrder) {
@@ -116,7 +121,8 @@ export class GreenApiService {
             messages: openAIResponse.messages,
             numberSender,
             infoLinesJson: openAIResponse.infoLines,
-            fecha: openAIResponse.fecha
+            fecha: openAIResponse.fecha,
+            messageToUser: openAIResponse?.messageToUser,
         })
         await this.chatGptThreadsService.deleteThread(currentThreadId)
         return newOrder.messageToUser
