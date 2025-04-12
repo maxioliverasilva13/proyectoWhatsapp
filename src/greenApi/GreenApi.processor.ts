@@ -9,6 +9,11 @@ import { Job } from 'bullmq';
 export class GreenApiRetirveMessage extends WorkerHost {
 
 
+  constructor() {
+    console.log("Worker para green-api-response-message registrado")
+    super()
+  }
+
   async process(job: Job) {
     console.log('llego aca');
     const { message, chatId } = job.data;

@@ -60,7 +60,6 @@ export class GreenApiService {
         let openAIResponseFormatted;
         try {
             const openAIResponseRaw = openAIResponse.content[0].text.value;
-            console.log("openAIResponseRaw", openAIResponseRaw);
 
             openAIResponseFormatted = JSON.parse(cleanJSON(openAIResponseRaw));
         } catch (error) {

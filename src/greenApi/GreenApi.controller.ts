@@ -18,10 +18,8 @@ export class GrenApiController {
 
   @Post('/webhooks')
   async handleWebhook(@Req() request: Request, @Body() body: any) {
-    console.log('aca 1', body);
     if (body.stateInstance) {
       const greenApiStatus = body.stateInstance;
-      console.log('greenApiStatus', greenApiStatus);
       if (greenApiStatus) {
         console.log('La API de Green está configurada');
         this.WebSocket.sendGreenApiStatus();
@@ -69,7 +67,7 @@ export class GrenApiController {
             }, {
               priority: 1
             });
-            console.log("job added", resp)
+            console.log("job added")
           } else if (messageData.typeMessage === 'audioMessage') {
             const fileUrl = messageData.fileMessageData.downloadUrl;
 
@@ -88,7 +86,7 @@ export class GrenApiController {
               message: respText,
               chatId,
             });
-            console.log("job added", resp)
+            console.log("job added")
 
           } else {
             console.log('Evento desconocido del webhook:', typeWebhook);
