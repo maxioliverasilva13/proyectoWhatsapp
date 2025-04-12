@@ -13,7 +13,7 @@ export class GrenApiController {
     private readonly greenApi: GreenApiService,
     private readonly numeroConfianza: NumeroConfianzaService,
     private readonly WebSocket: WebsocketGateway,
-    @InjectQueue('green-api-response-message') private readonly messageQueue: Queue,
+    @InjectQueue('GreenApiResponseMessagee') private readonly messageQueue: Queue,
   ) {}
 
   @Post('/webhooks')

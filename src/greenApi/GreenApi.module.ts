@@ -16,7 +16,7 @@ import { BullModule } from '@nestjs/bullmq';
 
 @Module({
   imports:[ChatGptThreadsModule, PedidoModule, ClienteModule, ProductoModule, NumeroConfianzaModule, WebSocketModule, InfolineModule, MensajeModule, ChatModule, BullModule.registerQueue({
-    name: 'green-api-response-message',
+    name: 'GreenApiResponseMessagee',
     connection: {
       host: process.env.REDIS_HOST || 'localhost',
       port: parseInt(process.env.REDIS_PORT, 10) || 6379,
