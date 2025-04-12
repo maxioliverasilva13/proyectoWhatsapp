@@ -67,6 +67,8 @@ export class GrenApiController {
             const resp = await this.messageQueue.add('send', {
               message: respText,
               chatId,
+            }, {
+              priority: 1
             });
             console.log("job added", resp)
           } else if (messageData.typeMessage === 'audioMessage') {

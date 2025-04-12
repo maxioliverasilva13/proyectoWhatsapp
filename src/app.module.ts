@@ -71,6 +71,10 @@ const connection = handleGetConnection();
     }),
     BullModule.registerQueue({
       name: 'green-api-response-message',
+      redis: {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT, 10) || 6379,
+      },
     }),
     EmailModule,
     EmailQueueModule,
