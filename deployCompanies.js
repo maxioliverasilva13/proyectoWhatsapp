@@ -111,6 +111,7 @@ async function deployCompany(empresa) {
   );
   await execSync(
     `ssh -i private_key root@${dropletIp} 'cd /projects/${empresa?.db_name} && docker-compose -f docker-compose.yml up -d --build'`,
+    { stdio: 'inherit' } 
   );
 }
 
@@ -134,6 +135,7 @@ async function deployApp() {
   );
   await execSync(
     `ssh -i private_key root@${dropletIp} 'cd /projects/app && docker-compose -f docker-compose-app.yml up -d --build'`,
+    { stdio: 'inherit' } 
   );
 }
 
