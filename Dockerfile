@@ -10,7 +10,7 @@ COPY . .
 
 RUN npm install -g @nestjs/cli --force
 
-RUN echo "Running build..." && npm run build --verbose
+RUN echo "Running build..." && npm run build --verbose || (echo "Build failed"; tail -n 50 /app/npm-debug.log || true; exit 1)
 
 FROM node:18-alpine
 
