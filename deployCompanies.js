@@ -119,7 +119,7 @@ async function deployApp() {
   createEnvFileApp();
   require('dotenv').config({ path: `.env.app` });
 
-  await execSync(
+  await execSync( 
     `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'mkdir -p /projects/app'`,
   );
   // remove old .env
