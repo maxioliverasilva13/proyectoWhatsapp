@@ -4,7 +4,7 @@ import {
   Process,
   Processor,
 } from '@nestjs/bull';
-import { Job } from 'bull';
+import { Job } from 'bullmq';
 
 @Processor('green-api-response-message')
 export class GreenApiRetirveMessage {
