@@ -12,7 +12,7 @@ RUN npm install -g @nestjs/cli --force
 
 RUN npm install -g @nestjs/cli --force
 
-RUN echo "Running build..." && npm run build --verbose || (echo "Build failed"; tail -n 50 /app/npm-debug.log || true; exit 1)
+RUN echo "Running build..." && npm run build --verbose || { echo "Build failed aca"; tail -n 50 /app/npm-debug.log || true; exit 1; }
 
 FROM node:18-alpine
 

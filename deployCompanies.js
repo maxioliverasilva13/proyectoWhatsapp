@@ -137,6 +137,9 @@ async function deployApp() {
     `ssh -i private_key root@${dropletIp} 'cd /projects/app && docker-compose -f docker-compose-app.yml up --build'`,
     { stdio: 'inherit' } 
   );
+  await execSync(
+    `ssh -i private_key root@${dropletIp} 'docker-compose logs --tail=100'`
+  )
 }
 
 
@@ -148,7 +151,7 @@ async function deployApp() {
     await deployCompany(empresa);
   }
   } catch (error) {
-    console.log("error", error)
+    console.log("error aca", error)
     process.exit(1);
   } finally {
     process.exit(0);
