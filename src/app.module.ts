@@ -80,6 +80,13 @@ const connection = handleGetConnection();
     EmailQueueModule,
     ScheduleModule.forRoot(),
     EmpresaModule,
+    BullModule.registerQueue({
+      name:`GreenApiResponseMessagee-${process.env.SUBDOMAIN}`,
+      connection: {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT, 10) || 6379,
+      },
+    }),
     ProductoModule,
     PedidoModule,
     ChatModule,
