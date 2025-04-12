@@ -10,7 +10,7 @@ COPY . .
 
 RUN npm install -g @nestjs/cli --force
 
-RUN npm run build
+RUN echo "Running build..." && npm run build --verbose
 
 FROM node:18-alpine
 
