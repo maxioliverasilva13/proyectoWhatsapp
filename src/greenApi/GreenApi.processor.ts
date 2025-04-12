@@ -5,7 +5,7 @@ import {
 } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 
-@Processor('green-api-response-message')
+@Processor('green-api-response-message', { concurrency: 5 })
 export class GreenApiRetirveMessage extends WorkerHost {
 
 
