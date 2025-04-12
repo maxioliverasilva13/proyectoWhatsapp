@@ -4,8 +4,9 @@ import { Request } from 'express';
 import { NumeroConfianzaService } from 'src/numerosConfianza/numeroConfianza.service';
 import { WebsocketGateway } from 'src/websocket/websocket.gatewat';
 import { SpeechToText } from 'src/utils/openAIServices';
-import { InjectQueue } from '@nestjs/bull';
+import { InjectQueue, OnQueueFailed } from '@nestjs/bull';
 import { Queue } from 'bull';
+import { Job } from 'bullmq';
 
 @Controller()
 export class GrenApiController {
@@ -96,5 +97,10 @@ export class GrenApiController {
         return;
       }
     }
+  }
+
+  @OnQueueFailed()
+  onError(job: Job, error: any) {
+    console.error('❌ Job failed:', job.id, job.data, error.message);
   }
 }

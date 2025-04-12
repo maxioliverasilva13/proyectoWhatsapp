@@ -27,10 +27,11 @@ export class GreenApiRetirveMessage {
 
       const respF = await resp.json();
       console.log("respF", respF)
-      return respF;
+      return { success: true };
     } catch (error: any) {
       console.log("aca error")
       console.log(error?.response?.data?.message ?? error);
+      return { success: false }
     }
   }
 }
