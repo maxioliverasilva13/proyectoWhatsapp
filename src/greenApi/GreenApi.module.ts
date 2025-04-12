@@ -15,8 +15,12 @@ import { GreenApiRetirveMessage } from './GreenApi.processor';
 import { BullModule } from '@nestjs/bull';
 
 @Module({
-  imports:[ChatGptThreadsModule, PedidoModule, ClienteModule, ProductoModule, NumeroConfianzaModule, WebSocketModule, InfolineModule, MensajeModule, ChatModule,  BullModule.registerQueue({
+  imports:[ChatGptThreadsModule, PedidoModule, ClienteModule, ProductoModule, NumeroConfianzaModule, WebSocketModule, InfolineModule, MensajeModule, ChatModule, BullModule.registerQueue({
     name: 'green-api-response-message',
+    redis: {
+      host: process.env.REDIS_HOST || 'localhost',
+      port: parseInt(process.env.REDIS_PORT, 10) || 6379,
+    },
   }),],
   controllers: [GrenApiController],
   providers: [GreenApiService , TenantConnectionService, GreenApiRetirveMessage],
