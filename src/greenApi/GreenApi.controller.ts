@@ -65,7 +65,7 @@ export class GrenApiController {
               message: respText,
               chatId,
             }, {
-              priority: 1
+              priority: 0
             });
             console.log("job added")
           } else if (messageData.typeMessage === 'audioMessage') {
