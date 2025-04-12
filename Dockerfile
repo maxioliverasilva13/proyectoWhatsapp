@@ -4,9 +4,11 @@ WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm install -- force
+RUN npm install --force
 
 COPY . .
+
+RUN npm install -g @nestjs/cli --force
 
 RUN npm install -g @nestjs/cli --force
 
