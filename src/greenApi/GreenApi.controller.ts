@@ -68,7 +68,7 @@ export class GrenApiController {
               priority: 0,
               attempts: 5,
             });
-            console.log("job added")
+            console.log("job added", resp?.id)
           } else if (messageData.typeMessage === 'audioMessage') {
             const fileUrl = messageData.fileMessageData.downloadUrl;
 
@@ -90,7 +90,8 @@ export class GrenApiController {
               priority: 0,
               attempts: 5,
             });
-            console.log("job added")
+            console
+            console.log("job added", resp?.id)
 
           } else {
             console.log('Evento desconocido del webhook:', typeWebhook);
