@@ -63,10 +63,11 @@ export class GrenApiController {
               timeZone,
             );
 
-            await this.messageQueue.add('send', {
+            const resp = await this.messageQueue.add('send', {
               message: respText,
               chatId,
             });
+            console.log("job added", resp)
           } else if (messageData.typeMessage === 'audioMessage') {
             const fileUrl = messageData.fileMessageData.downloadUrl;
 
@@ -81,10 +82,12 @@ export class GrenApiController {
               timeZone,
             );
 
-            await this.messageQueue.add('send', {
+            const resp = await this.messageQueue.add('send', {
               message: respText,
               chatId,
             });
+            console.log("job added", resp)
+
           } else {
             console.log('Evento desconocido del webhook:', typeWebhook);
           }
