@@ -12,12 +12,12 @@ import { InfolineModule } from 'src/infoline/infoline.module';
 import { MensajeModule } from 'src/mensaje/mensaje.module';
 import { ChatModule } from 'src/chat/chat.module';
 import { GreenApiRetirveMessage } from './GreenApi.processor';
-import { BullModule } from '@nestjs/bull';
+import { BullModule } from '@nestjs/bullmq';
 
 @Module({
   imports:[ChatGptThreadsModule, PedidoModule, ClienteModule, ProductoModule, NumeroConfianzaModule, WebSocketModule, InfolineModule, MensajeModule, ChatModule, BullModule.registerQueue({
     name: 'green-api-response-message',
-    redis: {
+    connection: {
       host: process.env.REDIS_HOST || 'localhost',
       port: parseInt(process.env.REDIS_PORT, 10) || 6379,
     },

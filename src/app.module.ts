@@ -34,7 +34,7 @@ import { AuthController } from "./auth/auth.controller";
 import { CierreProvisorioModule } from "./cierreProvisorio/cierreProvisorio.module";
 import { EmailQueueModule } from "./emailqueue/emailqueue.module";
 import { EmailModule } from "./emailqueue/nodemailer.module";
-import { BullModule } from "@nestjs/bull";
+import { BullModule } from "@nestjs/bullmq";
 import { PlanEmpresaModule } from "./planEmpresa/planEmpresa.module";
 import { EmailCOntroller } from './emailqueue/email.controller';
 import { EmailService } from './emailqueue/email.service';
@@ -64,7 +64,7 @@ const connection = handleGetConnection();
         WebSocketModule
       ]),
     BullModule.forRoot({
-      redis: {
+      connection: {
         host: process.env.REDIS_HOST || 'localhost',
         port: parseInt(process.env.REDIS_PORT, 10) || 6379,
       },

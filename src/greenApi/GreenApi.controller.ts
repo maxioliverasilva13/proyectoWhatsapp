@@ -4,7 +4,7 @@ import { Request } from 'express';
 import { NumeroConfianzaService } from 'src/numerosConfianza/numeroConfianza.service';
 import { WebsocketGateway } from 'src/websocket/websocket.gatewat';
 import { SpeechToText } from 'src/utils/openAIServices';
-import { InjectQueue } from '@nestjs/bull';
+import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 
 @Controller()

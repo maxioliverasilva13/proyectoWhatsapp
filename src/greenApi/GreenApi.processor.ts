@@ -1,15 +1,15 @@
 import {
-  OnQueueCompleted,
-  OnQueueFailed,
-  Process,
+  OnQueueEvent,
   Processor,
-} from '@nestjs/bull';
+  WorkerHost,
+} from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 
 @Processor('green-api-response-message')
-export class GreenApiRetirveMessage {
-  @Process('send')
-  async handleSendMessage(job: Job) {
+export class GreenApiRetirveMessage extends WorkerHost {
+
+
+  async process(job: Job) {
     console.log('llego aca');
     const { message, chatId } = job.data;
 
@@ -40,13 +40,13 @@ export class GreenApiRetirveMessage {
     }
   }
 
-  @OnQueueCompleted()
+  @OnQueueEvent("completed")
   onCompleted(job: Job) {
-    console.log(`🎉 Job ${job.id} completado con éxito`);
+    console.log(`✅ Job ${job.id} completado.`);
   }
 
-  @OnQueueFailed()
-  onError(job: Job, err: Error) {
-    console.error(`💥 Job ${job.id} falló:`, err.message);
+  @OnQueueEvent("failed")
+  onFailed(job: Job, err: Error) {
+    console.error(`🔥 Job ${job.id} falló: ${err.message}`);
   }
 }

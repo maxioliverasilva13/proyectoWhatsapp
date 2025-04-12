@@ -1,13 +1,15 @@
-import { Process, Processor } from '@nestjs/bull';
-import { Job } from 'bull';
+import { OnQueueEvent, Processor, WorkerHost } from '@nestjs/bullmq';
+import { Job } from 'bullmq';
 import { MailerService } from '@nestjs-modules/mailer';
 
 @Processor('email')
-export class EmailProcessor {
-  constructor(private readonly mailerService: MailerService) {}
+export class EmailProcessor extends WorkerHost {
+  constructor(private readonly mailerService: MailerService) {
+    super();
 
-  @Process('sendEmail')
-  async handleSendEmail(job: Job) {
+  }
+
+  async process(job: Job): Promise<void> {
     const { to, subject, template, context } = job.data;
 
     try {
@@ -17,10 +19,21 @@ export class EmailProcessor {
         template,
         context,
       });
-      console.log(`Correo enviado a ${to}`);
-      console.log("resp", resp)
+
+      console.log(`📧 Correo enviado a ${to}`);
+      console.log('🟢 Respuesta:', resp);
     } catch (error) {
-      console.error(`Error al enviar correo: ${error.message}`);
+      console.error(`❌ Error al enviar correo: ${error.message}`);
     }
+  }
+
+  @OnQueueEvent("completed")
+  onCompleted(job: Job) {
+    console.log(`✅ Job ${job.id} completado.`);
+  }
+
+  @OnQueueEvent("failed")
+  onFailed(job: Job, err: Error) {
+    console.error(`🔥 Job ${job.id} falló: ${err.message}`);
   }
 }

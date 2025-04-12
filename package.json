@@ -27,6 +27,7 @@
     "@green-api/whatsapp-api-client": "^0.3.39",
     "@nestjs-modules/mailer": "^2.0.2",
     "@nestjs/bull": "^10.2.2",
+    "@nestjs/bullmq": "^11.0.2",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^3.2.3",
     "@nestjs/core": "^10.0.0",
