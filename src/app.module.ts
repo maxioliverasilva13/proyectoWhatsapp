@@ -68,6 +68,13 @@ const connection = handleGetConnection();
         host: process.env.REDIS_HOST || 'localhost',
         port: parseInt(process.env.REDIS_PORT, 10) || 6379,
       },
+      defaultJobOptions: {
+        priority: 1,
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 5000 },
+        removeOnComplete: true,
+        removeOnFail: true,
+      }
     }),
     EmailModule,
     EmailQueueModule,
