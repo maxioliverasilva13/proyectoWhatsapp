@@ -29,14 +29,17 @@ export const handleGetCurrentConnection = async () => {
         rejectUnauthorized: false,
       },
     } : {})
+
   } as any;
+  console.log("xd1", params)
+
 
   const empresaConnection = new DataSource(params);
   if (!empresaConnection.isInitialized) {
     await empresaConnection.initialize();
   }
   return empresaConnection;
-}; 
+};
 
 export const handleGetConnection = async () => {
   const env = process.env.SUBDOMAIN;
@@ -64,6 +67,8 @@ export const handleGetConnection = async () => {
       },
     } : {})
   } as any;
+  console.log("xd2", params)
+
 
   const empresaConnection = new DataSource(params);
   if (!empresaConnection.isInitialized && env !== 'app') {
@@ -100,6 +105,8 @@ export const handleGetGlobalConnection = async () => {
       },
     } : {})
   } as any);
+  console.log("xd3", globalConnection)
+
   if (!globalConnection.isInitialized) {
     await globalConnection.initialize();
 
@@ -139,6 +146,7 @@ export const handleGetConnectionByEmpresa = async (dbName: string) => {
       ssl: { rejectUnauthorized: false }
     })
   };
+  console.log("xdd3",)
 
   const empresaConnection = new DataSource(params);
 
