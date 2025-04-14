@@ -36,7 +36,7 @@ export const handleGetCurrentConnection = async () => {
     await empresaConnection.initialize();
   }
   return empresaConnection;
-};
+}; 
 
 export const handleGetConnection = async () => {
   const env = process.env.SUBDOMAIN;
