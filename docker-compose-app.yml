@@ -68,7 +68,6 @@ services:
      networks:
        - app-network
      restart: always
-     command: ["redis-server", "--replicaof", ""]
 
 networks:
   app-network:
