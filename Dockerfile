@@ -4,15 +4,13 @@ WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm install --force
+RUN npm install -- force
 
 COPY . .
 
 RUN npm install -g @nestjs/cli --force
 
-RUN npm install -g @nestjs/cli --force
-
-RUN echo "Running build..." && npm run build --verbose || { echo "Build failed aca"; tail -n 50 /app/npm-debug.log || true; exit 1; }
+RUN npm run build
 
 FROM node:18-alpine
 

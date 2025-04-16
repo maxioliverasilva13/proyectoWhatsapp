@@ -29,6 +29,7 @@ export const handleGetCurrentConnection = async () => {
         rejectUnauthorized: false,
       },
     } : {})
+
   } as any;
 
   const empresaConnection = new DataSource(params);
@@ -100,6 +101,7 @@ export const handleGetGlobalConnection = async () => {
       },
     } : {})
   } as any);
+
   if (!globalConnection.isInitialized) {
     await globalConnection.initialize();
 
