@@ -66,7 +66,7 @@ export class ChatService {
 
   async findOne(id: number) {
     try {
-      const chat = await this.chatRepository.findOne({ where: { id } })
+      const chat = await this.chatRepository.findOne({ where: { id }, relations:['mensajes'] })
       if (!chat) {
         throw new BadRequestException('no existe pedido con ese id')
       }
