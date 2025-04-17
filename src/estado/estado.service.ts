@@ -107,15 +107,15 @@ export class EstadoService {
           await queryRunner.manager
             .createQueryBuilder()
             .update(Estado)
-            .set({ number_order: () => 'number_order - 1' })
-            .where('number_order > :oldOrder AND number_order <= :newOrder', { oldOrder, newOrder })
+            .set({ order: () => 'order - 1' }) // Disminuimos el order en los elementos intermedios
+            .where('order > :oldOrder AND order <= :newOrder', { oldOrder, newOrder })
             .execute();
         } else {
           await queryRunner.manager
             .createQueryBuilder()
             .update(Estado)
-            .set({ number_order: () => 'number_order + 1' })
-            .where('number_order >= :newOrder AND number_order < :oldOrder', { oldOrder, newOrder })
+            .set({ order: () => 'order + 1' }) // Aumentamos el order en los elementos intermedios
+            .where('order >= :newOrder AND order < :oldOrder', { newOrder, oldOrder })
             .execute();
         }
       }
