@@ -3,7 +3,7 @@ import { CreateEstadoDto } from './dto/create-estado.dto';
 import { UpdateEstadoDto } from './dto/update-estado.dto';
 import { Usuario } from 'src/usuario/entities/usuario.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { MoreThan, Repository } from 'typeorm';
 import { Estado } from './entities/estado.entity';
 
 @Injectable()
@@ -107,15 +107,15 @@ export class EstadoService {
           await queryRunner.manager
             .createQueryBuilder()
             .update(Estado)
-            .set({ number_order: () => 'number_order - 1' })
-            .where('number_order > :oldOrder AND number_order <= :newOrder', { oldOrder, newOrder })
+            .set({ order: () => 'order - 1' }) // Disminuimos el order en los elementos intermedios
+            .where('order > :oldOrder AND order <= :newOrder', { oldOrder, newOrder })
             .execute();
         } else {
           await queryRunner.manager
             .createQueryBuilder()
             .update(Estado)
-            .set({ number_order: () => 'number_order + 1' })
-            .where('number_order >= :newOrder AND number_order < :oldOrder', { oldOrder, newOrder })
+            .set({ order: () => 'order + 1' }) // Aumentamos el order en los elementos intermedios
+            .where('order >= :newOrder AND order < :oldOrder', { newOrder, oldOrder })
             .execute();
         }
       }
@@ -141,21 +141,38 @@ export class EstadoService {
 
   async remove(id: number) {
     try {
+      
       const statusExist = await this.estadoRepository.findOne({where: {id: id}})
 
       if(!statusExist) {
         throw new BadRequestException("There no are status with those id")
       }
 
+      let order = statusExist.order
+      let isFinalizador = statusExist.finalizador
+
+
       await this.estadoRepository.delete(statusExist)
 
-      const candidate = await this.estadoRepository.find( { order:{order: "DESC"}, take:1})
-
-      if(candidate[0]) {
-        candidate[0].finalizador = true;
-
-        await this.estadoRepository.save(candidate[0])
+      if(isFinalizador) {
+        const candidate = await this.estadoRepository.find( { order:{order: "DESC"}, take:1})
+  
+        if(candidate[0]) {
+          candidate[0].finalizador = true;
+  
+          await this.estadoRepository.save(candidate[0])
+        }
       }
+
+      const nextItemsToThis = await this.estadoRepository.find({where: {id: MoreThan(order)}})
+
+      await Promise.all(
+        await nextItemsToThis.map(async (item) => {
+          item.order -= 1
+          await this.estadoRepository.save(item)
+          return;
+        })
+      )
 
       return {
         ok:true,
