@@ -18,7 +18,7 @@ export class EstadoService {
 
   async create(createEstadoDto: CreateEstadoDto) {
     try {
-      if (!createEstadoDto.nombre || !createEstadoDto.finalizador || !createEstadoDto.order) {
+      if (!createEstadoDto.nombre || !createEstadoDto.order) {
         throw new BadRequestException("Plese enter a valid data")
       }
 

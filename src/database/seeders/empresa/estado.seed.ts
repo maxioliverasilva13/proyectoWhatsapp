@@ -19,12 +19,14 @@ export class EstadoSeed implements Seeder {
             nombre: EstadoDefecto.CREADO,
             es_defecto: true,
             tipoServicioId: itm,
+            order:1
           },
           {
             id: EstadoDefectoIds.PENDIENTE,
             nombre: EstadoDefecto.PENDIENTE,
             tipoServicioId: itm,
             es_defecto: true,
+            order:2
           },
           {
             id: EstadoDefectoIds.FINALIZADO,
@@ -32,6 +34,7 @@ export class EstadoSeed implements Seeder {
             tipoServicioId: itm,
             es_defecto: true,
             finalizador: true,
+            order:3
           },
           {
             id: EstadoDefectoIds.CANCELADO,
@@ -39,6 +42,7 @@ export class EstadoSeed implements Seeder {
             tipoServicioId: itm,
             finalizador: true,
             es_defecto: true,
+            order:4
           },
         ];
 
