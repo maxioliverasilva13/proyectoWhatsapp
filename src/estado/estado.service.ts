@@ -34,7 +34,8 @@ export class EstadoService {
 
       return {
         ok: true,
-        message: "Status created successfully"
+        message: "Status created successfully",
+        data: newEstado
       }
     } catch (error) {
       throw new BadRequestException({
