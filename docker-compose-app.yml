@@ -31,11 +31,11 @@ services:
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
     labels:
       - traefik.enable=true
-      - traefik.http.routers.${SUBDOMAIN}-router.rule=Host(`${VIRTUAL_HOST}`)
-      - traefik.http.routers.${SUBDOMAIN}-router.entrypoints=websecure
-      - traefik.http.services.${SUBDOMAIN}-service.loadbalancer.server.port=3000
-      - traefik.http.routers.${SUBDOMAIN}-router.tls=true
-      - traefik.http.routers.${SUBDOMAIN}-router.tls.certresolver=myresolver
+      - traefik.http.routers.app-router.rule=Host(`app.whatsproy.com`)
+      - traefik.http.routers.app-router.entrypoints=websecure
+      - traefik.http.services.app-service.loadbalancer.server.port=3000
+      - traefik.http.routers.app-router.tls=true
+      - traefik.http.routers.app-router.tls.certresolver=myresolver
     networks:
       - app-network
     restart: always

@@ -109,6 +109,10 @@ async function deployCompany(empresa) {
   await execSync(
     `scp -i private_key -o StrictHostKeyChecking=no -r .env.${empresa.db_name} root@${dropletIp}:/projects/${empresa?.db_name}/.env`,
   );
+
+  await execSync(
+    `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'mkdir -p /projects/${empresa?.db_name}/letsencrypt && touch /projects/${empresa?.db_name}/letsencrypt/acme.json && chmod 600 /projects/${empresa?.db_name}/letsencrypt/acme.json'`
+  );
   await execSync(
     `ssh -i private_key root@${dropletIp} 'cd /projects/${empresa?.db_name} && docker-compose -f docker-compose.yml up -d --build'`,
   );
@@ -133,8 +137,12 @@ async function deployApp() {
     `scp -i private_key -o StrictHostKeyChecking=no -r .env.app root@${dropletIp}:/projects/app/.env`,
   );
   await execSync(
+    `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'mkdir -p /projects/app/letsencrypt && touch /projects/app/letsencrypt/acme.json && chmod 600 /projects/app/letsencrypt/acme.json'`
+  );
+  await execSync(
     `ssh -i private_key root@${dropletIp} 'cd /projects/app && docker-compose -f docker-compose-app.yml up -d --build'`,
   );
+  
 }
 
 
