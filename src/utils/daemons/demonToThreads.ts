@@ -14,6 +14,8 @@ export async function DemonDeleteOldsThreads() {
         database: process.env.POSTGRES_DB,
     });
 
+    console.log("xd1")
+
     try {
         await client.connect();
         await client.query('DELETE FROM public."chatGptThreads" WHERE last_update <= NOW() - INTERVAL \'15 minute\';');

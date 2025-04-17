@@ -32,7 +32,7 @@ export class AppService {
     }
   }
 
-  @Interval(900000)
+  @Interval(60000)
   handleIntervalDeleteThreads() {
     if (this.shouldExecuteIntervalDeleteThreads) {
       DemonDeleteOldsThreads()
