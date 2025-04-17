@@ -49,7 +49,7 @@ export class EstadoService {
 
   async findAll() {
     try {
-      const allStatus = await this.estadoRepository.find()
+      const allStatus = await this.estadoRepository.find({order: {order: "ASC"}})
 
       return {
         ok: true,
