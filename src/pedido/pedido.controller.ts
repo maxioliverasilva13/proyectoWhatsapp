@@ -81,7 +81,6 @@ export class PedidoController {
     return this.pedidoService.getOrdersOfTimePeriods();
   }
 
-
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.pedidoService.findOne(+id);

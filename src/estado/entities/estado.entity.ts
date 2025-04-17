@@ -17,6 +17,9 @@ export class Estado extends BaseEntity {
     @Column({ default: false })
     finalizador: boolean;
 
+    @Column({nullable: true})
+    order: number;
+
     @OneToMany(() => Cambioestadopedido, (cmbe) => cmbe.estado)
     cambioEstados: Cambioestadopedido[];
 

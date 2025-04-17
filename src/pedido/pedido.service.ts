@@ -92,7 +92,7 @@ export class PedidoService implements OnModuleDestroy {
       const allPedidos = (
         await this.pedidoRepository.find({
           where: { cliente_id: client_id, available: true, finalizado: false },
-          relations: ['pedidosprod', 'pedidosprod.producto', 'estado'],
+          relations: ['pedidosprod', 'pedidosprod.producto', 'estado', 'cambioEstados'],
         })
       ).map((pedido) => {
         return pedido;
