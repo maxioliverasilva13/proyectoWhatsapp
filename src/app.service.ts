@@ -32,9 +32,8 @@ export class AppService {
     }
   }
 
-  @Interval(60000)
+  @Interval(900000)
   handleIntervalDeleteThreads() {
-    console.log("ejecuto daemon")
     if (this.shouldExecuteIntervalDeleteThreads) {
       DemonDeleteOldsThreads()
     }
