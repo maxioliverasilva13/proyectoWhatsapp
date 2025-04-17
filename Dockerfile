@@ -19,6 +19,7 @@ WORKDIR /app
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 
+
 ENV NODE_ENV=production
 
 EXPOSE 3000
