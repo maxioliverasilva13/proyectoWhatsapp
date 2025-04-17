@@ -19,6 +19,7 @@ export class JwtMiddleware implements NestMiddleware {
         const subdomain = process.env.SUBDOMAIN;
         const empresaRepository = connection?.getRepository(Empresa);
         const tokenEmpresaId = decoded?.empresaId;
+        req['empresaId'] = tokenEmpresaId;
      
         // check if role is admin or not
          const empresaExists = await empresaRepository.findOne({
