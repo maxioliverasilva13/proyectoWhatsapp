@@ -846,25 +846,22 @@ export class PedidoService implements OnModuleDestroy {
         relations: ['pedidosprod', 'pedidosprod.producto']
       });
 
-      await Promise.all(
-        lastOrders.map((element) => {
-          let total;
-
-          element.pedidosprod.map((pedidoProd) => {
-            total = pedidoProd.cantidad * pedidoProd.producto.precio
-          })
-
-          return {
-            ...element,
-            total
-          }
-
-        })
-      )
+      const ordersWithTotal = lastOrders.map((element) => {
+        let total = 0;
+  
+        element.pedidosprod.forEach((pedidoProd) => {
+          total += pedidoProd.cantidad * pedidoProd.producto.precio;
+        });
+  
+        return {
+          ...element,
+          total,
+        };
+      });
 
       return {
         ok: true,
-        data: lastOrders,
+        data: ordersWithTotal,
       };
     } catch (error) {
       throw new BadRequestException({
