@@ -22,6 +22,12 @@ export class EstadoService {
         throw new BadRequestException("Plese enter a valid data")
       }
 
+      const existEstadoWithNumber = await this.estadoRepository.findOne({where:{order: createEstadoDto.order}})
+
+      if(existEstadoWithNumber) {
+        throw new BadRequestException("This order number already exist")
+      }
+
       const newEstado = await this.estadoRepository.create({
         nombre: createEstadoDto.nombre,
         finalizador: createEstadoDto.finalizador,
@@ -107,14 +113,14 @@ export class EstadoService {
           await queryRunner.manager
             .createQueryBuilder()
             .update(Estado)
-            .set({ order: () => 'order - 1' }) // Disminuimos el order en los elementos intermedios
+            .set({ order: () => 'order - 1' })
             .where('order > :oldOrder AND order <= :newOrder', { oldOrder, newOrder })
             .execute();
         } else {
           await queryRunner.manager
             .createQueryBuilder()
             .update(Estado)
-            .set({ order: () => 'order + 1' }) // Aumentamos el order en los elementos intermedios
+            .set({ order: () => 'order + 1' }) 
             .where('order >= :newOrder AND order < :oldOrder', { newOrder, oldOrder })
             .execute();
         }
@@ -125,7 +131,11 @@ export class EstadoService {
       await queryRunner.manager.save(estado);
 
       await queryRunner.commitTransaction();
-      return estado;
+      return {
+        ok:true,
+        data: estado
+      }
+
     } catch (error) {
       await queryRunner.rollbackTransaction();
       throw new BadRequestException({
