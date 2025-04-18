@@ -23,9 +23,6 @@ export class Estado extends BaseEntity {
     @OneToMany(() => Cambioestadopedido, (cmbe) => cmbe.estado, {onDelete:'CASCADE'})
     cambioEstados: Cambioestadopedido[];
 
-    @OneToMany(() => Pedido, (pedido) => pedido.estado, {onDelete:'CASCADE'})
-    pedidos: Pedido[];
-
     @Column()
     tipoServicioId: number;
 }
