@@ -33,7 +33,8 @@ export class EstadoService {
         finalizador: createEstadoDto.finalizador,
         order: createEstadoDto.order,
         es_defecto: createEstadoDto.es_defecto,
-        tipoServicioId: createEstadoDto.tipoServicioId
+        tipoServicioId: createEstadoDto.tipoServicioId,
+        mensaje: createEstadoDto.mensaje
       })
 
       await this.estadoRepository.save(newEstado)

@@ -53,7 +53,7 @@ export class PedidoService implements OnModuleDestroy {
     private readonly chatServices: ChatService,
     private readonly mensajesService: MensajeService,
     private readonly webSocketService: WebsocketGateway,
-  ) {}
+  ) { }
 
   async onModuleInit() {
     if (!this.globalConnection) {
@@ -365,6 +365,7 @@ export class PedidoService implements OnModuleDestroy {
           'Please specify what type of order you wish to access',
         );
       }
+
       const whereCondition: any = { available: true };
 
       if (filter === 'pending') {
@@ -842,7 +843,24 @@ export class PedidoService implements OnModuleDestroy {
       const lastOrders = await this.pedidoRepository.find({
         order: { id: 'DESC' },
         take: 3,
+        relations: ['pedidosprod', 'pedidosprod.producto']
       });
+
+      await Promise.all(
+        lastOrders.map((element) => {
+          let total;
+
+          element.pedidosprod.map((pedidoProd) => {
+            total = pedidoProd.cantidad * pedidoProd.producto.precio
+          })
+
+          return {
+            ...element,
+            total
+          }
+
+        })
+      )
 
       return {
         ok: true,

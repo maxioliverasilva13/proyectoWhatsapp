@@ -18,6 +18,9 @@ export class Estado extends BaseEntity {
     finalizador: boolean;
 
     @Column({nullable: true})
+    mensaje: string;
+
+    @Column({nullable: true})
     order: number;
 
     @OneToMany(() => Cambioestadopedido, (cmbe) => cmbe.estado, {onDelete:'CASCADE'})
