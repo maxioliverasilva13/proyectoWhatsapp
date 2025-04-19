@@ -302,7 +302,7 @@ export class PedidoService implements OnModuleDestroy {
     try {
       const pedidoExist = await this.pedidoRepository.findOne({
         where: { id: id },
-        relations: ['cambioEstados', 'chat', 'pedidosprod'],
+        relations: ['cambioEstados', 'chat', 'pedidosprod', 'estado'],
       });
       if (!pedidoExist) {
         throw new BadRequestException('No existe un pedido con esse id');
@@ -310,6 +310,7 @@ export class PedidoService implements OnModuleDestroy {
       const getClient = await this.clienteRepository.findOne({
         where: { id: pedidoExist.cliente_id },
       });
+      
       let total = 0;
       let estimateTime = 0;
       const pedidosProdFormated = await Promise.all(
@@ -848,11 +849,11 @@ export class PedidoService implements OnModuleDestroy {
 
       const ordersWithTotal = lastOrders.map((element) => {
         let total = 0;
-  
+
         element.pedidosprod.forEach((pedidoProd) => {
           total += pedidoProd.cantidad * pedidoProd.producto.precio;
         });
-  
+
         return {
           ...element,
           total,
