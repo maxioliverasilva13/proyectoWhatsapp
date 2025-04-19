@@ -98,6 +98,7 @@ export class AuthService implements OnModuleDestroy {
       let tipo_servicio = 0;
       let tipo_servicioNombre = '';
       let hora_apertura;
+      let empresaName = "";``
       let hora_cierre;
       let abierto;
       let timeZone;
@@ -121,6 +122,7 @@ export class AuthService implements OnModuleDestroy {
           abierto = empresa.abierto;
           tipo_servicio = empresa?.tipoServicioId?.id;
           tipo_servicioNombre = empresa.tipoServicioId.nombre;
+          empresaName = empresa?.nombre;
           intervaloTiempoCalendario = empresa.intervaloTiempoCalendario;
           notificarReservaHoras = empresa.notificarReservaHoras;
           remaindersHorsRemainder = empresa.remaindersHorsRemainder;
@@ -177,6 +179,7 @@ export class AuthService implements OnModuleDestroy {
         hora_apertura,
         hora_cierre,
         abierto,
+        empresaName: empresaName,
         remaindersHorsRemainder,
         timeZone,
         currencies: currencies
