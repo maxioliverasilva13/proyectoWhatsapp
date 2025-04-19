@@ -310,7 +310,7 @@ export class PedidoService implements OnModuleDestroy {
       const getClient = await this.clienteRepository.findOne({
         where: { id: pedidoExist.cliente_id },
       });
-      
+
       let total = 0;
       let estimateTime = 0;
       const pedidosProdFormated = await Promise.all(
@@ -345,6 +345,8 @@ export class PedidoService implements OnModuleDestroy {
           confirm: pedidoExist.confirmado,
           id: pedidoExist.id,
           estimateTime,
+          estadoActual: pedidoExist.estado,
+          cambiosEstado: pedidoExist.cambioEstados,
           total,
           infoLines: JSON.parse(pedidoExist.infoLinesJson),
         },
