@@ -53,7 +53,7 @@ export class PedidoService implements OnModuleDestroy {
     private readonly chatServices: ChatService,
     private readonly mensajesService: MensajeService,
     private readonly webSocketService: WebsocketGateway,
-  ) {}
+  ) { }
 
   async onModuleInit() {
     if (!this.globalConnection) {
@@ -302,7 +302,7 @@ export class PedidoService implements OnModuleDestroy {
     try {
       const pedidoExist = await this.pedidoRepository.findOne({
         where: { id: id },
-        relations: ['cambioEstados', 'chat', 'pedidosprod'],
+        relations: ['cambioEstados', 'chat', 'pedidosprod', 'estado'],
       });
       if (!pedidoExist) {
         throw new BadRequestException('No existe un pedido con esse id');
@@ -310,6 +310,7 @@ export class PedidoService implements OnModuleDestroy {
       const getClient = await this.clienteRepository.findOne({
         where: { id: pedidoExist.cliente_id },
       });
+
       let total = 0;
       let estimateTime = 0;
       const pedidosProdFormated = await Promise.all(
@@ -344,6 +345,8 @@ export class PedidoService implements OnModuleDestroy {
           confirm: pedidoExist.confirmado,
           id: pedidoExist.id,
           estimateTime,
+          estadoActual: pedidoExist.estado,
+          cambiosEstado: pedidoExist.cambioEstados,
           total,
           infoLines: JSON.parse(pedidoExist.infoLinesJson),
         },
@@ -365,6 +368,7 @@ export class PedidoService implements OnModuleDestroy {
           'Please specify what type of order you wish to access',
         );
       }
+
       const whereCondition: any = { available: true };
 
       if (filter === 'pending') {
@@ -842,11 +846,25 @@ export class PedidoService implements OnModuleDestroy {
       const lastOrders = await this.pedidoRepository.find({
         order: { id: 'DESC' },
         take: 3,
+        relations: ['pedidosprod', 'pedidosprod.producto']
+      });
+
+      const ordersWithTotal = lastOrders.map((element) => {
+        let total = 0;
+
+        element.pedidosprod.forEach((pedidoProd) => {
+          total += pedidoProd.cantidad * pedidoProd.producto.precio;
+        });
+
+        return {
+          ...element,
+          total,
+        };
       });
 
       return {
         ok: true,
-        data: lastOrders,
+        data: ordersWithTotal,
       };
     } catch (error) {
       throw new BadRequestException({

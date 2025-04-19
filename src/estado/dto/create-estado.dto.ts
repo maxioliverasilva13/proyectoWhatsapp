@@ -3,5 +3,6 @@ export class CreateEstadoDto {
     es_defecto: boolean;
     finalizador: boolean;
     order: number;
-    tipoServicioId: number
+    tipoServicioId: number;
+    mensaje: string;
 }

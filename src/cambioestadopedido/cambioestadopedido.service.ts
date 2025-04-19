@@ -13,28 +13,28 @@ export class CambioestadopedidoService {
 
   constructor(
     @InjectRepository(Pedido)
-    private pedidoRepository : Repository<Pedido>,
+    private pedidoRepository: Repository<Pedido>,
     @InjectRepository(Estado)
-    private estadoRepository : Repository<Estado>,
+    private estadoRepository: Repository<Estado>,
     @InjectRepository(Cambioestadopedido)
-    private cambioEstadoRepository : Repository<Cambioestadopedido>,
+    private cambioEstadoRepository: Repository<Cambioestadopedido>,
     @InjectRepository(Usuario)
-    private userRepository : Repository<Usuario>
-  ) {}
+    private userRepository: Repository<Usuario>
+  ) { }
 
 
   async create(createCambioestadopedidoDto: CreateCambioestadopedidoDto) {
     try {
-      const pedidoExist = await this.pedidoRepository.findOne({where : {id : createCambioestadopedidoDto.pedidoId}})
-      if(pedidoExist) {
+      const pedidoExist = await this.pedidoRepository.findOne({ where: { id: createCambioestadopedidoDto.pedidoId } })
+      if (pedidoExist) {
         throw new BadRequestException("There is no order with that ID")
       }
-      const estadoExist = await this.estadoRepository.findOne({where : {id : createCambioestadopedidoDto.estadoId}})
-      if(estadoExist) {
+      const estadoExist = await this.estadoRepository.findOne({ where: { id: createCambioestadopedidoDto.estadoId } })
+      if (estadoExist) {
         throw new BadRequestException("There is no status with that ID")
       }
-      const userExist = await this.userRepository.findOne({where : {id : createCambioestadopedidoDto.id_user}})
-      if(userExist) {
+      const userExist = await this.userRepository.findOne({ where: { id: createCambioestadopedidoDto.id_user } })
+      if (userExist) {
         throw new BadRequestException("There is no user with that ID")
       }
 
@@ -46,8 +46,10 @@ export class CambioestadopedidoService {
 
       await this.cambioEstadoRepository.save(newStatusOrder)
 
+      pedidoExist.estado = estadoExist
+
       return {
-        ok:true,
+        ok: true,
         message: "Status order created succesfully"
       }
 

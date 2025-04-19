@@ -22,12 +22,19 @@ export class EstadoService {
         throw new BadRequestException("Plese enter a valid data")
       }
 
+      const existEstadoWithNumber = await this.estadoRepository.findOne({where:{order: createEstadoDto.order}})
+
+      if(existEstadoWithNumber) {
+        throw new BadRequestException("This order number already exist")
+      }
+
       const newEstado = await this.estadoRepository.create({
         nombre: createEstadoDto.nombre,
         finalizador: createEstadoDto.finalizador,
         order: createEstadoDto.order,
         es_defecto: createEstadoDto.es_defecto,
-        tipoServicioId: createEstadoDto.tipoServicioId
+        tipoServicioId: createEstadoDto.tipoServicioId,
+        mensaje: createEstadoDto.mensaje
       })
 
       await this.estadoRepository.save(newEstado)
@@ -49,7 +56,7 @@ export class EstadoService {
 
   async findAll() {
     try {
-      const allStatus = await this.estadoRepository.find({order: {order: "ASC"}})
+      const allStatus = await this.estadoRepository.find({ order: { order: "ASC" } })
 
       return {
         ok: true,
@@ -69,14 +76,14 @@ export class EstadoService {
   async findOne(id: number) {
     try {
 
-      const statusExist = await this.estadoRepository.findOne({where: {id: id}})
+      const statusExist = await this.estadoRepository.findOne({ where: { id: id } })
 
-      if(!statusExist) {
+      if (!statusExist) {
         throw new BadRequestException("There no are status with those id")
       }
 
       return {
-        ok:true,
+        ok: true,
         data: statusExist
       }
 
@@ -94,38 +101,42 @@ export class EstadoService {
     const queryRunner = this.estadoRepository.manager.connection.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
-  
+
     try {
       const estado = await queryRunner.manager.findOne(Estado, { where: { id } });
       if (!estado) throw new BadRequestException("No existe un estado con ese ID");
-  
+
       const oldOrder = estado.order;
       const newOrder = updateEstadoDto.order;
-  
+
       if (oldOrder !== newOrder) {
         if (oldOrder < newOrder) {
           await queryRunner.manager
             .createQueryBuilder()
             .update(Estado)
-            .set({ order: () => 'order - 1' }) // Disminuimos el order en los elementos intermedios
+            .set({ order: () => 'order - 1' })
             .where('order > :oldOrder AND order <= :newOrder', { oldOrder, newOrder })
             .execute();
         } else {
           await queryRunner.manager
             .createQueryBuilder()
             .update(Estado)
-            .set({ order: () => 'order + 1' }) // Aumentamos el order en los elementos intermedios
+            .set({ order: () => 'order + 1' }) 
             .where('order >= :newOrder AND order < :oldOrder', { newOrder, oldOrder })
             .execute();
         }
       }
-  
+
       estado.order = newOrder;
       queryRunner.manager.merge(Estado, estado, updateEstadoDto);
       await queryRunner.manager.save(estado);
-  
+
       await queryRunner.commitTransaction();
-      return estado;
+      return {
+        ok:true,
+        data: estado
+      }
+
     } catch (error) {
       await queryRunner.rollbackTransaction();
       throw new BadRequestException({
@@ -141,51 +152,50 @@ export class EstadoService {
 
   async remove(id: number) {
     try {
-      
-      const statusExist = await this.estadoRepository.findOne({where: {id: id}})
+      const status = await this.estadoRepository.findOne({ where: { id } });
 
-      if(!statusExist) {
-        throw new BadRequestException("There no are status with those id")
+      if (!status) {
+        throw new BadRequestException("No existe un estado con ese ID");
       }
 
-      let order = statusExist.order
-      let isFinalizador = statusExist.finalizador
+      const { order, finalizador } = status;
 
+      await this.estadoRepository.delete(id);
 
-      await this.estadoRepository.delete(statusExist)
+      if (finalizador) {
+        const [candidate] = await this.estadoRepository.find({ order: { order: "DESC" }, take: 1 });
 
-      if(isFinalizador) {
-        const candidate = await this.estadoRepository.find( { order:{order: "DESC"}, take:1})
-  
-        if(candidate[0]) {
-          candidate[0].finalizador = true;
-  
-          await this.estadoRepository.save(candidate[0])
+        if (candidate) {
+          candidate.finalizador = true;
+          await this.estadoRepository.save(candidate);
         }
       }
 
-      const nextItemsToThis = await this.estadoRepository.find({where: {id: MoreThan(order)}})
+      if (order !== null) {
+        const nextItems = await this.estadoRepository.find({
+          where: { order: MoreThan(order) },
+        });
 
-      await Promise.all(
-        await nextItemsToThis.map(async (item) => {
-          item.order -= 1
-          await this.estadoRepository.save(item)
-          return;
-        })
-      )
-
-      return {
-        ok:true,
-        message: "Status deleted successfully"
+        await Promise.all(
+          nextItems.map((item) => {
+            item.order -= 1;
+            return this.estadoRepository.save(item);
+          })
+        );
       }
 
+      return {
+        ok: true,
+        message: "Estado eliminado correctamente",
+      };
     } catch (error) {
       throw new BadRequestException({
         ok: false,
         statusCode: 400,
-        message: error?.message,
+        message: error?.message || 'Error inesperado',
         error: 'Bad Request',
       });
     }
   }
+
 }
