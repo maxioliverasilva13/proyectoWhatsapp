@@ -39,6 +39,7 @@ export class CambioestadopedidoService {
         estado: estadoExist,
         id_user: createCambioestadopedidoDto.id_user,
         pedido: pedidoExist,
+        createdAt: new Date()
       })
 
       const resp = await this.messageQueue.add('send', {
@@ -57,7 +58,8 @@ export class CambioestadopedidoService {
 
       return {
         ok:true,
-        message: "Cambio de estado realizado exitosamente"
+        message: "Cambio de estado realizado exitosamente",
+        data: newStatusOrder
       }
 
     } catch (error) {
