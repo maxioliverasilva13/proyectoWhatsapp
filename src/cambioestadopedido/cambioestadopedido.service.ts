@@ -20,7 +20,7 @@ export class CambioestadopedidoService {
     @InjectRepository(Cambioestadopedido)
     private cambioEstadoRepository: Repository<Cambioestadopedido>,
     @InjectQueue(`sendMessageChangeStatusOrder-${process.env.SUBDOMAIN}`) private readonly messageQueue: Queue,
-    
+
   ) { }
 
 
@@ -33,7 +33,7 @@ export class CambioestadopedidoService {
       const estadoExist = await this.estadoRepository.findOne({ where: { id: createCambioestadopedidoDto.estadoId } })
       if (!estadoExist) {
         throw new BadRequestException("There is no status with that ID")
-      }      
+      }
 
       const newStatusOrder = await this.cambioEstadoRepository.create({
         estado: estadoExist,
@@ -43,7 +43,7 @@ export class CambioestadopedidoService {
       })
 
       const resp = await this.messageQueue.add('send', {
-        message: estadoExist.mensaje || `Hemos echo el cambio de estado de su pedido de ${pedidoExist.estado.nombre} a ${estadoExist.nombre}`,
+        message: estadoExist.mensaje || `Hemos echo el cambio de estado de su pedido de ${(pedidoExist?.estado?.nombre) ?? "Creado"} a ${estadoExist.nombre}`,
         chatId: pedidoExist.chatIdWhatsapp
       }, {
         priority: 0,
@@ -57,7 +57,7 @@ export class CambioestadopedidoService {
       await this.pedidoRepository.save(pedidoExist)
 
       return {
-        ok:true,
+        ok: true,
         message: "Cambio de estado realizado exitosamente",
         data: newStatusOrder
       }
