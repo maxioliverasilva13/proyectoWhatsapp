@@ -258,7 +258,7 @@ export class PedidoService implements OnModuleDestroy {
       });
     }
   }
-  
+
 
   async consultarHorario(hora, producto, timeZone, empresaId) {
     const empresa = await this.empresaRepository.findOne({
@@ -307,7 +307,7 @@ export class PedidoService implements OnModuleDestroy {
     try {
       const pedidoExist = await this.pedidoRepository.findOne({
         where: { id: id },
-        relations: ['cambioEstados', 'chat', 'pedidosprod', 'estado'],
+        relations: ['cambioEstados', 'chat', 'pedidosprod', 'estado', 'cambioEstados.pedido', 'cambioEstados.estado'],
       });
       if (!pedidoExist) {
         throw new BadRequestException('No existe un pedido con esse id');
@@ -482,8 +482,6 @@ export class PedidoService implements OnModuleDestroy {
         .minute(minutosRedondeados)
         .second(0)
         .millisecond(0);
-
-      console.log('proximoDisponible xd1', proximoDisponible);
 
       if (horaActual.isSameOrAfter(cierre)) {
         apertura.add(1, 'day');
