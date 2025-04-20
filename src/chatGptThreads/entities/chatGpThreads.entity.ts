@@ -11,6 +11,9 @@ export class ChatGptThreads extends BaseEntity {
     @Column()
     threadId: string;
 
+    @Column({nullable : true})
+    chatId: string;
+
     @Column({ type: 'timestamp with time zone', default: () => 'CURRENT_TIMESTAMP' })
     last_update: Date;
 

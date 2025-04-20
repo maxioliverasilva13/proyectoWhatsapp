@@ -18,10 +18,10 @@ export class ChatGptThreadsService {
                 order: { id: 'DESC' }
             });
             
-
             return {
                 ok: true,
                 threadId: lastThread?.threadId ? lastThread?.threadId : null,
+                chatId: lastThread.chatId.toString(),
                 statusRun: lastThread.sesionStatus,
                 statusCode: 200,
             };
@@ -42,10 +42,14 @@ export class ChatGptThreadsService {
                 throw new BadRequestException("debe de proveer la data correctamente")
             }
 
+            console.log('tipo de serivico xdxd',typeof data);
+            
+
             const newThreads = new ChatGptThreads;
             newThreads.numberPhone = data.numberPhone
             newThreads.threadId = data.threadId
             newThreads.sesionStatus = true
+            newThreads.chatId = data.chatId
 
             await this.threadsRepository.save(newThreads)
             console.log('se creo con id', newThreads.threadId);

@@ -60,6 +60,7 @@ export class GrenApiController {
               empresaId,
               senderName,
               timeZone,
+              chatId
             );
 
             const resp = await this.messageQueue.add('send', {
@@ -69,7 +70,7 @@ export class GrenApiController {
               priority: 0,
               attempts: 5,
             });
-            console.log("job added", resp?.id)
+
           } else if (messageData.typeMessage === 'audioMessage') {
             const fileUrl = messageData.fileMessageData.downloadUrl;
 
@@ -82,6 +83,7 @@ export class GrenApiController {
               empresaId,
               senderName,
               timeZone,
+              chatId
             );
 
             const resp = await this.messageQueue.add('send', {

@@ -132,6 +132,8 @@ export class PedidoService implements OnModuleDestroy {
         let total = 0;
         const infoLineToJson = JSON.stringify(createPedidoDto.infoLinesJson);
 
+        console.log('recibo',  typeof  createPedidoDto.chatId);
+        
         const newPedido = new Pedido();
         newPedido.confirmado = createPedidoDto.confirmado || false;
         newPedido.cliente_id = createPedidoDto.clienteId;
@@ -142,6 +144,7 @@ export class PedidoService implements OnModuleDestroy {
             ? createPedidoDto.fecha || products[0].fecha
             : getCurrentDate();
         newPedido.infoLinesJson = infoLineToJson;
+        newPedido.chatIdWhatsapp = createPedidoDto.chatId.toString()
         newPedido.detalle_pedido = createPedidoDto?.detalles ?? '';
 
         const savedPedido = await this.pedidoRepository.save(newPedido);
@@ -211,6 +214,7 @@ export class PedidoService implements OnModuleDestroy {
           console.error('Error al crear chat o mensajes:', error);
         }
 
+
         const formatToSendFrontend = {
           clientName: createPedidoDto.clientName,
           direccion:
@@ -254,6 +258,7 @@ export class PedidoService implements OnModuleDestroy {
       });
     }
   }
+  
 
   async consultarHorario(hora, producto, timeZone, empresaId) {
     const empresa = await this.empresaRepository.findOne({

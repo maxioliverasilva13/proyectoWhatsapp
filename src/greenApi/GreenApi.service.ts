@@ -24,9 +24,9 @@ export class GreenApiService {
             await connectToGreenApi();
         }
     }
-    
-    async handleMessagetText(textMessage, numberSender, empresaType, empresaId, senderName, timeZone) {
-        const { threadId } = await this.chatGptThreadsService.getLastThreads(numberSender);
+
+    async handleMessagetText(textMessage, numberSender, empresaType, empresaId, senderName, timeZone, chatId) {
+        const { threadId, chatId: chatIdExist } = await this.chatGptThreadsService.getLastThreads(numberSender);
 
         const { clienteId, clientName } = await this.clienteService.createOrReturnExistClient({ empresaId: empresaId, nombre: senderName, telefono: numberSender })
         let currentPedidosInText = "";
@@ -43,6 +43,7 @@ export class GreenApiService {
             await this.chatGptThreadsService.createThreads({
                 numberPhone: numberSender,
                 threadId: currentThreadId,
+                chatId
             });
         }
 
@@ -81,7 +82,6 @@ export class GreenApiService {
 
                     const res = await this.pedidoService.consultarHorario(items.fecha, items, timeZone, empresaId);
                     if (res.ok === false) {
-                        console.log(`para el producto ${items.nombre} la fecha ${items.fecha} no se encuentra disponible`)
                         const res = await sendMessageToThread(currentThreadId, `lo siento, vuelveme a solicitar la fecha para el producto ${items.nombre} ya que la fecha ${items.fecha} no se encuentra disponible`, true, timeZone);
                         const openAIResponseRaw = res.content[0].text.value;
 
@@ -93,23 +93,23 @@ export class GreenApiService {
                 if (status === false) {
                     return;
                 } else {
-                    respFinalToUser = await this.hacerPedido(currentThreadId, clienteId, openAIResponseFormatted, empresaType, clientName, numberSender);
+                    respFinalToUser = await this.hacerPedido(currentThreadId, clienteId, openAIResponseFormatted, empresaType, clientName, numberSender, chatIdExist);
                 }
             } else {
-                respFinalToUser = await this.hacerPedido(currentThreadId, clienteId, openAIResponseFormatted, empresaType, clientName, numberSender);
+                respFinalToUser = await this.hacerPedido(currentThreadId, clienteId, openAIResponseFormatted, empresaType, clientName, numberSender, chatIdExist);
             }
         } else {
             const respToUser = textError ? textError : openAIResponseFormatted
             return respToUser
         }
-        if(openAIResponseFormatted.placeOrder) {
+        if (openAIResponseFormatted.placeOrder) {
             return { ok: true, message: respFinalToUser }
-        } else{
+        } else {
             await this.chatGptThreadsService.updateThreadStatus(threadId, timeZone)
         }
     }
 
-    async hacerPedido(currentThreadId, clienteId, openAIResponse, empresaType, clientName, numberSender) {
+    async hacerPedido(currentThreadId, clienteId, openAIResponse, empresaType, clientName, numberSender, chatIdExist) {
         const newOrder = await this.pedidoService.create({
             clienteId: clienteId,
             clientName: clientName,
@@ -122,6 +122,7 @@ export class GreenApiService {
             infoLinesJson: openAIResponse.infoLines,
             fecha: openAIResponse.fecha,
             messageToUser: openAIResponse?.messageToUser,
+            chatId: chatIdExist
         })
         await this.chatGptThreadsService.deleteThread(currentThreadId)
         return newOrder.messageToUser

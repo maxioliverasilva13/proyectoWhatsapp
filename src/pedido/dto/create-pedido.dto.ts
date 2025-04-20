@@ -13,4 +13,5 @@ export class CreatePedidoDto {
     fecha?: any;
     detalles?: string;
     messageToUser?: string;
+    chatId : string
 }

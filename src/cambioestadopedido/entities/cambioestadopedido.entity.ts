@@ -12,7 +12,7 @@ export class Cambioestadopedido extends BaseEntity {
     pedido: Pedido;
 
     @Column()
-    id_user: string;
+    id_user: number;
 
     @ManyToOne(() => Estado, (estado) => estado.cambioEstados)
     estado: Estado;

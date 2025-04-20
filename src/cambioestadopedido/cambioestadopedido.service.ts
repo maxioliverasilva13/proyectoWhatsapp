@@ -6,7 +6,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Pedido } from 'src/pedido/entities/pedido.entity';
 import { Cambioestadopedido } from './entities/cambioestadopedido.entity';
 import { Estado } from 'src/estado/entities/estado.entity';
-import { Usuario } from 'src/usuario/entities/usuario.entity';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 
 @Injectable()
 export class CambioestadopedidoService {
@@ -18,46 +19,52 @@ export class CambioestadopedidoService {
     private estadoRepository: Repository<Estado>,
     @InjectRepository(Cambioestadopedido)
     private cambioEstadoRepository: Repository<Cambioestadopedido>,
-    @InjectRepository(Usuario)
-    private userRepository: Repository<Usuario>
+    @InjectQueue(`sendMessageChangeStatusOrder-${process.env.SUBDOMAIN}`) private readonly messageQueue: Queue,
+    
   ) { }
 
 
   async create(createCambioestadopedidoDto: CreateCambioestadopedidoDto) {
     try {
       const pedidoExist = await this.pedidoRepository.findOne({ where: { id: createCambioestadopedidoDto.pedidoId } })
-      if (pedidoExist) {
+      if (!pedidoExist) {
         throw new BadRequestException("There is no order with that ID")
       }
       const estadoExist = await this.estadoRepository.findOne({ where: { id: createCambioestadopedidoDto.estadoId } })
-      if (estadoExist) {
+      if (!estadoExist) {
         throw new BadRequestException("There is no status with that ID")
-      }
-      const userExist = await this.userRepository.findOne({ where: { id: createCambioestadopedidoDto.id_user } })
-      if (userExist) {
-        throw new BadRequestException("There is no user with that ID")
-      }
+      }      
 
       const newStatusOrder = await this.cambioEstadoRepository.create({
         estado: estadoExist,
-        id_user: userExist.id.toString(),
+        id_user: createCambioestadopedidoDto.id_user,
         pedido: pedidoExist,
       })
+
+      const resp = await this.messageQueue.add('send', {
+        message: estadoExist.mensaje || `Hemos echo el cambio de estado de su pedido de ${pedidoExist.estado.nombre} a ${estadoExist.nombre}`,
+        chatId: pedidoExist.chatIdWhatsapp
+      }, {
+        priority: 0,
+        attempts: 5,
+      });
 
       await this.cambioEstadoRepository.save(newStatusOrder)
 
       pedidoExist.estado = estadoExist
 
+      await this.pedidoRepository.save(pedidoExist)
+
       return {
-        ok: true,
-        message: "Status order created succesfully"
+        ok:true,
+        message: "Cambio de estado realizado exitosamente"
       }
 
     } catch (error) {
       throw new BadRequestException({
         ok: false,
         statusCode: 400,
-        message: error?.message,
+        message: error?.message || 'Error al enviar el mensaje al usuario',
         error: 'Bad Request',
       });
     }
