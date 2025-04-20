@@ -43,7 +43,7 @@ export class CambioestadopedidoService {
       })
 
       const resp = await this.messageQueue.add('send', {
-        message: estadoExist.mensaje || `Hemos echo el cambio de estado de su pedido de ${(pedidoExist?.estado?.nombre) ?? "Creado"} a ${estadoExist.nombre}`,
+        message: estadoExist.mensaje || `Hemos echo el cambio de estado de su pedido de ${(pedidoExist?.estado?.nombre) ?? "Creado"} a ${estadoExist?.nombre}`,
         chatId: pedidoExist.chatIdWhatsapp
       }, {
         priority: 0,
