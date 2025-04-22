@@ -93,6 +93,7 @@ export class AuthService implements OnModuleDestroy {
       let userConfigured = !!user.nombre?.trim() && !!user.apellido?.trim();
       let apiConfigured;
       let paymentMade = false;
+      let oldPlan = null;
       let apiUrl = '';
       let greenApiConfigured = false;
       let tipo_servicio = 0;
@@ -114,7 +115,7 @@ export class AuthService implements OnModuleDestroy {
 
         const empresa = await this.empresaRepository.findOne({
           where: { id: user.id_empresa },
-          relations: ['tipoServicioId', 'currencies'],
+          relations: ['tipoServicioId', 'currencies', 'payment'],
         });
         if (empresa) {
           hora_apertura = empresa.hora_apertura;
@@ -148,17 +149,14 @@ export class AuthService implements OnModuleDestroy {
             }
           }
 
-          const lastPlan = await this.planesEmpresaRepository.findOne({
-            where: { id_empresa: empresa?.id },
-            order: { fecha_inicio: 'DESC' },
-          });
 
-          if (lastPlan) {
-            const plan = await this.planesRepository.findOne({ where: { id: lastPlan.id_plan } });
-
-            const planExpiryDate = moment.tz(lastPlan.fecha_inicio, timeZoneCompany).add(plan.diasDuracion, 'days');
-
-            paymentMade = now.isSameOrBefore(planExpiryDate);
+          if (empresa?.payment && empresa?.payment?.active === true) {
+            paymentMade = true;
+          } else {
+            if (empresa?.payment) {
+              oldPlan = empresa?.payment;
+            }
+            paymentMade = false;
           }
         }
       }
@@ -183,6 +181,7 @@ export class AuthService implements OnModuleDestroy {
         empresaName: empresaName,
         remaindersHorsRemainder,
         timeZone,
+        oldPlan: oldPlan,
         currencies: currencies
       };
     } catch (error) {
