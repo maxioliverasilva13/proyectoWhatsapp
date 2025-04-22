@@ -14,6 +14,7 @@ import {
   ManyToOne,
   OneToMany,
   OneToOne,
+  JoinColumn,
 } from 'typeorm';
 
 @Entity('empresa')
@@ -98,5 +99,6 @@ export class Empresa extends BaseEntity {
   currencies: Currency[];
 
   @OneToOne(() => Payment, (emp) => emp.empresa, { onDelete: 'CASCADE' })
+  @JoinColumn()
   payment: Payment;
 }
