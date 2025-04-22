@@ -20,6 +20,7 @@ import { Infoline } from "src/infoline/entities/infoline.entity";
 import { Currency } from "src/currencies/entities/currency.entity";
 import { Category } from "src/category/entities/category.entity";
 import { Device } from "src/device/device.entity";
+import { Payment } from "src/payments/payment.entity";
 
 export const ENTITIES_TO_MAP_GLOBAL_DB = [
   Plan,
@@ -32,7 +33,8 @@ export const ENTITIES_TO_MAP_GLOBAL_DB = [
   Usuario,
   NumeroConfianza,
   PlanEmpresa,
-  Device
+  Device,
+  Payment
 ];
 
 export const ENTITIES_TO_MAP_EMPRESA_DB = [

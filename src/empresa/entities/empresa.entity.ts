@@ -1,11 +1,20 @@
 import { CierreProvisorio } from 'src/cierreProvisorio/entities/cierreProvisorio.entitty';
 import { Currency } from 'src/currencies/entities/currency.entity';
 import { NumeroConfianza } from 'src/numerosConfianza/entities/numeroConfianza.entity';
+import { Payment } from 'src/payments/payment.entity';
 import { Plan } from 'src/plan/entities/plan.entity';
 import { PlanEmpresa } from 'src/planEmpresa/entities/planEmpresa.entity';
 import { Tiposervicio } from 'src/tiposervicio/entities/tiposervicio.entity';
 import { BaseEntity } from 'src/utils/base.entity';
-import { Entity, Column, PrimaryGeneratedColumn, Unique, ManyToOne, OneToMany } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  Unique,
+  ManyToOne,
+  OneToMany,
+  OneToOne,
+} from 'typeorm';
 
 @Entity('empresa')
 @Unique(['db_name'])
@@ -28,15 +37,15 @@ export class Empresa extends BaseEntity {
   @Column({ nullable: true })
   menu: string;
 
-  @Column( { default: false })
+  @Column({ default: false })
   abierto: boolean;
 
   @Column({ type: 'time', nullable: true, default: null })
   hora_cierre: string;
-  
-  @Column({ type: 'time', nullable: true, default: null})
+
+  @Column({ type: 'time', nullable: true, default: null })
   hora_apertura: string;
-  
+
   @Column({ default: false })
   notificarReservaHoras: boolean;
 
@@ -58,27 +67,36 @@ export class Empresa extends BaseEntity {
   @Column({ default: false })
   greenApiConfigured: boolean;
 
-  @Column({ nullable: true, })
+  @Column({ nullable: true })
   direccion: string;
 
   @ManyToOne(() => Tiposervicio, (cmbe) => cmbe.empresas)
   tipoServicioId: Tiposervicio;
 
-  @OneToMany(() => NumeroConfianza, (numeroConfianza) => numeroConfianza.empresa)
+  @OneToMany(
+    () => NumeroConfianza,
+    (numeroConfianza) => numeroConfianza.empresa,
+  )
   numeroConfianza: NumeroConfianza[];
 
   @Column({ default: 30 })
   intervaloTiempoCalendario: number;
 
-  @OneToMany(()=> CierreProvisorio, (CierreProvisorio)=> CierreProvisorio.empresa)
+  @OneToMany(
+    () => CierreProvisorio,
+    (CierreProvisorio) => CierreProvisorio.empresa,
+  )
   cierre_provisorio: CierreProvisorio[];
 
-  @Column({default:'America/Montevideo'})
-  timeZone: string
+  @Column({ default: 'America/Montevideo' })
+  timeZone: string;
 
-  @OneToMany(()=> PlanEmpresa, (planEmpresa)=> planEmpresa.empresa)
-  planEmpresa : PlanEmpresa[]
+  @OneToMany(() => PlanEmpresa, (planEmpresa) => planEmpresa.empresa)
+  planEmpresa: PlanEmpresa[];
 
-  @OneToMany(()=> Currency, (curr)=> curr.empresa)
+  @OneToMany(() => Currency, (curr) => curr.empresa)
   currencies: Currency[];
+
+  @OneToOne(() => Payment, (emp) => emp.empresa, { onDelete: 'CASCADE' })
+  payment: Payment;
 }

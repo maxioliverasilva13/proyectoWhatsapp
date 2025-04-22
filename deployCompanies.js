@@ -72,6 +72,8 @@ function createEnvFileApp() {
       EMAIL_PASS=${process.env.EMAIL_PASS}
       REDIS_HOST=${process.env.REDIS_HOST}
       REDIS_PORT=${process.env.REDIS_PORT}
+      GOOGLE_CLIENT_EMAIL=${process.env.GOOGLE_CLIENT_EMAIL}
+      GOOGLE_PRIVATE_KEY=${process.env.GOOGLE_PRIVATE_KEY}
       POSTGRES_USER_GLOBAL=${process.env.POSTGRES_USER_GLOBAL}
       POSTGRES_PASSWORD_GLOBAL=${process.env.POSTGRES_PASSWORD_GLOBAL}
       POSTGRES_DB_GLOBAL=${process.env.POSTGRES_DB_GLOBAL}

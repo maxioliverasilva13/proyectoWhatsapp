@@ -126,6 +126,7 @@ export class AuthService implements OnModuleDestroy {
           intervaloTiempoCalendario = empresa.intervaloTiempoCalendario;
           notificarReservaHoras = empresa.notificarReservaHoras;
           remaindersHorsRemainder = empresa.remaindersHorsRemainder;
+          
           timeZone = empresa.timeZone
           apiConfigured = empresa.apiConfigured;
           apiUrl = `${process.env.ENV === 'dev' ? 'http' : 'https'}://${process.env.VIRTUAL_HOST?.replace(
