@@ -130,6 +130,8 @@ export class PaymentsService {
       return;
     }
 
+    payment.package = packageName;
+
     if (purchase?.paymentState === 1 || purchase?.paymentState === 2) {
       payment.active = true;
 

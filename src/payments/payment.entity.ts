@@ -20,7 +20,7 @@ export class Payment extends BaseEntity {
   @Column({ nullable: false })
   subscription_sku: string;
 
-  @Column({ nullable: false })
+  @Column({ nullable: true })
   subscription_date: string;
 
   @Column({ nullable: true })
