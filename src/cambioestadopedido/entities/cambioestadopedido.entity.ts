@@ -8,12 +8,12 @@ export class Cambioestadopedido extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(() => Pedido, (pedido) => pedido.cambioEstados)
+    @ManyToOne(() => Pedido, (pedido) => pedido.cambioEstados, {onDelete:'CASCADE'})
     pedido: Pedido;
 
     @Column()
     id_user: number;
 
-    @ManyToOne(() => Estado, (estado) => estado.cambioEstados)
+    @ManyToOne(() => Estado, (estado) => estado.cambioEstados, {onDelete:'CASCADE'})
     estado: Estado;
 }
