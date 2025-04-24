@@ -76,6 +76,7 @@ export class GrenApiController {
                   messageData.textMessageData?.textMessage ||
                   messageData.extendedTextMessageData?.text;
 
+
                 const respText = await this.greenApi.handleMessagetText(
                   message,
                   numberSender,
@@ -85,6 +86,7 @@ export class GrenApiController {
                   timeZone,
                   chatId
                 );
+
 
                 await this.messageQueue.add('send', {
                   message: respText,
@@ -131,6 +133,7 @@ export class GrenApiController {
               } else {
                 textReponse = `Sorry, we are currently closed.`
               }
+
               await this.messageQueue.add('send', {
                 chatId: chatId,
                 message: { message: textReponse }
