@@ -12,13 +12,14 @@ import { Empresa } from 'src/empresa/entities/empresa.entity';
 
 @Controller()
 export class GrenApiController {
+
   constructor(
     private readonly greenApi: GreenApiService,
     private readonly numeroConfianza: NumeroConfianzaService,
     private readonly WebSocket: WebsocketGateway,
-
     @InjectQueue(`GreenApiResponseMessagee-${process.env.SUBDOMAIN}`) private readonly messageQueue: Queue,
   ) { }
+
 
   @Post('/webhooks')
   async handleWebhook(@Req() request: Request, @Body() body: any) {
@@ -32,6 +33,7 @@ export class GrenApiController {
         console.log('Hubo un problema con la configuración de la API');
       }
     } else {
+
       const timeZone = request['timeZone'];
       const empresaId = request['empresaId'];
       const empresaType = request['empresaType'];
@@ -52,16 +54,23 @@ export class GrenApiController {
         const empresa = await globalCconnection.getRepository(Empresa)
         const InfoCompany = await empresa.findOne({ where: { id: empresaId } })
 
-        const now = moment().tz(timeZone);
-
-        const apertura = moment.tz(InfoCompany.hora_apertura, 'HH:mm', timeZone);
-        const cierre = moment.tz(InfoCompany.hora_cierre, 'HH:mm', timeZone);
-
         try {
           if (numberExist?.data) {
             return;
           } else {
-            if ((InfoCompany.abierto) && now.isAfter(apertura) && now.isBefore(cierre)) {
+
+            const now = moment().tz(timeZone);
+
+            const apertura = moment.tz(InfoCompany.hora_apertura, 'HH:mm:ss', timeZone);
+            const cierre = moment.tz(InfoCompany.hora_cierre, 'HH:mm:ss', timeZone);
+
+            const estaDentroDeHorario = InfoCompany.abierto && (
+              apertura.isBefore(cierre)
+                ? now.isAfter(apertura) && now.isBefore(cierre)
+                : now.isAfter(apertura) || now.isBefore(cierre)
+            );
+
+            if (estaDentroDeHorario) {
               if (messageData.typeMessage === 'textMessage') {
                 const message =
                   messageData.textMessageData?.textMessage ||
@@ -77,7 +86,7 @@ export class GrenApiController {
                   chatId
                 );
 
-                const resp = await this.messageQueue.add('send', {
+                await this.messageQueue.add('send', {
                   message: respText,
                   chatId,
                 }, {
@@ -115,27 +124,24 @@ export class GrenApiController {
             } else {
 
               let textReponse = '';
-
-
               if (InfoCompany.hora_apertura && InfoCompany.hora_cierre) {
-                const aperturaStr = apertura.format('HH:mm'); 
+                const aperturaStr = apertura.format('HH:mm');
                 const cierreStr = cierre.format('HH:mm');
-                textReponse = `Sorry, we are currently closed. Please remember that our business hours are from ${aperturaStr} PM to ${cierreStr}.`
+                textReponse = `Sorry, we are currently closed. Please remember that our business hours are from ${aperturaStr} to ${cierreStr}.`
               } else {
                 textReponse = `Sorry, we are currently closed.`
               }
               await this.messageQueue.add('send', {
                 chatId: chatId,
-                message: {message:textReponse}
+                message: { message: textReponse }
               }, {
                 priority: 0,
                 attempts: 5,
               })
             }
           }
-        } catch (error) {
+        } finally {
           globalCconnection.destroy();
-          console.log(error);
         }
       } else {
         return;
