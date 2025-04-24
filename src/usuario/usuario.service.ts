@@ -15,7 +15,7 @@ export class UsuarioService {
 
   async create(createUsuarioDto: CreateUsuarioDto) {
     try {
-      const existUser = await this.usuarioRepository.findOne({ where: { correo: createUsuarioDto.correo, id_empresa:createUsuarioDto.id_empresa } })
+      const existUser = await this.usuarioRepository.findOne({ where: { correo: createUsuarioDto.correo, id_empresa: createUsuarioDto.id_empresa } })
 
       if (existUser) {
         throw new BadRequestException('There is already a user with that email')
@@ -40,7 +40,7 @@ export class UsuarioService {
         ok: true,
         statusCode: 200,
         message: 'User created successfully',
-        data : user
+        data: user
       }
 
     } catch (error) {
@@ -55,16 +55,16 @@ export class UsuarioService {
 
   async findAll(empresaId: number) {
     try {
-      
+
       const allUsers = await this.usuarioRepository.find({
         where: {
           id_empresa: empresaId,
         },
         select: [
-          "createdAt", "id", "nombre", "apellido", "correo", "id_empresa", "id_rol", "activo", "firstUser",
+          "createdAt", "id", "nombre", "apellido", "correo", "id_empresa", "id_rol", "activo", "firstUser", "image",
         ],
       });
-  
+
       if (allUsers.length === 0) {
         return {
           ok: false,
@@ -72,7 +72,7 @@ export class UsuarioService {
           message: `No se encontraron usuarios para la empresa con ID ${empresaId}`,
         };
       }
-  
+
       return {
         ok: true,
         statusCode: 200,
@@ -87,13 +87,13 @@ export class UsuarioService {
       });
     }
   }
-  
+
 
   async findOne(id: number) {
     try {
       const user = await this.usuarioRepository.findOne({
         where: { id }, select: [
-          "createdAt", "id", "nombre", "apellido", "correo", "id_empresa", "id_rol", "activo", "firstUser",
+          "createdAt", "id", "nombre", "apellido", "correo", "id_empresa", "id_rol", "activo", "firstUser", "image",
         ]
       })
       if (!user) {
