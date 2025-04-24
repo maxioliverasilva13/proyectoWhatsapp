@@ -6,8 +6,9 @@ import { WebsocketGateway } from 'src/websocket/websocket.gatewat';
 import { SpeechToText } from 'src/utils/openAIServices';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
-import { EmpresaService } from 'src/empresa/empresa.service';
 import * as moment from 'moment-timezone'
+import { handleGetGlobalConnection } from 'src/utils/dbConnection';
+import { Empresa } from 'src/empresa/entities/empresa.entity';
 
 @Controller()
 export class GrenApiController {
@@ -15,7 +16,6 @@ export class GrenApiController {
     private readonly greenApi: GreenApiService,
     private readonly numeroConfianza: NumeroConfianzaService,
     private readonly WebSocket: WebsocketGateway,
-    private readonly empresaService: EmpresaService,
 
     @InjectQueue(`GreenApiResponseMessagee-${process.env.SUBDOMAIN}`) private readonly messageQueue: Queue,
   ) { }
@@ -39,7 +39,6 @@ export class GrenApiController {
 
       if (typeWebhook === 'incomingMessageReceived') {
         const senderData = body?.senderData;
-        const InfoCompany = await this.empresaService.findOne(empresaId)
         const sender = senderData?.sender;
         const chatId = senderData?.chatId;
         const numberSender = sender.match(/^\d+/)[0];
@@ -49,72 +48,94 @@ export class GrenApiController {
           empresaId,
         );
 
+        const globalCconnection = await handleGetGlobalConnection()
+        const empresa = await globalCconnection.getRepository(Empresa)
+        const InfoCompany = await empresa.findOne({ where: { id: empresaId } })
+
         const now = moment().tz(timeZone);
 
         const apertura = moment.tz(InfoCompany.hora_apertura, 'HH:mm', timeZone);
         const cierre = moment.tz(InfoCompany.hora_cierre, 'HH:mm', timeZone);
 
-        if (numberExist?.data) {
-          return;
-        } else {
-          if ((InfoCompany.abierto) && now.isAfter(apertura) && now.isBefore(cierre)) {
-            if (messageData.typeMessage === 'textMessage') {
-              const message =
-                messageData.textMessageData?.textMessage ||
-                messageData.extendedTextMessageData?.text;
-    
-              const respText = await this.greenApi.handleMessagetText(
-                message,
-                numberSender,
-                empresaType,
-                empresaId,
-                senderName,
-                timeZone,
-                chatId
-              );
-    
-              const resp = await this.messageQueue.add('send', {
-                message: respText,
-                chatId,
-              }, {
-                priority: 0,
-                attempts: 5,
-              });
-    
-            } else if (messageData.typeMessage === 'audioMessage') {
-              const fileUrl = messageData.fileMessageData.downloadUrl;
-    
-              const speechToText = await SpeechToText(fileUrl);
-    
-              const respText = await this.greenApi.handleMessagetText(
-                speechToText,
-                numberSender,
-                empresaType,
-                empresaId,
-                senderName,
-                timeZone,
-                chatId
-              );
-    
-              const resp = await this.messageQueue.add('send', {
-                message: respText,
-                chatId,
-              }, {
-                priority: 0,
-                attempts: 5,
-              });
-              console
-              console.log("job added", resp?.id)
-    
-            } else {
-              console.log('Evento desconocido del webhook:', typeWebhook);
-            }
+        try {
+          if (numberExist?.data) {
+            return;
           } else {
-            const resp = await this.messageQueue.add('send', {
-              message: `Sorry, we are currently closed. Please remember that our business hours are from ${apertura} PM to ${cierre}.`,
-              chatId: 0
-            })
+            if ((InfoCompany.abierto) && now.isAfter(apertura) && now.isBefore(cierre)) {
+              if (messageData.typeMessage === 'textMessage') {
+                const message =
+                  messageData.textMessageData?.textMessage ||
+                  messageData.extendedTextMessageData?.text;
+
+                const respText = await this.greenApi.handleMessagetText(
+                  message,
+                  numberSender,
+                  empresaType,
+                  empresaId,
+                  senderName,
+                  timeZone,
+                  chatId
+                );
+
+                const resp = await this.messageQueue.add('send', {
+                  message: respText,
+                  chatId,
+                }, {
+                  priority: 0,
+                  attempts: 5,
+                });
+
+              } else if (messageData.typeMessage === 'audioMessage') {
+                const fileUrl = messageData.fileMessageData.downloadUrl;
+
+                const speechToText = await SpeechToText(fileUrl);
+
+                const respText = await this.greenApi.handleMessagetText(
+                  speechToText,
+                  numberSender,
+                  empresaType,
+                  empresaId,
+                  senderName,
+                  timeZone,
+                  chatId
+                );
+
+                const resp = await this.messageQueue.add('send', {
+                  message: respText,
+                  chatId,
+                }, {
+                  priority: 0,
+                  attempts: 5,
+                });
+
+
+              } else {
+                console.log('Evento desconocido del webhook:', typeWebhook);
+              }
+            } else {
+
+              let textReponse = '';
+
+
+              if (InfoCompany.hora_apertura && InfoCompany.hora_cierre) {
+                const aperturaStr = apertura.format('HH:mm'); 
+                const cierreStr = cierre.format('HH:mm');
+                textReponse = `Sorry, we are currently closed. Please remember that our business hours are from ${aperturaStr} PM to ${cierreStr}.`
+              } else {
+                textReponse = `Sorry, we are currently closed.`
+              }
+              await this.messageQueue.add('send', {
+                chatId: chatId,
+                message: {message:textReponse}
+              }, {
+                priority: 0,
+                attempts: 5,
+              })
+            }
           }
+        } catch (error) {
+          globalCconnection.destroy();
+          console.log(error);
         }
       } else {
         return;
