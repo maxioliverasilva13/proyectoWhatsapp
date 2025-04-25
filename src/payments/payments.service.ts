@@ -5,6 +5,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Empresa } from 'src/empresa/entities/empresa.entity';
 import { Payment } from './payment.entity';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 
 @Injectable()
 export class PaymentsService {
@@ -16,10 +19,26 @@ export class PaymentsService {
     @InjectRepository(Payment) private paymentRepo: Repository<Payment>,
   ) {
     if (process.env.SUBDOMAIN === 'app') {
+      const keyfileJson = process.env.GOOGLE_KEYFILE_JSON;
+      const formattedKeyfile = keyfileJson.replace(/\\n/g, '\n');
+
+      if (!formattedKeyfile) {
+        throw new Error('GOOGLE_KEYFILE_JSON no está definido');
+      }
+
+      const tempPath = path.join(os.tmpdir(), 'google-service-account.json');
+      fs.writeFileSync(tempPath, formattedKeyfile);
+      console.log('Formatted Keyfile:', formattedKeyfile);
+
+      this.auth = new google.auth.GoogleAuth({
+        keyFile: tempPath,
+        scopes: ['https://www.googleapis.com/auth/androidpublisher'],
+      });
+
       this.auth = new google.auth.JWT(
         process.env.GOOGLE_CLIENT_EMAIL,
         undefined,
-        process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g,"\n"),
+        process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
         ['https://www.googleapis.com/auth/androidpublisher'],
       );
 
