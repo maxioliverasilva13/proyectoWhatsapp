@@ -93,9 +93,9 @@ export class PaymentsService {
   }
 
   async handleRtdn(rtdnData: any) {
-    const packageName = rtdnData?.rtdnData;
-    const purchaseToken = rtdnData?.subscriptionNotification?.rtdnData;
-    const subscriptionId = rtdnData?.subscriptionNotification?.rtdnData;
+    const packageName = rtdnData?.packageName;
+    const purchaseToken = rtdnData?.subscriptionNotification?.purchaseToken;
+    const subscriptionId = rtdnData?.subscriptionNotification?.subscriptionId;
 
     if (!packageName || !purchaseToken || !subscriptionId) {
       throw new BadRequestException('Invalid params');
