@@ -142,6 +142,8 @@ export class PaymentsService {
     if (!packageName || !purchaseToken || !subscriptionId) {
       throw new BadRequestException('Invalid params');
     }
+    console.log('PAGO - RTDN recibido:', rtdnData);
+
 
     const purchase = await this.verifyPurchase(
       packageName,
