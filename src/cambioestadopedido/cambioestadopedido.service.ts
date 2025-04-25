@@ -8,6 +8,7 @@ import { Cambioestadopedido } from './entities/cambioestadopedido.entity';
 import { Estado } from 'src/estado/entities/estado.entity';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
+import { WebsocketGateway } from 'src/websocket/websocket.gatewat';
 
 @Injectable()
 export class CambioestadopedidoService {
@@ -20,6 +21,7 @@ export class CambioestadopedidoService {
     @InjectRepository(Cambioestadopedido)
     private cambioEstadoRepository: Repository<Cambioestadopedido>,
     @InjectQueue(`sendMessageChangeStatusOrder-${process.env.SUBDOMAIN}`) private readonly messageQueue: Queue,
+    private readonly webSocketService : WebsocketGateway
 
   ) { }
 
@@ -42,7 +44,7 @@ export class CambioestadopedidoService {
         createdAt: new Date()
       })
 
-      const resp = await this.messageQueue.add('send', {
+      await this.messageQueue.add('send', {
         message: estadoExist.mensaje || `Hemos echo el cambio de estado de su pedido de ${(pedidoExist?.estado?.nombre) ?? "Creado"} a ${estadoExist?.nombre}`,
         chatId: pedidoExist.chatIdWhatsapp
       }, {
@@ -55,6 +57,8 @@ export class CambioestadopedidoService {
       pedidoExist.estado = estadoExist
 
       await this.pedidoRepository.save(pedidoExist)
+
+      await this.webSocketService.emitNotificationChangeStatuss(newStatusOrder)
 
       return {
         ok: true,
