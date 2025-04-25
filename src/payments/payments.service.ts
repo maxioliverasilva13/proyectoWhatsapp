@@ -19,17 +19,16 @@ export class PaymentsService {
     @InjectRepository(Payment) private paymentRepo: Repository<Payment>,
   ) {
     if (process.env.SUBDOMAIN === 'app') {
-      const keyfileJson = process.env.GOOGLE_KEYFILE_JSON;
+      const keyfileJson = process.env.GOOGLE_PRIVATE_KEY;
       const formattedKeyfile = keyfileJson.replace(/\\n/g, '\n');
 
       if (!formattedKeyfile) {
-        throw new Error('GOOGLE_KEYFILE_JSON no está definido');
+        throw new Error('GOOGLE_PRIVATE_KEY no está definido');
       }
 
       const tempPath = path.join(os.tmpdir(), 'google-service-account.json');
       fs.writeFileSync(tempPath, formattedKeyfile);
       console.log('Formatted Keyfile:', formattedKeyfile);
-
       this.auth = new google.auth.GoogleAuth({
         keyFile: tempPath,
         scopes: ['https://www.googleapis.com/auth/androidpublisher'],
