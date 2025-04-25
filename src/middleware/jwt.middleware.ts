@@ -8,8 +8,10 @@ import { handleGetGlobalConnection } from 'src/utils/dbConnection';
 @Injectable()
 export class JwtMiddleware implements NestMiddleware {
   async use(req: Request, res: Response, next: NextFunction) {
-    console.log('validando token')
     const token = req.headers['authorization']?.split(' ')[1];
+    console.log('validando token',  req.originalUrl);
+    console.log("token", token);
+
     if (!token) {
       return res.status(401).json({ message: 'Token no proporcionado' });
     }
