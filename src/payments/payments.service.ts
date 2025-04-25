@@ -134,18 +134,9 @@ export class PaymentsService {
 
     console.log('Si recibo', purchase);
 
-    const empresa = await this.empresaRepo.findOne({
-      where: { db_name: purchase.developerPayload },
-      relations: ['payment'],
-    });
-
-    if (!empresa) {
-      console.log('Empresa no encontrada para RTDN');
-      return;
-    }
-
     let payment = await this.paymentRepo.findOne({
       where: { purchaseToken },
+      relations: ['empresa'],
     });
 
     if (!payment) {
@@ -153,6 +144,15 @@ export class PaymentsService {
       return;
     }
 
+    const empresa = await this.empresaRepo.findOne({
+      where: { id: payment.empresa?.id },
+      relations: ['payment'],
+    });
+
+    if (!empresa) {
+      console.log('Empresa no encontrada para RTDN');
+      return;
+    }
     payment.package = packageName;
 
     if (purchase?.paymentState === 1 || purchase?.paymentState === 2) {
