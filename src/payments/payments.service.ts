@@ -121,6 +121,8 @@ export class PaymentsService {
     const packageName = rtdnData?.packageName;
     const purchaseToken = rtdnData?.subscriptionNotification?.purchaseToken;
     const subscriptionId = rtdnData?.subscriptionNotification?.subscriptionId;
+    const notificationType =
+      rtdnData?.subscriptionNotification?.notificationType;
 
     if (!packageName || !purchaseToken || !subscriptionId) {
       throw new BadRequestException('Invalid params');
@@ -132,7 +134,7 @@ export class PaymentsService {
       purchaseToken,
     );
 
-    console.log('Si recibo', purchase);
+    console.log('Notificación recibida, purchase verificado:', purchase);
 
     let payment = await this.paymentRepo.findOne({
       where: { purchaseToken },
@@ -141,7 +143,7 @@ export class PaymentsService {
 
     if (!payment) {
       console.log('Pago no encontrado para el token');
-      return;
+      return { success: true };
     }
 
     const empresa = await this.empresaRepo.findOne({
@@ -153,27 +155,42 @@ export class PaymentsService {
       console.log('Empresa no encontrada para RTDN');
       return;
     }
+
     payment.package = packageName;
 
-    if (purchase?.paymentState === 1 || purchase?.paymentState === 2) {
-      payment.active = true;
+    const now = new Date();
 
-      const currentDate = new Date();
-      let expirationDate: Date;
+    switch (notificationType) {
+      case 1: // SUBSCRIPTION_RECOVERED
+      case 2: // SUBSCRIPTION_RENEWED
+      case 4: // SUBSCRIPTION_PURCHASED
+      case 7: // SUBSCRIPTION_RESTARTED
+        payment.active = true;
+        payment.subscription_date = new Date(
+          Number(purchase?.expiryTimeMillis ?? now.getTime()),
+        ).toISOString();
+        console.log('Suscripción activa y actualizada');
+        break;
 
-      expirationDate = new Date(
-        currentDate.setMonth(currentDate.getMonth() + 1),
-      );
+      case 3: // SUBSCRIPTION_CANCELED
+      case 5: // SUBSCRIPTION_ON_HOLD
+      case 6: // SUBSCRIPTION_IN_GRACE_PERIOD
+      case 10: // SUBSCRIPTION_PAUSED
+      case 12: // SUBSCRIPTION_REVOKED
+      case 13: // SUBSCRIPTION_EXPIRED
+        payment.active = false;
+        payment.subscription_date = now.toISOString();
+        console.log(
+          'Suscripción desactivada (cancelada, en pausa, expirada o revocada)',
+        );
+        break;
 
-      payment.subscription_date = expirationDate.toISOString();
-
-      console.log(
-        'Pago validado, suscripción activa y fecha de expiración actualizada',
-      );
-    } else {
-      payment.active = false;
-      payment.subscription_date = new Date().toISOString();
-      console.log('Pago inválido, suscripción desactivada');
+      default:
+        console.log(
+          'Notificación no manejada explícitamente:',
+          notificationType,
+        );
+        return;
     }
 
     await this.paymentRepo.save(payment);
