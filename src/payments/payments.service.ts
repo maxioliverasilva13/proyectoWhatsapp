@@ -5,6 +5,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Empresa } from 'src/empresa/entities/empresa.entity';
 import { Payment } from './payment.entity';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 
 @Injectable()
 export class PaymentsService {
@@ -16,12 +19,19 @@ export class PaymentsService {
     @InjectRepository(Payment) private paymentRepo: Repository<Payment>,
   ) {
     if (process.env.SUBDOMAIN === 'app') {
-      this.auth = new google.auth.JWT(
-        process.env.GOOGLE_CLIENT_EMAIL,
-        undefined,
-        process.env.GOOGLE_PRIVATE_KEY,
-        ['https://www.googleapis.com/auth/androidpublisher'],
-      );
+      const keyfileJson = process.env.GOOGLE_PRIVATE_KEY;
+
+      if (!keyfileJson) {
+        throw new Error('GOOGLE_PRIVATE_KEY no está definido');
+      }
+
+      const tempPath = path.join(os.tmpdir(), 'google-service-account.json');
+      fs.writeFileSync(tempPath, keyfileJson);
+      console.log('Formatted Keyfile:', keyfileJson);
+      this.auth = new google.auth.GoogleAuth({
+        keyFile: tempPath,
+        scopes: ['https://www.googleapis.com/auth/androidpublisher'],
+      });
 
       this.androidPublisher = google.androidpublisher({
         version: 'v3',
@@ -93,9 +103,9 @@ export class PaymentsService {
   }
 
   async handleRtdn(rtdnData: any) {
-    const packageName = rtdnData?.rtdnData;
-    const purchaseToken = rtdnData?.subscriptionNotification?.rtdnData;
-    const subscriptionId = rtdnData?.subscriptionNotification?.rtdnData;
+    const packageName = rtdnData?.packageName;
+    const purchaseToken = rtdnData?.subscriptionNotification?.purchaseToken;
+    const subscriptionId = rtdnData?.subscriptionNotification?.subscriptionId;
 
     if (!packageName || !purchaseToken || !subscriptionId) {
       throw new BadRequestException('Invalid params');

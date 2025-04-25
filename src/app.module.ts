@@ -152,6 +152,7 @@ export class AppModule {
         { path: '/auth/register', method: RequestMethod.ALL },
         { path: '/webhooks', method: RequestMethod.ALL },
         { path: '/payments/verify', method: RequestMethod.ALL },
+        { path: '/payments/verify/', method: RequestMethod.ALL },
         { path: '/tiposervicio', method: RequestMethod.ALL },
         { path: '/empresa', method: RequestMethod.ALL },
         { path: '/upload', method: RequestMethod.ALL },

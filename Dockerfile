@@ -24,4 +24,6 @@ ENV NODE_ENV=production
 
 EXPOSE 3000
 
+ENV NODE_OPTIONS=--openssl-legacy-provider
+
 CMD ["node", "dist/main"]
