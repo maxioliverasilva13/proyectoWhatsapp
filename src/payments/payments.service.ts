@@ -90,16 +90,31 @@ export class PaymentsService {
       where: { id: Number(data.empresaId) },
     });
     if (!empresa?.id) {
-      throw new BadRequestException('Datos no validos');
+      throw new BadRequestException('Datos no válidos');
     }
-    const newPayment = this.paymentRepo.create({
-      purchaseToken: data?.purcheaseToken,
-      subscription_sku: data?.sku,
-      started_by_user_id: data?.userId,
-      active: false,
-      empresa,
+
+    let existingPayment = await this.paymentRepo.findOne({
+      where: {
+        empresa: { id: Number(data.empresaId) },
+        subscription_sku: data.sku,
+        started_by_user_id: data.userId,
+      },
     });
-    await this.paymentRepo.save(newPayment);
+
+    if (existingPayment) {
+      existingPayment.purchaseToken = data.purcheaseToken;
+      existingPayment.active = false;
+      await this.paymentRepo.save(existingPayment);
+    } else {
+      const newPayment = this.paymentRepo.create({
+        purchaseToken: data.purcheaseToken,
+        subscription_sku: data.sku,
+        started_by_user_id: data.userId,
+        active: false,
+        empresa,
+      });
+      await this.paymentRepo.save(newPayment);
+    }
   }
 
   async handleRtdn(rtdnData: any) {
@@ -118,8 +133,6 @@ export class PaymentsService {
     );
 
     console.log('Si recibo', purchase);
-
-    const userId = purchase?.linkedPurchaseToken || 'unknown';
 
     const empresa = await this.empresaRepo.findOne({
       where: { db_name: purchase.developerPayload },
@@ -167,6 +180,7 @@ export class PaymentsService {
 
     if (payment.active) {
       empresa.deploy = true;
+      empresa.payment = payment;
       await this.empresaRepo.save(empresa);
       console.log('Empresa activada');
     }
