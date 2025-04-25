@@ -20,26 +20,18 @@ export class PaymentsService {
   ) {
     if (process.env.SUBDOMAIN === 'app') {
       const keyfileJson = process.env.GOOGLE_PRIVATE_KEY;
-      const formattedKeyfile = keyfileJson.replace(/\\n/g, '\n');
 
-      if (!formattedKeyfile) {
+      if (!keyfileJson) {
         throw new Error('GOOGLE_PRIVATE_KEY no está definido');
       }
 
       const tempPath = path.join(os.tmpdir(), 'google-service-account.json');
-      fs.writeFileSync(tempPath, formattedKeyfile);
-      console.log('Formatted Keyfile:', formattedKeyfile);
+      fs.writeFileSync(tempPath, keyfileJson);
+      console.log('Formatted Keyfile:', keyfileJson);
       this.auth = new google.auth.GoogleAuth({
         keyFile: tempPath,
         scopes: ['https://www.googleapis.com/auth/androidpublisher'],
       });
-
-      this.auth = new google.auth.JWT(
-        process.env.GOOGLE_CLIENT_EMAIL,
-        undefined,
-        process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-        ['https://www.googleapis.com/auth/androidpublisher'],
-      );
 
       this.androidPublisher = google.androidpublisher({
         version: 'v3',
