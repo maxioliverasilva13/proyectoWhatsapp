@@ -40,17 +40,15 @@ export class PaymentsController {
 
   @Post('verify')
   async handleWebhook(@Body() body: any) {
-    // const pubsubMessage = body.message;
-    // if (pubsubMessage) {
-    //   const decodedData = JSON.parse(
-    //     Buffer.from(pubsubMessage.data, 'base64').toString('utf-8')
-    //   );
-    // console.log('PAGO - RTDN recibido:', decodedData);
+    const pubsubMessage = body.message;
+    if (pubsubMessage) {
+      const decodedData = JSON.parse(
+        Buffer.from(pubsubMessage.data, 'base64').toString('utf-8')
+      );
+    console.log('PAGO - RTDN recibido:', decodedData);
 
-    //   await this.paymentsService.handleRtdn(decodedData);
-    //   return { ok: true };
-    // }
-     await this.paymentsService.handleRtdn(body);
-    return { ok: true };
+      await this.paymentsService.handleRtdn(decodedData);
+      return { ok: true };
+    }
   }
 }
