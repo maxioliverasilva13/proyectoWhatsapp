@@ -2,7 +2,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { google } from 'googleapis';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Empresa } from 'src/empresa/entities/empresa.entity';
 import { Payment } from './payment.entity';
 import * as fs from 'fs';
@@ -81,39 +81,54 @@ export class PaymentsService {
   }
 
   async handleInitial(data: {
-    empresaId: string;
+    empresaId?: string;
     purcheaseToken: string;
     sku: string;
-    userId: string;
+    newPurcheaseToken?: string;
+    userId?: string;
   }) {
-    const empresa = await this.empresaRepo.findOne({
-      where: { id: Number(data.empresaId) },
-    });
-    if (!empresa?.id) {
-      throw new BadRequestException('Datos no válidos');
-    }
-
     let existingPayment = await this.paymentRepo.findOne({
       where: {
-        empresa: { id: Number(data.empresaId) },
-        subscription_sku: data.sku,
-        started_by_user_id: data.userId,
+        purchaseToken: data?.purcheaseToken ?? '',
       },
     });
 
     if (existingPayment) {
-      existingPayment.purchaseToken = data.purcheaseToken;
+      console.log('actualizando pago con empresa id', data?.empresaId);
       existingPayment.active = false;
-      await this.paymentRepo.save(existingPayment);
+      existingPayment.started_by_user_id = data?.userId;
+      existingPayment.purchaseToken = data.purcheaseToken;
+
+      if (data?.empresaId) {
+        const empresa = await this.empresaRepo.findOne({
+          where: { id: Number(data.empresaId) },
+        });
+        if (empresa?.id) {
+          existingPayment.empresa = empresa;
+        }
+      }
+
+      return await this.paymentRepo.save(existingPayment);
     } else {
+      console.log('creando nuevo pago con empresa id', data?.empresaId);
+
       const newPayment = this.paymentRepo.create({
         purchaseToken: data.purcheaseToken,
         subscription_sku: data.sku,
-        started_by_user_id: data.userId,
         active: false,
-        empresa,
       });
-      await this.paymentRepo.save(newPayment);
+      newPayment.started_by_user_id = data?.userId;
+
+      if (data?.empresaId) {
+        const empresa = await this.empresaRepo.findOne({
+          where: { id: Number(data.empresaId) },
+        });
+        if (empresa?.id) {
+          newPayment.empresa = empresa;
+        }
+      }
+
+      return await this.paymentRepo.save(newPayment);
     }
   }
 
@@ -134,16 +149,22 @@ export class PaymentsService {
       purchaseToken,
     );
 
-    console.log('Notificación recibida, purchase verificado:', purchase);
+    const linkedPurchaseToken = purchase?.linkedPurchaseToken;
 
     let payment = await this.paymentRepo.findOne({
-      where: { purchaseToken },
+      where: {
+        purchaseToken: In([purchaseToken, linkedPurchaseToken]),
+      },
       relations: ['empresa'],
     });
 
     if (!payment) {
-      console.log('Pago no encontrado para el token');
-      return { success: true };
+      payment = await this.handleInitial({
+        purcheaseToken: purchaseToken,
+        sku: subscriptionId,
+        newPurcheaseToken: purchaseToken,
+      });
+      console.log('Pago no encontrado, creando uno nuevo');
     }
 
     const empresa = await this.empresaRepo.findOne({
@@ -153,7 +174,7 @@ export class PaymentsService {
 
     if (!empresa) {
       console.log('Empresa no encontrada para RTDN');
-      return { success: true };
+      return { success: false };
     }
 
     payment.package = packageName;
