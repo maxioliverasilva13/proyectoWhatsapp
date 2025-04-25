@@ -27,7 +27,6 @@ export class PaymentsService {
 
       const tempPath = path.join(os.tmpdir(), 'google-service-account.json');
       fs.writeFileSync(tempPath, keyfileJson);
-      console.log('Formatted Keyfile:', keyfileJson);
       this.auth = new google.auth.GoogleAuth({
         keyFile: tempPath,
         scopes: ['https://www.googleapis.com/auth/androidpublisher'],
@@ -223,6 +222,8 @@ export class PaymentsService {
       empresa.payment = payment;
       await this.empresaRepo.save(empresa);
       console.log('Empresa activada');
+    } else {
+      console.log("Emrpesa desactivada")
     }
 
     console.log('Proceso de RTDN completado');

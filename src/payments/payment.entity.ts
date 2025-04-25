@@ -26,7 +26,7 @@ export class Payment extends BaseEntity {
   @Column({ nullable: true })
   package: string;
 
-  @OneToOne(() => Empresa, emp => emp.payment, { onDelete: "CASCADE" })
+  @OneToOne(() => Empresa, emp => emp.payment, { onDelete: "SET NULL" })
   empresa: Empresa;
 
 }
