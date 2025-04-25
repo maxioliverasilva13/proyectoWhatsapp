@@ -153,7 +153,7 @@ export class PaymentsService {
 
     if (!empresa) {
       console.log('Empresa no encontrada para RTDN');
-      return;
+      return { success: true };
     }
 
     payment.package = packageName;
@@ -203,5 +203,6 @@ export class PaymentsService {
     }
 
     console.log('Proceso de RTDN completado');
+    return { success: true };
   }
 }
