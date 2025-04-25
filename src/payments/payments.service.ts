@@ -19,7 +19,7 @@ export class PaymentsService {
       this.auth = new google.auth.JWT(
         process.env.GOOGLE_CLIENT_EMAIL,
         undefined,
-        process.env.GOOGLE_PRIVATE_KEY,
+        process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/gm, "\n"),
         ['https://www.googleapis.com/auth/androidpublisher'],
       );
 
