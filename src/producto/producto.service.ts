@@ -156,7 +156,8 @@ export class ProductoService implements OnModuleDestroy {
   async updateProducto(id: number, updateProductoDto: UpdateProductoDto) {
 
     try {
-      const existProduct = await this.productoRepository.findOne({ where: { id: id },
+      const existProduct = await this.productoRepository.findOne({
+        where: { id: id },
         relations: ['category'],
       })
 

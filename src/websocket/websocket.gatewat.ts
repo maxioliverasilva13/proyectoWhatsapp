@@ -1,7 +1,12 @@
 import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 
-@WebSocketGateway()
+@WebSocketGateway({
+    cors: {
+        origin: '*',
+        methods: ['GET', 'POST'],
+    }
+})
 export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @WebSocketServer()
     server: Server;
@@ -29,20 +34,20 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
     ) {
         const channelName = 'order_listen_nro_' + payload.orderId
         console.log(channelName);
-        
 
-        if(payload.orderId) {
+
+        if (payload.orderId) {
             client.join(channelName)
         }
     }
 
-    async emitNotificationChangeStatuss( data ) {
+    async emitNotificationChangeStatuss(data) {
         console.log('recibo', data);
-        
+
         const channelName = 'order_listen_nro_' + data.pedido.id
 
-        if(channelName && data) {
-            this.server.to(channelName).emit('changeStatusOrder',data)
+        if (channelName && data) {
+            this.server.to(channelName).emit('changeStatusOrder', data)
         }
 
     }
