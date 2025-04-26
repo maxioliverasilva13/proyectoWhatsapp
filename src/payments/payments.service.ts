@@ -96,7 +96,6 @@ export class PaymentsService {
       console.log('actualizando pago con empresa id', data?.empresaId);
       existingPayment.active = false;
       existingPayment.started_by_user_id = data?.userId;
-      existingPayment.purchaseToken = data.purcheaseToken;
 
       if (data?.empresaId) {
         const empresa = await this.empresaRepo.findOne({
