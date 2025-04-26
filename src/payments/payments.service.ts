@@ -92,8 +92,9 @@ export class PaymentsService {
       },
     });
 
-    if (existingPayment) {
-      console.log('actualizando pago con empresa id', data?.empresaId);
+    if (existingPayment?.id) {
+      console.log('actualizando pago con empresa id', data?.empresaId, existingPayment);
+      console.log("existingPayment", existingPayment)
       existingPayment.active = false;
       existingPayment.started_by_user_id = data?.userId;
 
@@ -101,12 +102,15 @@ export class PaymentsService {
         const empresa = await this.empresaRepo.findOne({
           where: { id: Number(data.empresaId) },
         });
+        console.log("sip, empresa es", empresa)
         if (empresa?.id) {
+        console.log("xd2", empresa)
           existingPayment.empresa = empresa;
         }
       }
 
-      return await this.paymentRepo.save(existingPayment);
+      await this.paymentRepo.update(existingPayment?.id, existingPayment);
+      return existingPayment;
     } else {
       console.log('creando nuevo pago con empresa id', data?.empresaId);
 
