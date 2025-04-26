@@ -42,19 +42,13 @@ export class PaymentsService {
   async isPaymentOk(data: { empresaId: string; purcheaseToken: string }) {
     try {
       const empresa = await this.empresaRepo.findOne({
-        where: { id: Number(data.empresaId) },
+        where: { id: Number(data.empresaId) }, relations: ['payment'],
       });
       if (!empresa) {
         console.log("no empresa")
         return { success: false };
       }
-      const payment = await this.paymentRepo.findOne({
-        where: { purchaseToken: data.purcheaseToken, empresa: empresa },
-      });
-      if (!payment || payment?.active === false) {
-        console.log("!payment", !payment);
-        console.log("payment?.active", payment);
-
+      if (!empresa?.payment || (empresa?.payment && empresa?.payment?.active === false)) {
         return { success: false };
       }
       return { success: true };
