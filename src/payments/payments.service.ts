@@ -45,12 +45,16 @@ export class PaymentsService {
         where: { id: Number(data.empresaId) },
       });
       if (!empresa) {
+        console.log("no empresa")
         return { success: false };
       }
       const payment = await this.paymentRepo.findOne({
         where: { purchaseToken: data.purcheaseToken, empresa: empresa },
       });
       if (!payment || payment?.active === false) {
+        console.log("!payment", !payment);
+        console.log("payment?.active", payment);
+
         return { success: false };
       }
       return { success: true };
