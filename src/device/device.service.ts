@@ -8,6 +8,7 @@ import { Repository } from 'typeorm';
 import { Usuario } from 'src/usuario/entities/usuario.entity';
 import { Device } from './device.entity';
 import * as admin from 'firebase-admin';
+import { handleGetGlobalConnection } from 'src/utils/dbConnection';
 
 @Injectable()
 export class DeviceService {
@@ -95,35 +96,45 @@ export class DeviceService {
     title: string,
     desc: string,
   ) {
-    const usuarios = await this.usuarioRepository.find({
-      where: { id_empresa: empresaId },
-      relations: ['dispositivos'],
-    });
+    const globalConnection = await handleGetGlobalConnection();
 
-    if (!usuarios || usuarios?.length === 0) {
-      throw new NotFoundException('User not device registered!');
+    try {
+      const userRepository = globalConnection.getRepository(Usuario);
+
+      const usuarios = await userRepository.find({
+        where: { id_empresa: empresaId },
+        relations: ['dispositivos'],
+      });
+
+      if (!usuarios || usuarios?.length === 0) {
+        throw new NotFoundException('User not device registered!');
+      }
+
+      await Promise.all(
+        usuarios?.map(async (usuario) => {
+          await Promise.all(
+            usuario?.dispositivos?.map(async (device) => {
+              try {
+                const message = {
+                  notification: { title: title, body: desc },
+                  token: device.fcmToken,
+                };
+                await admin.messaging().send(message);
+              } catch (error) {
+                throw new InternalServerErrorException(
+                  'Error sending notification',
+                  error.message,
+                );
+              }
+            }),
+          );
+        }),
+      );
+
+      return { success: true, message: 'Notification sended.' };
+    } catch (error) {
+    } finally {
+      await globalConnection.destroy();
     }
-
-    await Promise.all(
-      usuarios?.map(async (usuario) => {
-        await Promise.all(
-          usuario?.dispositivos?.map(async (device) => {
-            try {
-              const message = {
-                notification: { title: title, body: desc },
-                token: device.fcmToken,
-              };
-              await admin.messaging().send(message);
-            } catch (error) {
-              throw new InternalServerErrorException(
-                'Error sending notification',
-                error.message,
-              );
-            }
-          }),
-        );
-      }),
-    );
-    return { success: true, message: 'Notification sended.' };
   }
 }
