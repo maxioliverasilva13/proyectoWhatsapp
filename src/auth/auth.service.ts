@@ -81,7 +81,7 @@ export class AuthService implements OnModuleDestroy {
       const currencyRepository = globalConnection.getRepository(Currency);
 
       const now = moment.tz(timeZoneCompany);
-      const user = await userRepository.findOne({ where: { id: userId }, relations: ['dispositivo'] });
+      const user = await userRepository.findOne({ where: { id: userId }, relations: ['dispositivos'] });
       if (!user) {
         throw new HttpException('Invalid user', 400);
       }
