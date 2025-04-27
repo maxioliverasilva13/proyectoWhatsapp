@@ -47,7 +47,7 @@ export class DeviceService {
       throw new NotFoundException('Usuario no encontrado');
     }
 
-    const existsFCM = this.dispositivoRepository.findOne({
+    const existsFCM = await this.dispositivoRepository.findOne({
       where: { fcmToken: fcmToken },
     });
     if (!existsFCM) {

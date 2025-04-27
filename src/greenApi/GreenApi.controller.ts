@@ -129,9 +129,9 @@ export class GrenApiController {
               if (InfoCompany.hora_apertura && InfoCompany.hora_cierre) {
                 const aperturaStr = apertura.format('HH:mm');
                 const cierreStr = cierre.format('HH:mm');
-                textReponse = `Sorry, we are currently closed. Please remember that our business hours are from ${aperturaStr} to ${cierreStr}.`
+                textReponse = `Sorry, we are currently closed. Please remember that our business hours are from ${aperturaStr} to ${cierreStr}.` // use transaltion
               } else {
-                textReponse = `Sorry, we are currently closed.`
+                textReponse = `Sorry, we are currently closed.` // use translation
               }
 
               await this.messageQueue.add('send', {
