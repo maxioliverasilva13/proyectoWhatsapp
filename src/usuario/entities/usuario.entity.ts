@@ -37,7 +37,6 @@ export class Usuario extends BaseEntity {
     @Column({ nullable: true, default: 'https://www.iconpacks.net/icons/2/free-user-icon-3296-thumb.png' })
     image: string;
 
-    @OneToOne(() => Device, dispositivo => dispositivo.usuario, { cascade: true, onDelete: "CASCADE" })
-    @JoinColumn()
-    dispositivo: Device;
+    @OneToMany(() => Device, dispositivo => dispositivo.usuario, { cascade: true, onDelete: "CASCADE" })
+    dispositivos: Device[];
 }

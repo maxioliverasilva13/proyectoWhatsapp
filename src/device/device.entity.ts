@@ -1,5 +1,5 @@
 import { BaseEntity } from "src/utils/base.entity";
-import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Usuario } from "src/usuario/entities/usuario.entity";
 
 @Entity('dispositivo')
@@ -11,6 +11,6 @@ export class Device extends BaseEntity {
     @Column()
     fcmToken: string;
 
-    @OneToOne(() => Usuario, usuario => usuario.dispositivo, { onDelete: "CASCADE" })
+    @ManyToOne(() => Usuario, usuario => usuario.dispositivos, { onDelete: "CASCADE" })
     usuario: Usuario;
 }

@@ -25,7 +25,7 @@ export class PaymentsController {
 
   @Post('createInitial')
   async createInitial(@Body() body: any, @Request() req) {
-    console.log('createInitial - ', body);
+    console.log('createInitial ', body);
     const userId = req?.user?.userId;
     await this.paymentsService.handleInitial({ ...body, userId: userId });
     return { success: true };
@@ -45,7 +45,6 @@ export class PaymentsController {
       const decodedData = JSON.parse(
         Buffer.from(pubsubMessage.data, 'base64').toString('utf-8')
       );
-    console.log('PAGO - RTDN recibido:', decodedData);
 
       await this.paymentsService.handleRtdn(decodedData);
       return { ok: true };

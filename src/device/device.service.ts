@@ -8,6 +8,7 @@ import { Repository } from 'typeorm';
 import { Usuario } from 'src/usuario/entities/usuario.entity';
 import { Device } from './device.entity';
 import * as admin from 'firebase-admin';
+import { handleGetGlobalConnection } from 'src/utils/dbConnection';
 
 @Injectable()
 export class DeviceService {
@@ -40,51 +41,100 @@ export class DeviceService {
   ): Promise<Device> {
     const usuario = await this.usuarioRepository.findOne({
       where: { id: userId },
-      relations: ['dispositivo'],
+      relations: ['dispositivos'],
     });
 
     if (!usuario) {
       throw new NotFoundException('Usuario no encontrado');
     }
 
-    if (usuario.dispositivo) {
-      usuario.dispositivo.fcmToken = fcmToken;
-      return this.dispositivoRepository.save(usuario.dispositivo);
-    }
-
-    const nuevoDispositivo = this.dispositivoRepository.create({
-      fcmToken,
-      usuario,
+    const existsFCM = await this.dispositivoRepository.findOne({
+      where: { fcmToken: fcmToken },
     });
-    usuario.dispositivo = nuevoDispositivo;
-    this.usuarioRepository.save(usuario);
-    return this.dispositivoRepository.save(nuevoDispositivo);
+    if (!existsFCM) {
+      const nuevoDispositivo = this.dispositivoRepository.create({
+        fcmToken,
+        usuario,
+      });
+      return this.dispositivoRepository.save(nuevoDispositivo);
+    }
+    return existsFCM;
   }
 
   async sendNotificationUser(userId: number, title: string, desc: string) {
     const usuario = await this.usuarioRepository.findOne({
       where: { id: userId },
-      relations: ['dispositivo'],
+      relations: ['dispositivos'],
     });
 
     console.log('usuario', usuario);
-    if (!usuario || !usuario.dispositivo || !usuario.dispositivo.fcmToken) {
+    if (!usuario || usuario.dispositivos?.length === 0) {
       throw new NotFoundException('User not device registered!');
     }
 
-    const message = {
-      notification: { title: title, body: desc },
-      token: usuario.dispositivo.fcmToken,
-    };
+    await Promise.all(
+      usuario?.dispositivos?.map(async (device) => {
+        try {
+          const message = {
+            notification: { title: title, body: desc },
+            token: device.fcmToken,
+          };
+          await admin.messaging().send(message);
+        } catch (error) {
+          throw new InternalServerErrorException(
+            'Error sending notification',
+            error.message,
+          );
+        }
+      }),
+    );
+    return { success: true, message: 'Notification sended.' };
+  }
+
+  async sendNotificationEmpresa(
+    empresaId: number,
+    title: string,
+    desc: string,
+  ) {
+    const globalConnection = await handleGetGlobalConnection();
 
     try {
-      await admin.messaging().send(message);
+      const userRepository = globalConnection.getRepository(Usuario);
+
+      const usuarios = await userRepository.find({
+        where: { id_empresa: empresaId },
+        relations: ['dispositivos'],
+      });
+
+      if (!usuarios || usuarios?.length === 0) {
+        throw new NotFoundException('User not device registered!');
+      }
+
+      await Promise.all(
+        usuarios?.map(async (usuario) => {
+          await Promise.all(
+            usuario?.dispositivos?.map(async (device) => {
+              try {
+                const message = {
+                  notification: { title: title, body: desc },
+                  token: device.fcmToken,
+                };
+                await admin.messaging().send(message);
+              } catch (error) {
+                throw new InternalServerErrorException(
+                  'Error sending notification',
+                  error.message,
+                );
+              }
+            }),
+          );
+        }),
+      );
+
       return { success: true, message: 'Notification sended.' };
     } catch (error) {
-      throw new InternalServerErrorException(
-        'Error sending notification',
-        error.message,
-      );
+    } finally {
+      await globalConnection.destroy();
     }
   }
 }

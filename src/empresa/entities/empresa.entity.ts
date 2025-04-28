@@ -98,7 +98,7 @@ export class Empresa extends BaseEntity {
   @OneToMany(() => Currency, (curr) => curr.empresa)
   currencies: Currency[];
 
-  @OneToOne(() => Payment, (emp) => emp.empresa, { onDelete: 'CASCADE' })
+  @OneToOne(() => Payment, (emp) => emp.empresa, { onDelete: 'SET NULL' })
   @JoinColumn()
   payment: Payment;
 }

@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
-import { Interval } from '@nestjs/schedule';
-import { DemonDeleteOldsThreads } from './utils/daemons/demonToThreads';
-import { OpenOrClose } from './utils/demonOpenOrClose';
-import { SendRemainders } from './utils/daemons/daemonSendReminders';
+import { Injectable } from "@nestjs/common";
+import { Interval } from "@nestjs/schedule";
+import { DemonDeleteOldsThreads } from "./utils/daemons/demonToThreads";
+import { OpenOrClose } from "./utils/demonOpenOrClose";
+import { SendRemainders } from "./utils/daemons/daemonSendReminders";
+import { DeviceService } from "./device/device.service";
 
 @Injectable()
 export class AppService {
@@ -20,30 +21,31 @@ export class AppService {
     }
   }
 
+  constructor(private readonly deviceService: DeviceService) {}
+
   getHello(): string {
-    return 'Hello World!';
+    return "Hello World!";
   }
 
   // 1 hour
   @Interval(3600000)
   handleIntervalRemainders() {
     if (this.shouldExecuteIntervalRemainders) {
-      SendRemainders();
+      SendRemainders(this.deviceService);
     }
   }
 
   @Interval(900000)
   handleIntervalDeleteThreads() {
     if (this.shouldExecuteIntervalDeleteThreads) {
-      DemonDeleteOldsThreads()
+      DemonDeleteOldsThreads();
     }
   }
-  
 
   @Interval(900000)
   handleIntervalOpenOrClose() {
     if (this.shouldExecuteInterval) {
-      OpenOrClose()
+      OpenOrClose();
     }
   }
 }

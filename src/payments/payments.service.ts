@@ -2,7 +2,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { google } from 'googleapis';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Empresa } from 'src/empresa/entities/empresa.entity';
 import { Payment } from './payment.entity';
 import * as fs from 'fs';
@@ -27,7 +27,6 @@ export class PaymentsService {
 
       const tempPath = path.join(os.tmpdir(), 'google-service-account.json');
       fs.writeFileSync(tempPath, keyfileJson);
-      console.log('Formatted Keyfile:', keyfileJson);
       this.auth = new google.auth.GoogleAuth({
         keyFile: tempPath,
         scopes: ['https://www.googleapis.com/auth/androidpublisher'],
@@ -43,15 +42,13 @@ export class PaymentsService {
   async isPaymentOk(data: { empresaId: string; purcheaseToken: string }) {
     try {
       const empresa = await this.empresaRepo.findOne({
-        where: { id: Number(data.empresaId) },
+        where: { id: Number(data.empresaId) }, relations: ['payment'],
       });
       if (!empresa) {
+        console.log("no empresa")
         return { success: false };
       }
-      const payment = await this.paymentRepo.findOne({
-        where: { purchaseToken: data.purcheaseToken, empresa: empresa },
-      });
-      if (!payment || payment?.active === false) {
+      if (!empresa?.payment || (empresa?.payment && empresa?.payment?.active === false)) {
         return { success: false };
       }
       return { success: true };
@@ -81,35 +78,72 @@ export class PaymentsService {
   }
 
   async handleInitial(data: {
-    empresaId: string;
+    empresaId?: string;
     purcheaseToken: string;
     sku: string;
-    userId: string;
+    newPurcheaseToken?: string;
+    userId?: string;
   }) {
-    const empresa = await this.empresaRepo.findOne({
-      where: { id: Number(data.empresaId) },
+    let existingPayment = await this.paymentRepo.findOne({
+      where: {
+        purchaseToken: data?.purcheaseToken ?? '',
+      },
     });
-    if (!empresa?.id) {
-      throw new BadRequestException('Datos no validos');
+
+    if (existingPayment?.id) {
+      console.log('actualizando pago con empresa id', data?.empresaId, existingPayment);
+      console.log("existingPayment", existingPayment)
+      existingPayment.active = false;
+      existingPayment.started_by_user_id = data?.userId;
+
+      if (data?.empresaId) {
+        const empresa = await this.empresaRepo.findOne({
+          where: { id: Number(data.empresaId) },
+        });
+        console.log("sip, empresa es", empresa)
+        if (empresa?.id) {
+        console.log("xd2", empresa)
+          existingPayment.empresa = empresa;
+        }
+      }
+
+      await this.paymentRepo.update(existingPayment?.id, existingPayment);
+      return existingPayment;
+    } else {
+      console.log('creando nuevo pago con empresa id', data?.empresaId);
+
+      const newPayment = this.paymentRepo.create({
+        purchaseToken: data.purcheaseToken,
+        subscription_sku: data.sku,
+        active: false,
+      });
+      newPayment.started_by_user_id = data?.userId;
+
+      if (data?.empresaId) {
+        const empresa = await this.empresaRepo.findOne({
+          where: { id: Number(data.empresaId) },
+        });
+        if (empresa?.id) {
+          newPayment.empresa = empresa;
+        }
+      }
+
+      return await this.paymentRepo.save(newPayment);
     }
-    const newPayment = this.paymentRepo.create({
-      purchaseToken: data?.purcheaseToken,
-      subscription_sku: data?.sku,
-      started_by_user_id: data?.userId,
-      active: false,
-      empresa,
-    });
-    await this.paymentRepo.save(newPayment);
   }
 
   async handleRtdn(rtdnData: any) {
     const packageName = rtdnData?.packageName;
     const purchaseToken = rtdnData?.subscriptionNotification?.purchaseToken;
     const subscriptionId = rtdnData?.subscriptionNotification?.subscriptionId;
+    const notificationType =
+      rtdnData?.subscriptionNotification?.notificationType;
 
     if (!packageName || !purchaseToken || !subscriptionId) {
       throw new BadRequestException('Invalid params');
     }
+    console.log('PAGO - RTDN recibido:', rtdnData);
+
 
     const purchase = await this.verifyPurchase(
       packageName,
@@ -117,60 +151,83 @@ export class PaymentsService {
       purchaseToken,
     );
 
-    console.log('Si recibo', purchase);
+    const linkedPurchaseToken = purchase?.linkedPurchaseToken;
 
-    const userId = purchase?.linkedPurchaseToken || 'unknown';
+    let payment = await this.paymentRepo.findOne({
+      where: {
+        purchaseToken: In([purchaseToken, linkedPurchaseToken]),
+      },
+      relations: ['empresa'],
+    });
+
+    if (!payment) {
+      payment = await this.handleInitial({
+        purcheaseToken: purchaseToken,
+        sku: subscriptionId,
+        newPurcheaseToken: purchaseToken,
+      });
+      console.log('Pago no encontrado, creando uno nuevo');
+    }
 
     const empresa = await this.empresaRepo.findOne({
-      where: { db_name: purchase.developerPayload },
+      where: { id: payment.empresa?.id },
       relations: ['payment'],
     });
 
     if (!empresa) {
       console.log('Empresa no encontrada para RTDN');
-      return;
-    }
-
-    let payment = await this.paymentRepo.findOne({
-      where: { purchaseToken },
-    });
-
-    if (!payment) {
-      console.log('Pago no encontrado para el token');
-      return;
+      return { success: false };
     }
 
     payment.package = packageName;
 
-    if (purchase?.paymentState === 1 || purchase?.paymentState === 2) {
-      payment.active = true;
+    const now = new Date();
 
-      const currentDate = new Date();
-      let expirationDate: Date;
+    switch (notificationType) {
+      case 1: // SUBSCRIPTION_RECOVERED
+      case 2: // SUBSCRIPTION_RENEWED
+      case 4: // SUBSCRIPTION_PURCHASED
+      case 7: // SUBSCRIPTION_RESTARTED
+        payment.active = true;
+        payment.subscription_date = new Date(
+          Number(purchase?.expiryTimeMillis ?? now.getTime()),
+        ).toISOString();
+        console.log('Suscripción activa y actualizada');
+        break;
 
-      expirationDate = new Date(
-        currentDate.setMonth(currentDate.getMonth() + 1),
-      );
+      case 3: // SUBSCRIPTION_CANCELED
+      case 5: // SUBSCRIPTION_ON_HOLD
+      case 6: // SUBSCRIPTION_IN_GRACE_PERIOD
+      case 10: // SUBSCRIPTION_PAUSED
+      case 12: // SUBSCRIPTION_REVOKED
+      case 13: // SUBSCRIPTION_EXPIRED
+        payment.active = false;
+        payment.subscription_date = now.toISOString();
+        console.log(
+          'Suscripción desactivada (cancelada, en pausa, expirada o revocada)',
+        );
+        break;
 
-      payment.subscription_date = expirationDate.toISOString();
-
-      console.log(
-        'Pago validado, suscripción activa y fecha de expiración actualizada',
-      );
-    } else {
-      payment.active = false;
-      payment.subscription_date = new Date().toISOString();
-      console.log('Pago inválido, suscripción desactivada');
+      default:
+        console.log(
+          'Notificación no manejada explícitamente:',
+          notificationType,
+        );
+        return;
     }
 
     await this.paymentRepo.save(payment);
 
     if (payment.active) {
       empresa.deploy = true;
+      empresa.payment = payment;
       await this.empresaRepo.save(empresa);
       console.log('Empresa activada');
+    } else {
+      console.log("Emrpesa desactivada")
     }
 
     console.log('Proceso de RTDN completado');
+    return { success: true };
   }
 }

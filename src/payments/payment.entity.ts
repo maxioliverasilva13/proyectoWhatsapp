@@ -14,11 +14,11 @@ export class Payment extends BaseEntity {
   @Column({ default: false })
   active: boolean;
 
-  @Column({ nullable: false })
+  @Column({ nullable: true })
   started_by_user_id: string;
 
   @Column({ nullable: false })
-  subscription_sku: string;
+  subscription_sku: string; // prod id
 
   @Column({ nullable: true })
   subscription_date: string;
@@ -26,7 +26,7 @@ export class Payment extends BaseEntity {
   @Column({ nullable: true })
   package: string;
 
-  @OneToOne(() => Empresa, emp => emp.payment, { onDelete: "CASCADE" })
+  @OneToOne(() => Empresa, emp => emp.payment, { onDelete: "SET NULL" })
   empresa: Empresa;
 
 }
