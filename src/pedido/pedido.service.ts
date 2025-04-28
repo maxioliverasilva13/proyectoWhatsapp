@@ -389,7 +389,6 @@ export class PedidoService implements OnModuleDestroy {
         relations: ['pedidosprod', 'pedidosprod.producto', 'estado'],
         where: {
           ...whereCondition,
-          estado: { finalizador: filter === 'finished' ? false : true }
         },
         order: {
           fecha: "DESC"
