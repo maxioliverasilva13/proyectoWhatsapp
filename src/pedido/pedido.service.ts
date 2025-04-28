@@ -376,7 +376,7 @@ export class PedidoService implements OnModuleDestroy {
         .createQueryBuilder('pedido')
         .leftJoinAndSelect('pedido.pedidosprod', 'pedidosprod')
         .leftJoinAndSelect('pedidosprod.producto', 'producto')
-        .leftJoinAndSelect('pedido.estado', 'estado')
+        .innerJoinAndSelect('pedido.estado', 'estado')
         .where('pedido.available = :available', { available: true });
 
       if (filter === 'pending') {
