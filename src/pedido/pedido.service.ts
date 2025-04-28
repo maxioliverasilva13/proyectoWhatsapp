@@ -131,7 +131,7 @@ export class PedidoService implements OnModuleDestroy {
       const crearNuevoPedido = async (products) => {
         let total = 0;
         const infoLineToJson = JSON.stringify(createPedidoDto.infoLinesJson);
-        
+
         const newPedido = new Pedido();
         newPedido.confirmado = createPedidoDto.confirmado || false;
         newPedido.cliente_id = createPedidoDto.clienteId;
@@ -364,7 +364,7 @@ export class PedidoService implements OnModuleDestroy {
     }
   }
 
-  async findOrders(filter: 'all' | 'pending' | 'finished') {
+  async findOrders(filter: 'active' | 'pending' | 'finished') {
     try {
       if (!filter) {
         throw new BadRequestException(
@@ -378,11 +378,22 @@ export class PedidoService implements OnModuleDestroy {
         whereCondition.confirmado = false;
       } else if (filter === 'finished') {
         whereCondition.confirmado = true;
+        whereCondition.estado = { finalizador: true }
+
+      } else {
+        whereCondition.confirmado = true
+        whereCondition.estado = { finalizador: false }
       }
 
       const pedidos = await this.pedidoRepository.find({
-        where: whereCondition,
-        relations: ['pedidosprod', 'pedidosprod.producto'],
+        relations: ['pedidosprod', 'pedidosprod.producto', 'estado'],
+        where: {
+          ...whereCondition,
+          estado: { finalizador: filter === 'finished' ? false : true }
+        },
+        order: {
+          fecha: "DESC"
+        }
       });
 
       const clienteIds = pedidos.map((pedido) => pedido.cliente_id);
@@ -408,6 +419,7 @@ export class PedidoService implements OnModuleDestroy {
           direccion: direcciones,
           numberSender: clienteData?.telefono || 'N/A',
           total,
+          detalle: pedido.detalle_pedido,
           orderId: pedido.id,
           date: pedido.fecha,
           status: pedido.confirmado,
