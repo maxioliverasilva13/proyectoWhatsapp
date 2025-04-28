@@ -4,7 +4,7 @@ import { CreatePedidoDto } from './dto/create-pedido.dto';
 import { UpdatePedidoDto } from './dto/update-pedido.dto';
 
 enum OrderStatus {
-  ALL = 'all',
+  ACTIVE = 'active',
   PENDING = 'pending',
   FINISHED = 'finished',
 }
