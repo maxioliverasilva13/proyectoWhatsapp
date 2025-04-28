@@ -372,28 +372,26 @@ export class PedidoService implements OnModuleDestroy {
         );
       }
 
-      const whereCondition: any = { available: true };
+      const query = this.pedidoRepository
+        .createQueryBuilder('pedido')
+        .leftJoinAndSelect('pedido.pedidosprod', 'pedidosprod')
+        .leftJoinAndSelect('pedidosprod.producto', 'producto')
+        .leftJoinAndSelect('pedido.estado', 'estado')
+        .where('pedido.available = :available', { available: true });
 
       if (filter === 'pending') {
-        whereCondition.confirmado = false;
+        query.andWhere('pedido.confirmado = :confirmado', { confirmado: false });
       } else if (filter === 'finished') {
-        whereCondition.confirmado = true;
-        whereCondition.estado = { finalizador: true }
-
-      } else {
-        whereCondition.confirmado = true
-        whereCondition.estado = { finalizador: false }
+        query.andWhere('pedido.confirmado = :confirmado', { confirmado: true })
+          .andWhere('estado.finalizador = :finalizador', { finalizador: true });
+      } else if (filter === 'active') {
+        query.andWhere('pedido.confirmado = :confirmado', { confirmado: true })
+          .andWhere('estado.finalizador = :finalizador', { finalizador: false });
       }
 
-      const pedidos = await this.pedidoRepository.find({
-        relations: ['pedidosprod', 'pedidosprod.producto', 'estado'],
-        where: {
-          ...whereCondition,
-        },
-        order: {
-          fecha: "DESC"
-        }
-      });
+      query.orderBy('pedido.fecha', 'DESC');
+
+      const pedidos = await query.getMany();
 
       const clienteIds = pedidos.map((pedido) => pedido.cliente_id);
       const clientes = await this.clienteRepository.findByIds(clienteIds);
