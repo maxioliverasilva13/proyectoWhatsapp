@@ -121,7 +121,7 @@ export class DeviceService {
                 };
                 await admin.messaging().send(message);
               } catch (error) {
-                throw new InternalServerErrorException(
+                console.error(
                   'Error sending notification',
                   error.message,
                 );
