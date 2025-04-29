@@ -37,21 +37,17 @@ export class PedidoService implements OnModuleDestroy {
   constructor(
     @InjectRepository(Pedido)
     private pedidoRepository: Repository<Pedido>,
-    @InjectRepository(Mensaje)
-    private mensajeRepository: Repository<Mensaje>,
     @InjectRepository(Estado)
     private estadoRepository: Repository<Estado>,
     @InjectRepository(Cambioestadopedido)
     private cambioEstadoRepository: Repository<Cambioestadopedido>,
     @InjectRepository(Chat)
     private chatRepository: Repository<Chat>,
-    @InjectRepository(ProductoPedido)
-    private productoPedidoRepository: Repository<ProductoPedido>,
+    @InjectRepository(Mensaje)
+    private mensajeRepository: Repository<Mensaje>,
     private readonly productoPedidoService: ProductopedidoService,
     @InjectRepository(Producto)
     private readonly productoRespitory: Repository<Producto>,
-    private readonly chatServices: ChatService,
-    private readonly mensajesService: MensajeService,
     private readonly webSocketService: WebsocketGateway,
   ) { }
 
@@ -105,15 +101,16 @@ export class PedidoService implements OnModuleDestroy {
 
   async create(createPedidoDto: CreatePedidoDto) {
     try {
-      const estado = await this.estadoRepository.findOne({
-        where: { id: createPedidoDto.estadoId },
+      const firstStatus = await this.estadoRepository.findOne({
+        order: { order: "ASC" }
       });
-
       const tipoServicio = await this.tipoServicioRepository.findOne({
         where: { tipo: createPedidoDto.empresaType },
       });
 
-      if (!estado) {
+      const existChatPreview = await this.chatRepository.findOne({where: {chatIdExternal : createPedidoDto.chatId} })
+
+      if (!firstStatus) {
         throw new BadRequestException('No existe un estado con ese id');
       }
 
@@ -135,7 +132,7 @@ export class PedidoService implements OnModuleDestroy {
         const newPedido = new Pedido();
         newPedido.confirmado = createPedidoDto.confirmado || false;
         newPedido.cliente_id = createPedidoDto.clienteId;
-        newPedido.estado = estado;
+        newPedido.estado = firstStatus;
         newPedido.tipo_servicio_id = tipoServicio.id;
         newPedido.fecha =
           createPedidoDto.empresaType === 'RESERVA'
@@ -145,7 +142,12 @@ export class PedidoService implements OnModuleDestroy {
         newPedido.chatIdWhatsapp = createPedidoDto.chatId.toString()
         newPedido.detalle_pedido = createPedidoDto?.detalles ?? '';
 
+        if(existChatPreview) {
+          newPedido.chat = existChatPreview
+        }
+
         const savedPedido = await this.pedidoRepository.save(newPedido);
+
         const productIds = products.map((product) => product.productoId);
         const existingProducts =
           await this.productoRespitory.findByIds(productIds);
@@ -190,26 +192,6 @@ export class PedidoService implements OnModuleDestroy {
 
         } catch (error) {
           console.error('Error al crear productos:', error);
-        }
-
-        try {
-          const { data } = await this.chatServices.create({
-            pedidoId: savedPedido.id,
-          });
-
-          await Promise.all(
-            createPedidoDto.messages.map((message) =>
-              this.mensajesService.create({
-                chat: data.id,
-                isClient: message.isClient,
-                mensaje: message.text,
-              }),
-            ),
-          );
-
-          console.log('Mensajes creados correctamente');
-        } catch (error) {
-          console.error('Error al crear chat o mensajes:', error);
         }
 
 

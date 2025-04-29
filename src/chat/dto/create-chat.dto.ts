@@ -1,3 +1,3 @@
 export class CreateChatDto {
-    pedidoId: number;
+    chatIdExternal: string;
 }

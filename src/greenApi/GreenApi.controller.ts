@@ -9,6 +9,12 @@ import { Queue } from 'bullmq';
 import * as moment from 'moment-timezone'
 import { handleGetGlobalConnection } from 'src/utils/dbConnection';
 import { Empresa } from 'src/empresa/entities/empresa.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Chat } from 'src/chat/entities/chat.entity';
+import { Repository } from 'typeorm';
+import { Mensaje } from 'src/mensaje/entities/mensaje.entity';
+import { ChatService } from 'src/chat/chat.service';
+import { MensajeService } from 'src/mensaje/mensaje.service';
 
 @Controller()
 export class GrenApiController {
@@ -17,6 +23,11 @@ export class GrenApiController {
     private readonly greenApi: GreenApiService,
     private readonly numeroConfianza: NumeroConfianzaService,
     private readonly WebSocket: WebsocketGateway,
+    @InjectRepository(Chat)
+    private chatRepository: Repository<Chat>,
+    @InjectRepository(Mensaje)
+    private readonly chatService: ChatService,
+    private readonly messagesService: MensajeService,
     @InjectQueue(`GreenApiResponseMessagee-${process.env.SUBDOMAIN}`) private readonly messageQueue: Queue,
   ) { }
 
@@ -33,7 +44,6 @@ export class GrenApiController {
         console.log('Hubo un problema con la configuración de la API');
       }
     } else {
-
       const timeZone = request['timeZone'];
       const empresaId = request['empresaId'];
       const empresaType = request['empresaType'];
@@ -49,6 +59,7 @@ export class GrenApiController {
           numberSender,
           empresaId,
         );
+        let chatExist = await this.chatRepository.findOne({ where: { chatIdExternal: chatId } })
 
         const globalCconnection = await handleGetGlobalConnection()
         const empresa = await globalCconnection.getRepository(Empresa)
@@ -71,67 +82,60 @@ export class GrenApiController {
             );
 
             if (estaDentroDeHorario) {
+              let messageToSend;
+
               if (messageData.typeMessage === 'textMessage') {
-                const message =
+                messageToSend =
                   messageData.textMessageData?.textMessage ||
                   messageData.extendedTextMessageData?.text;
 
-
-                const respText = await this.greenApi.handleMessagetText(
-                  message,
-                  numberSender,
-                  empresaType,
-                  empresaId,
-                  senderName,
-                  timeZone,
-                  chatId
-                );
-
-
-                await this.messageQueue.add('send', {
-                  message: respText,
-                  chatId,
-                }, {
-                  priority: 0,
-                  attempts: 5,
-                });
-
               } else if (messageData.typeMessage === 'audioMessage') {
                 const fileUrl = messageData.fileMessageData.downloadUrl;
-
-                const speechToText = await SpeechToText(fileUrl);
-
-                const respText = await this.greenApi.handleMessagetText(
-                  speechToText,
-                  numberSender,
-                  empresaType,
-                  empresaId,
-                  senderName,
-                  timeZone,
-                  chatId
-                );
-
-                const resp = await this.messageQueue.add('send', {
-                  message: respText,
-                  chatId,
-                }, {
-                  priority: 0,
-                  attempts: 5,
-                });
-
+                messageToSend = await SpeechToText(fileUrl);
 
               } else {
-                console.log('Evento desconocido del webhook:', typeWebhook);
+                return;
               }
+
+              const respText = await this.greenApi.handleMessagetText(
+                messageToSend,
+                numberSender,
+                empresaType,
+                empresaId,
+                senderName,
+                timeZone,
+                chatId
+              );
+
+              await this.messageQueue.add('send', {
+                message: respText,
+                chatId,
+              }, {
+                priority: 0,
+                attempts: 5,
+              });
+
+              if (!chatExist) {
+                const { data } = await this.chatService.create({ chatIdExternal: chatId, })
+                chatExist = data
+              }
+
+              if (chatExist) {
+                await Promise.all([
+                  this.messagesService.create({ chat: chatExist.id, isClient: true, mensaje: messageToSend }),
+                  this.messagesService.create({ chat: chatExist.id, isClient: false, mensaje: respText })
+                ]);
+              }
+
             } else {
 
               let textReponse = '';
               if (InfoCompany.hora_apertura && InfoCompany.hora_cierre) {
                 const aperturaStr = apertura.format('HH:mm');
                 const cierreStr = cierre.format('HH:mm');
-                textReponse = `Sorry, we are currently closed. Please remember that our business hours are from ${aperturaStr} to ${cierreStr}.` // use transaltion
+                textReponse = `Sorry, we are currently closed. Please remember that our business hours are from ${aperturaStr} to ${cierreStr}.`
               } else {
-                textReponse = `Sorry, we are currently closed.` // use translation
+                textReponse = `Sorry, we are currently closed.`
               }
 
               await this.messageQueue.add('send', {
