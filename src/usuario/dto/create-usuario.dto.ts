@@ -6,5 +6,5 @@ export class CreateUsuarioDto {
     id_empresa: number;
     id_rol?: number;
     activo: boolean;
-    imagen?: string;
+    image?: string;
 }

@@ -30,8 +30,8 @@ export class UsuarioService {
       user.id_empresa = createUsuarioDto.id_empresa
       user.id_rol = 1
       user.activo = true;
-      if (createUsuarioDto?.imagen) {
-        user.image = createUsuarioDto?.imagen;
+      if (createUsuarioDto?.image) {
+        user.image = createUsuarioDto?.image;
       }
 
       await this.usuarioRepository.save(user)
