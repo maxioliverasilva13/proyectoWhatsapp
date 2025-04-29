@@ -11,7 +11,7 @@ enum OrderStatus {
 
 @Controller('pedido')
 export class PedidoController {
-  constructor(private readonly pedidoService: PedidoService) {}
+  constructor(private readonly pedidoService: PedidoService) { }
 
   @Post()
   create(@Body() createPedidoDto: CreatePedidoDto) {
@@ -24,9 +24,9 @@ export class PedidoController {
   ) {
     return this.pedidoService.findOrders(orderStatus);
   }
-  
+
   @Get('/calendar/formatCalendar/:date')
-  getOrdersForCalendar(@Param('date') date : string,  @Req() request: Request) {
+  getOrdersForCalendar(@Param('date') date: string, @Req() request: Request) {
     const timeZone = request['timeZone'];
     return this.pedidoService.getOrdersForCalendar(date, timeZone);
   }
@@ -43,17 +43,17 @@ export class PedidoController {
   disponible(@Query('date') date: string, @Body() producto, @Req() request: Request) {
     const timeZone = request['timeZone'];
     const empresaId = request['empresaId']
-    
-    return this.pedidoService.consultarHorario(date,producto, timeZone, empresaId);
+
+    return this.pedidoService.consultarHorario(date, producto, timeZone, empresaId);
   }
 
   @Get('/confirm/:id')
-  confirmOrder(@Param('id') id: number ) {
+  confirmOrder(@Param('id') id: number) {
     return this.pedidoService.confirmOrder(id);
   }
 
   @Get('/details/:id')
-  getDetailsOfOrder(@Param('id') id: number ) {
+  getDetailsOfOrder(@Param('id') id: number) {
     return this.pedidoService.getDetailsOfOrder(id);
   }
 
@@ -72,12 +72,12 @@ export class PedidoController {
   }
 
   @Get('/stats/lastThree')
-  getLastThreeOrders() {    
+  getLastThreeOrders() {
     return this.pedidoService.getLastThreeOrders();
   }
 
   @Get('/stats/lastTime')
-  getOrdersOfTimePeriod() {    
+  getOrdersOfTimePeriod() {
     return this.pedidoService.getOrdersOfTimePeriods();
   }
 

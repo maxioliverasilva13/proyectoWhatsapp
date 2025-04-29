@@ -7,6 +7,9 @@ import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn
 export class Chat extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
+
+    @Column({unique: true, nullable: true})
+    chatIdExternal: string
     
     @OneToOne(() => Pedido, (pedido) => pedido.chat)
     pedido: Pedido;

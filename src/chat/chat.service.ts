@@ -19,20 +19,8 @@ export class ChatService {
 
   async create(createChatDto: CreateChatDto) {
     try {
-      const pedidoExist = await this.pedidoRepository.findOne({
-        where: { id: createChatDto.pedidoId },
-        relations: ['chat'],
-      });
-
-      if (!pedidoExist) {
-        throw new BadRequestException('No existe pedido con ese id');
-      }
-
-      if (pedidoExist.chat) {
-        throw new BadRequestException('El pedido ya tiene un chat asociado');
-      }
       const newChat = new Chat();
-      newChat.pedido = pedidoExist; 
+      newChat.chatIdExternal = createChatDto.chatIdExternal
 
       const savedChat = await this.chatRepository.save(newChat);
 
