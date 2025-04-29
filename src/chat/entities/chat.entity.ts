@@ -8,7 +8,7 @@ export class Chat extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({unique: true})
+    @Column({unique: true, nullable: true})
     chatIdExternal: string
     
     @OneToOne(() => Pedido, (pedido) => pedido.chat)

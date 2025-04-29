@@ -15,9 +15,12 @@ import { GreenApiRetirveMessage } from './GreenApi.processor';
 import { BullModule } from '@nestjs/bullmq';
 import { EmpresaModule } from 'src/empresa/empresa.module';
 import { DeviceModule } from 'src/device/device.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Mensaje } from 'src/mensaje/entities/mensaje.entity';
+import { Chat } from 'src/chat/entities/chat.entity';
 
 @Module({
-  imports:[ChatGptThreadsModule, PedidoModule, DeviceModule, ClienteModule, ProductoModule,EmpresaModule, NumeroConfianzaModule, WebSocketModule, InfolineModule, MensajeModule, ChatModule, BullModule.registerQueue({
+  imports:[ TypeOrmModule.forFeature([Chat, Mensaje]),ChatGptThreadsModule, PedidoModule, DeviceModule, ClienteModule, ProductoModule,EmpresaModule, NumeroConfianzaModule, WebSocketModule, InfolineModule, MensajeModule, ChatModule, BullModule.registerQueue({
     name:`GreenApiResponseMessagee-${process.env.SUBDOMAIN}`,
     connection: {
       host: process.env.REDIS_HOST || 'localhost',
