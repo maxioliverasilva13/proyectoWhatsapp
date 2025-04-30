@@ -103,6 +103,7 @@ export class AuthService implements OnModuleDestroy {
       let hora_cierre;
       let abierto;
       let timeZone;
+      let logo;
 
       if (user.id_empresa) {
         const allCurrencies = await currencyRepository
@@ -118,6 +119,7 @@ export class AuthService implements OnModuleDestroy {
           relations: ['tipoServicioId', 'currencies', 'payment'],
         });
         if (empresa) {
+          logo = empresa.logo
           hora_apertura = empresa.hora_apertura;
           hora_cierre = empresa.hora_cierre;
           abierto = empresa.abierto;
@@ -182,7 +184,8 @@ export class AuthService implements OnModuleDestroy {
         remaindersHorsRemainder,
         timeZone,
         oldPlan: oldPlan,
-        currencies: currencies
+        currencies: currencies,
+        logo
       };
     } catch (error) {
       console.log(error)
