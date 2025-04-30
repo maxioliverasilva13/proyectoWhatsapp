@@ -119,16 +119,17 @@ export async function sendMessageToThread(threadId, text, isAdmin, timeZone) {
         }
 
         const statusData = await statusResponse.json() as any;
-        status = statusData.status;
-
-        console.log("statusData", statusData)
+        const error = statusData.last_error;
+        if (error) {
+            console.log("error", error)
+        }
 
         if (status === "completed") break;
         delay = Math.min(3000, delay + 500);
     }
 
     if (status !== "completed") {
-        console.log("status", status);
+        console.log("status", status, );
         throw new Error("La ejecución no se completó correctamente.");
     }
 
