@@ -115,6 +115,7 @@ export class GrenApiController {
                 chatId,
               );
 
+              console.log("respText", respText)
               if (respText?.ok === false) {
                 console.log('Mensaje descartado, no se responderá');
                 return;
