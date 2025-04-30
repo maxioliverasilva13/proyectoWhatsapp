@@ -119,7 +119,7 @@ export class AuthService implements OnModuleDestroy {
           relations: ['tipoServicioId', 'currencies', 'payment'],
         });
         if (empresa) {
-          logo = empresa.logo
+          logo = empresa.logo?? "No logo"
           hora_apertura = empresa.hora_apertura;
           hora_cierre = empresa.hora_cierre;
           abierto = empresa.abierto;
@@ -185,7 +185,7 @@ export class AuthService implements OnModuleDestroy {
         timeZone,
         oldPlan: oldPlan,
         currencies: currencies,
-        logo
+        logo:logo
       };
     } catch (error) {
       console.log(error)

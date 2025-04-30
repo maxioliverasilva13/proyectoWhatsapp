@@ -7,7 +7,6 @@ import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
 import { Usuario } from 'src/usuario/entities/usuario.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { EmailService } from 'src/emailqueue/email.service';
 import { EmailModule } from 'src/emailqueue/email.module';
 
 @Module({
