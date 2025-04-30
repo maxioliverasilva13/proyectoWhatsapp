@@ -97,6 +97,8 @@ export class GrenApiController {
                 return;
               }
 
+              console.log("voy a crear un thread", messageData)
+
               const respText = await this.greenApi.handleMessagetText(
                 messageToSend,
                 numberSender,
