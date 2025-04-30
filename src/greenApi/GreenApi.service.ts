@@ -81,7 +81,6 @@ export class GreenApiService {
       false,
       timeZone,
     );
-    console.log("openAIResponse", openAIResponse)
     if (openAIResponse?.ok === false) {
       return { ok: false }
     }

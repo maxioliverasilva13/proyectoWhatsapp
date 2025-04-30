@@ -96,15 +96,17 @@ export async function sendMessageToThread(threadId, text, isAdmin, timeZone) {
     if (!response.ok) {
         const errorData = await response.json();
         console.error(errorData);
-        throw new Error("Error al enviar el mensaje al hilo: " + response.statusText);
+        return {
+            ok: false,
+        }
     }
 
     const runData = await response.json() as any;
     const runId = runData.id;
 
-    let delay = 300;
+    let delay = 1000;
     let status = "pending";
-    const maxRetries = 10;
+    const maxRetries = 6;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
         await new Promise(resolve => setTimeout(resolve, delay));
@@ -139,15 +141,17 @@ export async function sendMessageToThread(threadId, text, isAdmin, timeZone) {
     });
 
     if (!messagesResponse.ok) {
-        throw new Error("Error al obtener los mensajes del hilo: " + messagesResponse.statusText);
+        console.log("Error al obtener los mensajes del hilo: " + messagesResponse.statusText);
+        return { ok: false }
     }
 
     const messagesData = await messagesResponse.json() as any;
     const assistantMessage = messagesData.data[0];
 
     if (!assistantMessage) {
-        throw new Error("No se encontró una respuesta del asistente.");
-    }    
+        console.log("No se encontró una respuesta del asistente.");
+        return { ok: false }
+    }
     return assistantMessage;
 }
 
