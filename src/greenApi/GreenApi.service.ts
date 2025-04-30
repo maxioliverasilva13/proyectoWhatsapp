@@ -136,8 +136,10 @@ export class GreenApiService {
           }
         }
         if (status === false) {
+          console.log("status false")
           return;
         } else {
+          console.log("voy a hacer el pedido")
           respFinalToUser = await this.hacerPedido(
             currentThreadId,
             clienteId,
@@ -188,26 +190,31 @@ export class GreenApiService {
     messagePushTitle = "Test 1",
     messagePush = 'Test',
   ) {
-    const newOrder = await this.pedidoService.create({
-      clienteId: clienteId,
-      clientName: clientName,
-      confirmado: false,
-      estadoId: 1,
-      products: openAIResponse.data,
-      empresaType,
-      messages: openAIResponse.messages,
-      numberSender,
-      infoLinesJson: openAIResponse.infoLines,
-      fecha: openAIResponse.fecha,
-      messageToUser: openAIResponse?.messageToUser,
-      chatId: chatIdExist,
-    });
-    await this.chatGptThreadsService.deleteThread(currentThreadId);
-    await this.deviceService.sendNotificationEmpresa(
-      empresaId,
-      messagePushTitle,
-      messagePush,
-    );
+    try {
+      const newOrder = await this.pedidoService.create({
+        clienteId: clienteId,
+        clientName: clientName,
+        confirmado: false,
+        estadoId: 1,
+        products: openAIResponse.data,
+        empresaType,
+        messages: openAIResponse.messages,
+        numberSender,
+        infoLinesJson: openAIResponse.infoLines,
+        fecha: openAIResponse.fecha,
+        messageToUser: openAIResponse?.messageToUser,
+        chatId: chatIdExist,
+      });
+      await this.chatGptThreadsService.deleteThread(currentThreadId);
+      await this.deviceService.sendNotificationEmpresa(
+        empresaId,
+        messagePushTitle,
+        messagePush,
+      );
     return newOrder.messageToUser;
+    } catch (error) {
+      console.log("error haciendo pedido", error)
+      return null;
+    }
   }
 }
