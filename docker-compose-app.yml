@@ -12,6 +12,7 @@ services:
       EMAIL_PORT: ${EMAIL_PORT}
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
       SUPABASE_URL: ${SUPABASE_URL}
       FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID}
       FIREBASE_PRIVATE_KEY: ${FIREBASE_PRIVATE_KEY}
@@ -62,14 +63,6 @@ services:
     networks:
       - app-network
     restart: always
-  redis:
-     image: redis:7.0
-     container_name: redis
-     ports:
-       - 6379:6379
-     networks:
-       - app-network
-     restart: always
 
 networks:
   app-network:

@@ -57,6 +57,7 @@ jobs:
         EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
         REDIS_HOST: ${{ secrets.REDIS_HOST }}
         REDIS_PORT: ${{ secrets.REDIS_PORT }}
+        REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
         SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
         SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
         SUPABASE_BUCKET: ${{ secrets.SUPABASE_BUCKET }}

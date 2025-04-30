@@ -63,6 +63,7 @@ const connection = handleGetConnection();
       connection: {
         host: process.env.REDIS_HOST || 'localhost',
         port: parseInt(process.env.REDIS_PORT, 10) || 6379,
+        password: process.env.REDIS_PASSWORD || '',
       },
       defaultJobOptions: {
         priority: 1,
@@ -81,6 +82,7 @@ const connection = handleGetConnection();
       connection: {
         host: process.env.REDIS_HOST || 'localhost',
         port: parseInt(process.env.REDIS_PORT, 10) || 6379,
+        password: process.env.REDIS_PASSWORD || '',
       },
     }),
     ProductoModule,

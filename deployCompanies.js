@@ -42,6 +42,7 @@ function createEnvFile(empresa) {
     ID_INSTANCE=${empresa?.greenApiInstance}
     REDIS_HOST=${process.env.REDIS_HOST}
     REDIS_PORT=${process.env.REDIS_PORT}
+    REDIS_PASSWORD=${process.env.REDIS_PASSWORD}
     API_TOKEN_INSTANCE=${empresa?.greenApiInstanceToken}
     OPEN_AI_TOKEN=${process.env.OPEN_AI_TOKEN}
     JWT_SECRET_KEY=${process.env.JWT_SECRET_KEY}
@@ -72,6 +73,7 @@ function createEnvFileApp() {
       EMAIL_PASS=${process.env.EMAIL_PASS}
       REDIS_HOST=${process.env.REDIS_HOST}
       REDIS_PORT=${process.env.REDIS_PORT}
+      REDIS_PASSWORD=${process.env.REDIS_PASSWORD}
       GOOGLE_CLIENT_EMAIL=${process.env.GOOGLE_CLIENT_EMAIL}
       GOOGLE_PRIVATE_KEY=${process.env.GOOGLE_PRIVATE_KEY}
       POSTGRES_USER_GLOBAL=${process.env.POSTGRES_USER_GLOBAL}
