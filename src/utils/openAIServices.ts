@@ -130,7 +130,7 @@ export async function sendMessageToThread(threadId, text, isAdmin, timeZone) {
 
     if (status !== "completed") {
         console.log("status", status, );
-        throw new Error("La ejecución no se completó correctamente.");
+        return { ok: false }
     }
 
     // Recuperar el último mensaje del asistente
