@@ -1,4 +1,9 @@
-import { BadRequestException, Inject, Injectable, OnModuleDestroy } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  OnModuleDestroy,
+} from '@nestjs/common';
 import { Producto } from './entities/producto.entity';
 import { CreateProductoDto } from './dto/create-producto.dto';
 import { DataSource, ILike, In, Repository } from 'typeorm';
@@ -22,8 +27,7 @@ export class ProductoService implements OnModuleDestroy {
     private productoPedidoRepository: Repository<ProductoPedido>,
     @InjectRepository(Category)
     private categoryRepo: Repository<Category>,
-
-  ) { }
+  ) {}
 
   async onModuleInit() {
     if (!this.globalConnection) {
@@ -40,30 +44,34 @@ export class ProductoService implements OnModuleDestroy {
 
   async getCurrencies() {
     const currencies = await this.currencyRepo.find();
-    return JSON.stringify(currencies ?? [])
+    return JSON.stringify(currencies ?? []);
   }
 
-  async create(
-    createProduct: CreateProductoDto,
-    empresaId: number,
-  ) {
+  async create(createProduct: CreateProductoDto, empresaId: number) {
     try {
-      const currencyExist = await this.currencyRepo.findOne({ where: { id: createProduct?.currency_id ?? 0 } });
+      const currencyExist = await this.currencyRepo.findOne({
+        where: { id: createProduct?.currency_id ?? 0 },
+      });
       if (!currencyExist) {
         throw new BadRequestException({
           ok: false,
           statusCode: 400,
-          message: "No se encontro el currency seleccionado",
+          message: 'No se encontro el currency seleccionado',
           error: 'Bad Request',
         });
       }
 
-      const categories = await this.categoryRepo.find({ where: { id: In(createProduct.categoryIds) } });
-      if (createProduct.categoryIds && categories.length !== createProduct.categoryIds.length) {
+      const categories = await this.categoryRepo.find({
+        where: { id: In(createProduct.categoryIds) },
+      });
+      if (
+        createProduct.categoryIds &&
+        categories.length !== createProduct.categoryIds.length
+      ) {
         throw new BadRequestException({
           ok: false,
           statusCode: 400,
-          message: "Una o más categorías no fueron encontradas",
+          message: 'Una o más categorías no fueron encontradas',
           error: 'Bad Request',
         });
       }
@@ -75,7 +83,8 @@ export class ProductoService implements OnModuleDestroy {
       product.descripcion = createProduct.descripcion;
       product.disponible = true;
       product.currency_id = currencyExist?.id;
-      product.plazoDuracionEstimadoMinutos = createProduct.plazoDuracionEstimadoMinutos;
+      product.plazoDuracionEstimadoMinutos =
+        createProduct.plazoDuracionEstimadoMinutos;
       if (categories?.length > 0) {
         product.category = categories;
       }
@@ -90,8 +99,8 @@ export class ProductoService implements OnModuleDestroy {
       return {
         ok: true,
         statusCode: 200,
-        data: product
-      }
+        data: product,
+      };
     } catch (error) {
       throw new BadRequestException({
         ok: false,
@@ -107,29 +116,34 @@ export class ProductoService implements OnModuleDestroy {
   }
 
   async findAllWithQuery(data: GetProductsDTO): Promise<Producto[]> {
-    const whereCondition: any = { disponible: true, };
+    const whereCondition: any = { disponible: true };
 
     if (data.query) {
       whereCondition.nombre = ILike(`%${data.query}%`);
     }
 
-    const products = await this.productoRepository.find({ where: whereCondition, relations: ['category'] });
+    const products = await this.productoRepository.find({
+      where: whereCondition,
+      relations: ['category'],
+    });
 
     return products;
   }
 
   async findOne(id: number) {
     try {
-      const producto = await this.productoRepository.findOne({ where: { id: id }, relations: ['category'] });
+      const producto = await this.productoRepository.findOne({
+        where: { id: id },
+        relations: ['category'],
+      });
       if (!producto) {
-        throw new BadRequestException('El producto no existe')
+        throw new BadRequestException('El producto no existe');
       }
       return {
         ok: true,
         statusCode: 200,
-        data: producto
-      }
-
+        data: producto,
+      };
     } catch (error) {
       throw new BadRequestException({
         ok: false,
@@ -141,49 +155,62 @@ export class ProductoService implements OnModuleDestroy {
   }
 
   async findAllInText() {
-    const productsAll = await this.productoRepository.find({ where: { disponible: true } });
+    const productsAll = await this.productoRepository.find({
+      where: { disponible: true },
+      relations: ['category'],
+    });
 
-    const productsFormated = productsAll.map((product) => {
-      return `${product.id}-Procuto: ${product.nombre},Precio: ${product.precio}, Descripcion:${product.descripcion}$`;
-    }).join(', ');
-    console.log("productsFormated", productsFormated)
-
-    return productsFormated;
+    return productsAll.map((prod) => {
+      return {
+        categories: prod.category?.map((cat) => cat?.name),
+        name: prod?.nombre,
+        price: prod?.precio,
+        description: prod?.descripcion,
+        plazoDuracionEstimado: prod?.plazoDuracionEstimadoMinutos,
+        currency_id: prod?.currency_id,
+      };
+    });
   }
 
   async updateProducto(id: number, updateProductoDto: UpdateProductoDto) {
-
     try {
       const existProduct = await this.productoRepository.findOne({
         where: { id: id },
         relations: ['category'],
-      })
+      });
 
       if (!existProduct) {
-        throw new BadRequestException('El producto no existe')
+        throw new BadRequestException('El producto no existe');
       }
       for (const dato in existProduct) {
         if (updateProductoDto.hasOwnProperty(dato)) {
           existProduct[dato] = updateProductoDto[dato];
         }
       }
-      const newCurrency = await this.currencyRepo.findOne({ where: { id: updateProductoDto?.currency_id } })
+      const newCurrency = await this.currencyRepo.findOne({
+        where: { id: updateProductoDto?.currency_id },
+      });
 
       if (!newCurrency) {
-        throw new BadRequestException('El Currency no existe')
+        throw new BadRequestException('El Currency no existe');
       }
       if (!existProduct) {
-        throw new BadRequestException('El producto no existe')
+        throw new BadRequestException('El producto no existe');
       }
 
-      if (updateProductoDto.categoryIds && updateProductoDto.categoryIds.length > 0) {
-        console.log("categoryIds", updateProductoDto?.categoryIds)
+      if (
+        updateProductoDto.categoryIds &&
+        updateProductoDto.categoryIds.length > 0
+      ) {
+        console.log('categoryIds', updateProductoDto?.categoryIds);
         const categories = await this.categoryRepo.find({
           where: { id: In([...updateProductoDto.categoryIds]) },
         });
 
         if (categories.length !== updateProductoDto.categoryIds.length) {
-          throw new BadRequestException('Una o más categorías no fueron encontradas');
+          throw new BadRequestException(
+            'Una o más categorías no fueron encontradas',
+          );
         }
 
         existProduct.category = categories;
@@ -191,7 +218,7 @@ export class ProductoService implements OnModuleDestroy {
         existProduct.category = [] as Category[];
       }
       existProduct.currency_id = newCurrency?.id;
-      await this.productoRepository.save(existProduct)
+      await this.productoRepository.save(existProduct);
 
       const updatedProduct = await this.productoRepository.findOne({
         where: { id: existProduct.id },
@@ -202,9 +229,8 @@ export class ProductoService implements OnModuleDestroy {
         data: updatedProduct,
         statusCode: 200,
         ok: true,
-        message: 'Producto actualizado correctamente'
-      }
-
+        message: 'Producto actualizado correctamente',
+      };
     } catch (error) {
       throw new BadRequestException({
         ok: false,
@@ -219,7 +245,7 @@ export class ProductoService implements OnModuleDestroy {
     try {
       const existProduct = await this.productoRepository.findOne({
         where: { id },
-        relations: ['pedidosprod']
+        relations: ['pedidosprod'],
       });
       if (!existProduct) {
         throw new BadRequestException('El producto no existe');
@@ -245,5 +271,4 @@ export class ProductoService implements OnModuleDestroy {
       });
     }
   }
-
 }

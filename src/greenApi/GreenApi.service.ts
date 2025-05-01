@@ -54,19 +54,13 @@ export class GreenApiService {
 
     let currentThreadId = threadId;
     if (!threadId) {
-      if (clienteId) {
-        currentPedidosInText = await this.pedidoService.getMyOrders(clienteId);
-      }
-      const currenciesText = await this.productoService.getCurrencies();
-      const textProducts = await this.productoService.findAllInText();
       const textInfoLines =
         await this.infoLineService.findAllFormatedText(empresaType);
       currentThreadId = await createThread(
-        textProducts,
         textInfoLines,
-        currentPedidosInText,
         empresaType,
-        currenciesText,
+        empresaId,
+        clienteId,
       );
       await this.chatGptThreadsService.createThreads({
         numberPhone: numberSender,
@@ -80,9 +74,13 @@ export class GreenApiService {
       textMessage,
       false,
       timeZone,
+      this.productoService,
+      this.pedidoService,
+      clienteId,
     );
-    if (openAIResponse?.ok === false) {
-      return { ok: false }
+
+    if (openAIResponse?.isError === true) {
+      return { isError: true };
     }
 
     const cleanJSON = (jsonString: string) => {
@@ -97,8 +95,13 @@ export class GreenApiService {
     let openAIResponseFormatted;
     try {
       const openAIResponseRaw = openAIResponse.content[0].text.value;
+      console.log('openAIResponseRaw', openAIResponseRaw);
 
-      openAIResponseFormatted = JSON.parse(cleanJSON(openAIResponseRaw));
+      try {
+        openAIResponseFormatted = JSON.parse(cleanJSON(openAIResponseRaw));
+      } catch (error) {
+        openAIResponseFormatted = { message: openAIResponseRaw };
+      }
     } catch (error) {
       console.error('Error al parsear el JSON:', error);
     }
@@ -117,45 +120,19 @@ export class GreenApiService {
     } else if (openAIResponseFormatted?.placeOrder) {
       if (empresaType === 'RESERVA') {
         let status = true;
-        for (const items of openAIResponseFormatted.data) {
-          const res = await this.pedidoService.consultarHorario(
-            items.fecha,
-            items,
-            timeZone,
-            empresaId,
-          );
-          if (res.ok === false) {
-            const res = await sendMessageToThread(
-              currentThreadId,
-              `lo siento, vuelveme a solicitar la fecha para el producto ${items.nombre} ya que la fecha ${items.fecha} no se encuentra disponible`,
-              true,
-              timeZone,
-            );
-            const openAIResponseRaw = res.content[0].text.value;
-
-            textError = JSON.parse(cleanJSON(openAIResponseRaw));
-            status = false;
-            break;
-          }
-        }
-        if (status === false) {
-          console.log("status false")
-          return;
-        } else {
-          console.log("voy a hacer el pedido")
-          respFinalToUser = await this.hacerPedido(
-            currentThreadId,
-            clienteId,
-            openAIResponseFormatted,
-            empresaType,
-            clientName,
-            numberSender,
-            chatIdExist,
-            empresaId,
-            openAIResponseFormatted?.messagePushTitle,
-            openAIResponseFormatted?.messagePush,
-          );
-        }
+        console.log('voy a hacer el pedido');
+        respFinalToUser = await this.hacerPedido(
+          currentThreadId,
+          clienteId,
+          openAIResponseFormatted,
+          empresaType,
+          clientName,
+          numberSender,
+          chatIdExist,
+          empresaId,
+          openAIResponseFormatted?.messagePushTitle,
+          openAIResponseFormatted?.messagePush,
+        );
       } else {
         respFinalToUser = await this.hacerPedido(
           currentThreadId,
@@ -190,7 +167,7 @@ export class GreenApiService {
     numberSender,
     chatIdExist,
     empresaId: any,
-    messagePushTitle = "Test 1",
+    messagePushTitle = 'Test 1',
     messagePush = 'Test',
   ) {
     try {
@@ -214,9 +191,9 @@ export class GreenApiService {
         messagePushTitle,
         messagePush,
       );
-    return newOrder.messageToUser;
+      return newOrder.messageToUser;
     } catch (error) {
-      console.log("error haciendo pedido", error)
+      console.log('error haciendo pedido', error);
       return null;
     }
   }

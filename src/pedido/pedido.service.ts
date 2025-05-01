@@ -49,7 +49,7 @@ export class PedidoService implements OnModuleDestroy {
     @InjectRepository(Producto)
     private readonly productoRespitory: Repository<Producto>,
     private readonly webSocketService: WebsocketGateway,
-  ) { }
+  ) {}
 
   async onModuleInit() {
     if (!this.globalConnection) {
@@ -88,7 +88,12 @@ export class PedidoService implements OnModuleDestroy {
       const allPedidos = (
         await this.pedidoRepository.find({
           where: { cliente_id: client_id, available: true, finalizado: false },
-          relations: ['pedidosprod', 'pedidosprod.producto', 'estado', 'cambioEstados'],
+          relations: [
+            'pedidosprod',
+            'pedidosprod.producto',
+            'estado',
+            'cambioEstados',
+          ],
         })
       ).map((pedido) => {
         return pedido;
@@ -100,15 +105,20 @@ export class PedidoService implements OnModuleDestroy {
   }
 
   async create(createPedidoDto: CreatePedidoDto) {
+    console.log("data crear pedido", createPedidoDto)
+    
     try {
-      const firstStatus = await this.estadoRepository.findOne({
-        order: { order: "ASC" }
+      const [firstStatus] = await this.estadoRepository.find({
+        order: { order: 'ASC' },
+        take: 1,
       });
       const tipoServicio = await this.tipoServicioRepository.findOne({
         where: { tipo: createPedidoDto.empresaType },
       });
 
-      const existChatPreview = await this.chatRepository.findOne({where: {chatIdExternal : createPedidoDto.chatId} })
+      const existChatPreview = await this.chatRepository.findOne({
+        where: { chatIdExternal: createPedidoDto.chatId },
+      });
 
       if (!firstStatus) {
         throw new BadRequestException('No existe un estado con ese id');
@@ -139,11 +149,11 @@ export class PedidoService implements OnModuleDestroy {
             ? createPedidoDto.fecha || products[0].fecha
             : getCurrentDate();
         newPedido.infoLinesJson = infoLineToJson;
-        newPedido.chatIdWhatsapp = createPedidoDto.chatId.toString()
+        newPedido.chatIdWhatsapp = createPedidoDto.chatId.toString();
         newPedido.detalle_pedido = createPedidoDto?.detalles ?? '';
 
-        if(existChatPreview) {
-          newPedido.chat = existChatPreview
+        if (existChatPreview) {
+          newPedido.chat = existChatPreview;
         }
 
         const savedPedido = await this.pedidoRepository.save(newPedido);
@@ -189,11 +199,9 @@ export class PedidoService implements OnModuleDestroy {
               messageFinal += '\n' + producto + '\n';
             }),
           );
-
         } catch (error) {
           console.error('Error al crear productos:', error);
         }
-
 
         const formatToSendFrontend = {
           clientName: createPedidoDto.clientName,
@@ -238,7 +246,6 @@ export class PedidoService implements OnModuleDestroy {
       });
     }
   }
-
 
   async consultarHorario(hora, producto, timeZone, empresaId) {
     const empresa = await this.empresaRepository.findOne({
@@ -287,7 +294,14 @@ export class PedidoService implements OnModuleDestroy {
     try {
       const pedidoExist = await this.pedidoRepository.findOne({
         where: { id: id },
-        relations: ['cambioEstados', 'chat', 'pedidosprod', 'estado', 'cambioEstados.pedido', 'cambioEstados.estado'],
+        relations: [
+          'cambioEstados',
+          'chat',
+          'pedidosprod',
+          'estado',
+          'cambioEstados.pedido',
+          'cambioEstados.estado',
+        ],
       });
       if (!pedidoExist) {
         throw new BadRequestException('No existe un pedido con esse id');
@@ -362,13 +376,19 @@ export class PedidoService implements OnModuleDestroy {
         .where('pedido.available = :available', { available: true });
 
       if (filter === 'pending') {
-        query.andWhere('pedido.confirmado = :confirmado', { confirmado: false });
+        query.andWhere('pedido.confirmado = :confirmado', {
+          confirmado: false,
+        });
       } else if (filter === 'finished') {
-        query.andWhere('pedido.confirmado = :confirmado', { confirmado: true })
+        query
+          .andWhere('pedido.confirmado = :confirmado', { confirmado: true })
           .andWhere('estado.finalizador = :finalizador', { finalizador: true });
       } else if (filter === 'active') {
-        query.andWhere('pedido.confirmado = :confirmado', { confirmado: true })
-          .andWhere('estado.finalizador = :finalizador', { finalizador: false });
+        query
+          .andWhere('pedido.confirmado = :confirmado', { confirmado: true })
+          .andWhere('estado.finalizador = :finalizador', {
+            finalizador: false,
+          });
       }
 
       query.orderBy('pedido.fecha', 'DESC');
@@ -420,184 +440,201 @@ export class PedidoService implements OnModuleDestroy {
     }
   }
 
-  async getNextDateTimeAvailable(empresaId: number, timeZone): Promise<any> {
+  async obtenerDisponibilidadActivasByFecha(fecha: string): Promise<string[]> {
+    const empresa = await this.empresaRepository.findOne({
+      where: { db_name: process.env.SUBDOMAIN },
+    });
+
+    const { hora_apertura, hora_cierre, intervaloTiempoCalendario, timeZone } =
+      empresa;
+
+    if (!hora_apertura || !hora_cierre || !timeZone) return [];
+
+    const apertura = moment.tz(
+      `${fecha} ${hora_apertura}`,
+      'YYYY-MM-DD HH:mm:ss',
+      timeZone,
+    );
+    const cierre = moment.tz(
+      `${fecha} ${hora_cierre}`,
+      'YYYY-MM-DD HH:mm:ss',
+      timeZone,
+    );
+
+    if (cierre.isBefore(apertura)) {
+      cierre.add(1, 'day');
+    }
+
+    const now = moment.tz(timeZone);
+
+
+    console.log("nowUtc", now.format('YYYY-MM-DD HH:mm:ss'))
+    const pedidos = await this.pedidoRepository
+      .createQueryBuilder('pedido')
+      .where(`pedido.fecha >= :inicioUTC AND pedido.fecha < :finUTC`, {
+        inicioUTC: apertura.clone().utc().format('YYYY-MM-DD HH:mm:ss'),
+        finUTC: cierre.clone().utc().format('YYYY-MM-DD HH:mm:ss'),
+      })
+      .andWhere('pedido.fecha > :nowUtc', {
+        nowUtc: now.format('YYYY-MM-DD HH:mm:ss'),
+      })
+      // rever esto , vamos a permitir crear dos reservas en la misma hora/fecha y confirmar solo una ?
+      // .andWhere('pedido.confirmado = :confirmado', { confirmado: true })
+      .andWhere('pedido.finalizado = :finalizado', { finalizado: false })
+      .getMany();
+
+    const disponibilidad: string[] = [];
+    const dontIncludeDisp: string[] = [];
+
+    let actual = apertura.clone();
+
+    while (actual.isBefore(cierre)) {
+      const overlapping = pedidos.some((pedido) => {
+        const inicio = moment(pedido.fecha);
+        const fin = inicio.clone().add(intervaloTiempoCalendario, 'minutes');
+        const actualUtc = actual.clone().utc();
+        const isBetween = actualUtc.isBetween(inicio, fin, undefined, '[)');
+
+        if (isBetween) {
+          dontIncludeDisp.push(inicio.format('YYYY-MM-DD HH:mm'));
+        }
+        return isBetween;
+      });
+      if (!actual.isBefore(now)) {
+        if (!overlapping) {
+          const newDateToAdd = actual.clone().format('YYYY-MM-DD HH:mm');
+          if (!dontIncludeDisp.includes(newDateToAdd)) {
+            disponibilidad.push(newDateToAdd);
+          }
+        }
+      }
+
+      actual.add(intervaloTiempoCalendario, 'minutes');
+    }
+    console.log("dontIncludeDisp", dontIncludeDisp, pedidos)
+
+    return disponibilidad;
+  }
+
+  async obtenerDisponibilidadActivasPorRango(
+    fechaInicio: string,
+    fechaFin: string,
+  ): Promise<string[]> {
+    const empresa = await this.empresaRepository.findOne({
+      where: { db_name: process.env.SUBDOMAIN },
+    });
+
+    const { hora_apertura, hora_cierre, intervaloTiempoCalendario, timeZone } =
+      empresa;
+
+    if (!hora_apertura || !hora_cierre || !timeZone) return [];
+
+    const inicio = moment.tz(fechaInicio, 'YYYY-MM-DD', timeZone);
+    const fin = moment.tz(fechaFin, 'YYYY-MM-DD', timeZone);
+
+    const allDisponibilidades: string[] = [];
+    const now = moment.tz(timeZone);
+
+    for (let m = inicio.clone(); m.isSameOrBefore(fin); m.add(1, 'day')) {
+      const apertura = moment.tz(
+        `${m.format('YYYY-MM-DD')} ${hora_apertura}`,
+        'YYYY-MM-DD HH:mm:ss',
+        timeZone,
+      );
+      const cierre = moment.tz(
+        `${m.format('YYYY-MM-DD')} ${hora_cierre}`,
+        'YYYY-MM-DD HH:mm:ss',
+        timeZone,
+      );
+
+      const dontIncludeDisp: string[] = [];
+
+      if (cierre.isBefore(apertura)) {
+        cierre.add(1, 'day');
+      }
+
+      const pedidos = await this.pedidoRepository
+        .createQueryBuilder('pedido')
+        .where(`pedido.fecha >= :inicioUTC AND pedido.fecha < :finUTC`, {
+          inicioUTC: apertura.clone().utc().format('YYYY-MM-DD HH:mm:ss'),
+          finUTC: cierre.clone().utc().format('YYYY-MM-DD HH:mm:ss'),
+        })
+        .andWhere('pedido.confirmado = :confirmado', { confirmado: true })
+        .andWhere('pedido.finalizado = :finalizado', { finalizado: false })
+        .getMany();
+
+      let actual = apertura.clone();
+      while (actual.isBefore(cierre)) {
+        const overlapping = pedidos.some((pedido) => {
+          const inicio = moment(pedido.fecha);
+          const fin = inicio.clone().add(intervaloTiempoCalendario, 'minutes');
+          const actualUtc = actual.clone().utc();
+          const isBetween = actualUtc.isBetween(inicio, fin, undefined, '[)');
+
+          if (isBetween) {
+            dontIncludeDisp.push(inicio.format('YYYY-MM-DD HH:mm'));
+          }
+          return isBetween;
+        });
+        if (!actual.isBefore(now)) {
+          if (!overlapping) {
+            const newDateToAdd = actual.clone().format('YYYY-MM-DD HH:mm');
+            if (!dontIncludeDisp.includes(newDateToAdd)) {
+              allDisponibilidades.push(newDateToAdd);
+            }
+          }
+        }
+
+        actual.add(intervaloTiempoCalendario, 'minutes');
+      }
+    }
+
+    return allDisponibilidades;
+  }
+
+  async getNextDateTimeAvailable(
+    timeZone: string,
+  ): Promise<any> {
     try {
       const empresaInfo = await this.empresaRepository.findOne({
-        where: { id: empresaId },
+        where: { db_name: process.env.SUBDOMAIN },
       });
 
       if (!empresaInfo) {
         throw new Error('Empresa no encontrada');
       }
 
-      const {
-        hora_apertura: horaAperturaEmpresa,
-        hora_cierre: horaCierreEmpresa,
-        intervaloTiempoCalendario,
-      } = empresaInfo;
+      const { hora_apertura, hora_cierre, intervaloTiempoCalendario } =
+        empresaInfo;
 
-      if (!horaAperturaEmpresa || !horaCierreEmpresa) {
-        throw new Error('La empresa no tiene horarios configurados.');
+      if (
+        !hora_apertura ||
+        !hora_cierre ||
+        !timeZone ||
+        !intervaloTiempoCalendario
+      ) {
+        throw new Error('Faltan datos de configuración de la empresa');
       }
 
-      const horaActual = moment().tz(timeZone);
+      const today = moment().tz(timeZone).format('YYYY-MM-DD');
+      let fechaActual = today;
+      const maxDays = 15;
 
-      const [aperturaHora, aperturaMinuto] = horaAperturaEmpresa
-        .split(':')
-        .map(Number);
-      const apertura = moment(horaActual)
-        .tz(timeZone)
-        .hour(aperturaHora)
-        .minute(aperturaMinuto)
-        .second(0)
-        .millisecond(0);
+      const fechaFin = moment(fechaActual)
+        .add(maxDays, 'days')
+        .format('YYYY-MM-DD');
 
-      const [cierreHora, cierreMinuto] = horaCierreEmpresa
-        .split(':')
-        .map(Number);
-      const cierre = moment(horaActual)
-        .tz(timeZone)
-        .hour(cierreHora)
-        .minute(cierreMinuto)
-        .second(0)
-        .millisecond(0);
+      const disponibilidades = await this.obtenerDisponibilidadActivasPorRango(
+        fechaActual,
+        fechaFin,
+      );
 
-      const minutosActuales = horaActual.minutes();
-      const minutosRedondeados =
-        Math.ceil(minutosActuales / intervaloTiempoCalendario) *
-        intervaloTiempoCalendario;
-      let proximoDisponible = moment(horaActual)
-        .tz(timeZone)
-        .minute(minutosRedondeados)
-        .second(0)
-        .millisecond(0);
-
-      if (horaActual.isSameOrAfter(cierre)) {
-        apertura.add(1, 'day');
-        cierre.add(1, 'day');
-        proximoDisponible = apertura.clone().tz(timeZone);
-      }
-
-      while (true) {
-        console.log(
-          `Verificando disponibilidad para el día: ${apertura.format('YYYY-MM-DD')}`,
+      if (disponibilidades.length > 0) {
+        return disponibilidades[0];
+      } else {
+        throw new Error(
+          'No hay disponibilidades disponibles en los próximos 15 días',
         );
-
-        const allPedidos = await this.pedidoRepository
-          .createQueryBuilder('pedido')
-          .where('pedido.fecha >= :apertura AND pedido.fecha < :cierre', {
-            apertura: apertura.format('YYYY-MM-DD HH:mm:ss+00'),
-            cierre: cierre.format('YYYY-MM-DD HH:mm:ss+00'),
-          })
-          .andWhere('pedido.estado != :estadoCancelado', {
-            estadoCancelado: EstadoDefectoIds.CANCELADO,
-          })
-          .andWhere('pedido.fecha > :horaActual', {
-            horaActual: horaActual.format('YYYY-MM-DD HH:mm:ss+00'),
-          })
-          .getMany();
-
-        const pedidosActivos = allPedidos;
-
-        const intervalosOcupados = pedidosActivos.map((pedido) => {
-          const inicio = moment(pedido.fecha).tz(timeZone);
-          const fin = inicio
-            .clone()
-            .tz(timeZone)
-            .add(intervaloTiempoCalendario, 'minutes');
-          return { inicio, fin };
-        });
-
-        intervalosOcupados.sort(
-          (a, b) => a.inicio.valueOf() - b.inicio.valueOf(),
-        );
-
-        console.log(
-          'Intervalos ocupados:',
-          intervalosOcupados.map((i) => ({
-            inicio: i.inicio.format('HH:mm'),
-            fin: i.fin.format('HH:mm'),
-          })),
-        );
-
-        let encontradoHueco = false;
-
-        if (
-          intervalosOcupados?.length === 0 &&
-          pedidosActivos?.length === 0 &&
-          horaActual.isAfter(cierre)
-        ) {
-          proximoDisponible = apertura.clone().tz(timeZone);
-        }
-        console.log('intervalosOcupados', intervalosOcupados);
-
-        for (let i = 0; i <= intervalosOcupados.length - 1; i++) {
-          const actual = intervalosOcupados[i];
-          const siguiente = intervalosOcupados[i + 1];
-          console.log('comparando', intervalosOcupados[i]);
-          console.log('siguiente', siguiente);
-          console.log('proximoDisponible', proximoDisponible);
-
-          if (!actual) {
-            if (proximoDisponible.isBefore(cierre)) {
-              console.log('if 1');
-              encontradoHueco = true;
-              break;
-            }
-          } else if (proximoDisponible.isBefore(actual.inicio)) {
-            console.log('if 2');
-            encontradoHueco = true;
-            break;
-          } else if (siguiente) {
-            console.log('if 3');
-            const finActual = actual.fin.clone().tz(timeZone);
-            if (finActual.isBefore(siguiente.inicio)) {
-              console.log('if 4');
-              proximoDisponible = finActual;
-              encontradoHueco = true;
-              break;
-            } else {
-              proximoDisponible = actual.fin.clone().tz(timeZone);
-            }
-          } else {
-            console.log('if 5');
-            encontradoHueco = true;
-            proximoDisponible = actual.fin.clone().tz(timeZone);
-
-            if (proximoDisponible.isSameOrAfter(cierre)) {
-              console.log('add');
-              encontradoHueco = false;
-            }
-            console.log('if 5 desp', proximoDisponible);
-          }
-        }
-
-        if (encontradoHueco && proximoDisponible.isBefore(cierre)) {
-          console.log('acap 3');
-          return proximoDisponible.toISOString();
-        } else if (
-          intervalosOcupados?.length === 0 &&
-          proximoDisponible.isBefore(cierre)
-        ) {
-          if (proximoDisponible.isSameOrAfter(cierre)) {
-            console.log('acap 1');
-            encontradoHueco = false;
-          } else {
-            console.log('acap 2');
-            return proximoDisponible.toISOString();
-          }
-        }
-
-        console.log('Pasando al siguiente día');
-        apertura.add(1, 'day');
-        cierre.add(1, 'day');
-        proximoDisponible = apertura.clone().tz(timeZone);
-
-        if (apertura.diff(horaActual, 'days') > 30) {
-          throw new Error(
-            'No se encontró disponibilidad en los próximos 30 días',
-          );
-        }
       }
     } catch (error) {
       throw new BadRequestException({
@@ -746,7 +783,6 @@ export class PedidoService implements OnModuleDestroy {
     return pedido;
   }
 
-
   async remove(id: number) {
     try {
       const pedidoExist = await this.pedidoRepository.findOne({
@@ -838,7 +874,7 @@ export class PedidoService implements OnModuleDestroy {
       const lastOrders = await this.pedidoRepository.find({
         order: { id: 'DESC' },
         take: 3,
-        relations: ['pedidosprod', 'pedidosprod.producto']
+        relations: ['pedidosprod', 'pedidosprod.producto'],
       });
 
       const ordersWithTotal = lastOrders.map((element) => {

@@ -33,6 +33,7 @@ export class GrenApiController {
 
   @Post('/webhooks')
   async handleWebhook(@Req() request: Request, @Body() body: any) {
+
     if (process.env.SUBDOMAIN === 'app') return;
     if (body.stateInstance) {
       const greenApiStatus = body.stateInstance;
@@ -70,24 +71,26 @@ export class GrenApiController {
           if (numberExist?.data) {
             return;
           } else {
-            const now = moment().tz(timeZone);
-
-            const apertura = moment.tz(
-              InfoCompany.hora_apertura,
-              'HH:mm:ss',
-              timeZone,
-            );
-            const cierre = moment.tz(
-              InfoCompany.hora_cierre,
-              'HH:mm:ss',
-              timeZone,
-            );
+            const now = moment.tz(timeZone);
+            const apertura = now.clone().set({
+              hour: parseInt(InfoCompany.hora_apertura.split(":")[0]),
+              minute: parseInt(InfoCompany.hora_apertura.split(":")[1]),
+              second: 0,
+              millisecond: 0
+            });
+            
+            const cierre = now.clone().set({
+              hour: parseInt(InfoCompany.hora_cierre.split(":")[0]),
+              minute: parseInt(InfoCompany.hora_cierre.split(":")[1]),
+              second: 0,
+              millisecond: 0
+            });
 
             const estaDentroDeHorario =
-              InfoCompany.abierto &&
-              (apertura.isBefore(cierre)
-                ? now.isAfter(apertura) && now.isBefore(cierre)
-                : now.isAfter(apertura) || now.isBefore(cierre));
+            InfoCompany.abierto &&
+            (apertura.isBefore(cierre)
+              ? now.isBetween(apertura, cierre)
+              : now.isSameOrAfter(apertura) || now.isBefore(cierre));
 
             if (estaDentroDeHorario) {
               let messageToSend;
@@ -116,7 +119,7 @@ export class GrenApiController {
               );
 
               console.log("respText", respText)
-              if (respText?.ok === false) {
+              if (respText?.isError === true) {
                 console.log('Mensaje descartado, no se responderá');
                 return;
               } else {

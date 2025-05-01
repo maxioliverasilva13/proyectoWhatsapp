@@ -1,217 +1,321 @@
-import getCurrentDate from "./getCurrentDate";
+import getCurrentDate from './getCurrentDate';
 import * as moment from 'moment-timezone';
 import * as FormData from 'form-data';
-import { Readable } from "stream";
-import axios from 'axios'
+import { Readable } from 'stream';
+import axios from 'axios';
+import { ProductoService } from 'src/producto/producto.service';
+import { PedidoService } from 'src/pedido/pedido.service';
 
 export const askAssistant = async (question, instrucciones) => {
-    try {
-        const response = await fetch("https://api.openai.com/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.OPEN_AI_TOKEN}`,
-            },
-            body: JSON.stringify({
-                model: "gpt-3.5-turbo",
-                messages: [
-                    {
-                        role: "system", content: [
-                            instrucciones.instructions,
-                            " Mensajes anteriores",
-                        ]
-                    },
-                    { role: "user", content: question }
-                ],
-            })
-        });
-        if (!response.ok) {
-            const errorResponse = await response.json();
-            throw new Error('Error al enviar la pregunta: ' + JSON.stringify(errorResponse));
-        }
-
-        const data = await response.json() as any;
-        return data.choices[0].message.content;
-
-    } catch (error) {
-        console.error("Error al interactuar con el asistente:", error.message);
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${process.env.OPEN_AI_TOKEN}`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-3.5-turbo',
+        messages: [
+          {
+            role: 'system',
+            content: [instrucciones.instructions, ' Mensajes anteriores'],
+          },
+          { role: 'user', content: question },
+        ],
+      }),
+    });
+    if (!response.ok) {
+      const errorResponse = await response.json();
+      throw new Error(
+        'Error al enviar la pregunta: ' + JSON.stringify(errorResponse),
+      );
     }
+
+    const data = (await response.json()) as any;
+    return data.choices[0].message.content;
+  } catch (error) {
+    console.error('Error al interactuar con el asistente:', error.message);
+  }
 };
 
-export async function createThread(products, infoLines, currentPedidosInText, empresaType, currenciesText = '') {
-    console.log("currentPedidosInText", currentPedidosInText)
-    const formatedText = `empresaType: ${empresaType}\nINFO-LINES: ${infoLines}\nLISTA-PRODUCTOS: ${products}\n LISTA-PEDIDOS-USUARIO: ${currentPedidosInText} \n CURRENT_TIME:${getCurrentDate()}, CURRENCIES:${currenciesText}`
+export async function createThread(
+  infoLines,
+  empresaType,
+  empresaId = '',
+  userId,
+) {
+  const formatedText = `EmpresaId: ${empresaId} \n EmpresaType: ${empresaType} \n UserId: ${userId} \n 
+    INFO-LINES: ${infoLines} \n
+    CURRENT_TIME:${getCurrentDate()} \n`;
 
-    const response = await fetch(`https://api.openai.com/v1/threads`, {
-        method: "POST",
-        headers: {
-            "Authorization": `Bearer ${process.env.OPEN_AI_TOKEN}`,
-            "Content-Type": "application/json",
-            "OpenAI-Beta": "assistants=v2"
-        },
-        body: JSON.stringify({
-            messages: [
-                {role: "assistant",content: formatedText}
-            ]
-        }),    
-    });
+  const response = await fetch(`https://api.openai.com/v1/threads`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env.OPEN_AI_TOKEN}`,
+      'Content-Type': 'application/json',
+      'OpenAI-Beta': 'assistants=v2',
+    },
+    body: JSON.stringify({
+      messages: [{ role: 'assistant', content: formatedText }],
+    }),
+  });
 
-    if (!response.ok) {
-        const errorResponse = await response.json();
-        throw new Error(`Error al crear el thread: ${JSON.stringify(errorResponse)}`);
-    }    
+  if (!response.ok) {
+    const errorResponse = await response.json();
+    throw new Error(
+      `Error al crear el thread: ${JSON.stringify(errorResponse)}`,
+    );
+  }
 
-    const threadData = await response.json() as any;
-    console.log("thread creado");
-    
-    return threadData.id;
+  const threadData = (await response.json()) as any;
+  console.log('thread creado');
+
+  return threadData.id;
 }
 
-export async function sendMessageToThread(threadId, text, isAdmin, timeZone) {
+export async function sendMessageToThread(
+  threadId,
+  text,
+  isAdmin,
+  timeZone,
+  productoService: ProductoService,
+  pedidoService: PedidoService,
+  clienteId: any,
+) {
+  const today = moment.tz(timeZone);
+  const headers = {
+    Authorization: `Bearer ${process.env.OPEN_AI_TOKEN}`,
+    'Content-Type': 'application/json',
+    'OpenAI-Beta': 'assistants=v2',
+  };
 
-    const today = moment.tz(timeZone); 
-    const headers = {
-        "Authorization": `Bearer ${process.env.OPEN_AI_TOKEN}`,
-        "Content-Type": "application/json",
-        "OpenAI-Beta": "assistants=v2"
-    };
+  // 1. Enviar mensaje
+  await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      role: 'user',
+      content: `Admin:${isAdmin} \n Current_Time:${today} \n Message: ${text}`,
+    }),
+  });
 
-    await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-            role: "user",
-            content: `Admin:${isAdmin} \n Current_Time:${today} \n Message: ${text}`
-        })
-    });
-    const response = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-            assistant_id: process.env.ASSISTANT_ID
-        })
-    });
+  // 2. Lanzar assistant run
+  const response = await fetch(
+    `https://api.openai.com/v1/threads/${threadId}/runs`,
+    {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        assistant_id: process.env.ASSISTANT_ID,
+      }),
+    },
+  );
 
+  if (!response.ok) {
+    const errorData = await response.json();
+    console.error('Error al iniciar el run:', errorData);
+    return { isError: true };
+  }
 
-    if (!response.ok) {
-        const errorData = await response.json();
-        console.error(errorData);
-        return {
-            ok: false,
+  const runData = await response.json();
+  const runId = runData.id;
+
+  let delay = 1000;
+  let status = 'queued';
+  const maxRetries = 10;
+  const maxToolCallRetries = 3;
+  let toolCallAttempts = 0;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    await new Promise((resolve) => setTimeout(resolve, delay));
+
+    const statusResponse = await fetch(
+      `https://api.openai.com/v1/threads/${threadId}/runs/${runId}`,
+      { headers },
+    );
+
+    if (!statusResponse.ok) continue;
+
+    const statusData = await statusResponse.json();
+    status = statusData.status;
+
+    if (
+      status === 'requires_action' &&
+      statusData.required_action?.submit_tool_outputs?.tool_calls
+    ) {
+      const toolCalls =
+        statusData.required_action.submit_tool_outputs.tool_calls;
+
+      const tool_outputs = [];
+
+      for (const toolCall of toolCalls) {
+        const { name, arguments: rawArgs } = toolCall.function;
+
+        let args: any = {};
+        try {
+          args = JSON.parse(rawArgs);
+        } catch (err) {
+          console.error('Error al parsear los argumentos:', rawArgs);
         }
-    }
 
-    const runData = await response.json() as any;
-    const runId = runData.id;
+        let toolResult;
 
-    let delay = 1000;
-    let status = "pending";
-    const maxRetries = 6;
+        try {
+          if (name === 'getProductsByEmpresa') {
+            console.log('getProductsByEmpresa');
+            toolResult = await productoService.findAllInText();
+          } else if (name === 'getPedidosByUser') {
+            console.log('getPedidosByUser');
+            toolResult = await pedidoService.getMyOrders(clienteId);
+          } else if (name === 'getCurrencies') {
+            console.log('getCurrencies');
+            toolResult = await productoService.getCurrencies();
+          } else if (name === 'getAvailability') {
+            console.log('getAvailability');
+            toolResult =
+              await pedidoService.obtenerDisponibilidadActivasByFecha(
+                args.date,
+              );
+          } else if (name === 'getNextAvailability') {
+            console.log('getNextAvailability');
+            toolResult = await pedidoService.getNextDateTimeAvailable(timeZone);
+          } else {
+            toolResult = { error: `Tool ${name} no implementada` };
+          }
+        } catch (err) {
+          console.error(`Error ejecutando ${name}:`, err);
+          toolResult = { error: 'Error ejecutando la función' };
+        }
 
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        await new Promise(resolve => setTimeout(resolve, delay));
+        let toolOutputStr = '';
+        try {
+          toolOutputStr = JSON.stringify(toolResult);
+        } catch (err) {
+          console.error('Error serializando toolResult:', err);
+          toolOutputStr = JSON.stringify({
+            error: 'Error serializando toolResult',
+          });
+        }
 
-        const statusResponse = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs/${runId}`, {
-            headers
+        tool_outputs.push({
+          tool_call_id: toolCall.id,
+          output: toolOutputStr,
         });
+      }
 
-        if (!statusResponse.ok) {
-            console.warn("Reintentando después de un error de estado:", statusResponse.statusText);
-            continue;
-        }
+      const submitRes = await fetch(
+        `https://api.openai.com/v1/threads/${threadId}/runs/${runId}/submit_tool_outputs`,
+        {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ tool_outputs }),
+        },
+      );
 
-        const statusData = await statusResponse.json() as any;
-        const error = statusData.last_error;
-        if (error) {
-            console.log("error", error)
-        }
+      const submitData = await submitRes.json();
+      console.log('Respuesta submit_tool_outputs:', submitData);
 
-        if (status === "completed") break;
-        delay = Math.min(3000, delay + 500);
+      if (!submitRes.ok) {
+        console.error('Error al enviar tool output:', submitData);
+        return { isError: true };
+      }
+
+      toolCallAttempts++;
+      if (toolCallAttempts > maxToolCallRetries) {
+        console.error('Demasiadas llamadas a la misma herramienta');
+        return { isError: true };
+      }
+
+      attempt = 0;
+      delay = 1000;
+      continue;
     }
 
-    if (status !== "completed") {
-        console.log("status", status, );
-        return { ok: false }
-    }
+    if (status === 'completed') break;
 
-    // Recuperar el último mensaje del asistente
-    const messagesResponse = await fetch(`https://api.openai.com/v1/threads/${threadId}/messages?role=assistant&limit=1`, {
-        headers
-    });
+    delay = Math.min(3000, delay + 500);
+  }
 
-    if (!messagesResponse.ok) {
-        console.log("Error al obtener los mensajes del hilo: " + messagesResponse.statusText);
-        return { ok: false }
-    }
+  if (status !== 'completed') {
+    console.log('run no completado, status:', status);
+    return { ok: false };
+  }
 
-    const messagesData = await messagesResponse.json() as any;
-    const assistantMessage = messagesData.data[0];
+  const messagesResponse = await fetch(
+    `https://api.openai.com/v1/threads/${threadId}/messages?role=assistant&limit=1`,
+    { headers },
+  );
 
-    if (!assistantMessage) {
-        console.log("No se encontró una respuesta del asistente.");
-        return { ok: false }
-    }
-    return assistantMessage;
+  if (!messagesResponse.ok) {
+    console.log('Error al obtener los mensajes del asistente');
+    return { isError: true };
+  }
+
+  const messagesData = await messagesResponse.json();
+  const assistantMessage = messagesData.data[0];
+
+  return assistantMessage ?? { isError: true };
 }
-
 
 export async function closeThread(threadId) {
-    const url = `https://api.openai.com/v1/threads/${threadId}`;
-    const headers = {
-        "Authorization": `Bearer ${process.env.OPEN_AI_TOKEN}`,
-        "Content-Type": "application/json",
-        "OpenAI-Beta": "assistants=v2"
-    };
+  const url = `https://api.openai.com/v1/threads/${threadId}`;
+  const headers = {
+    Authorization: `Bearer ${process.env.OPEN_AI_TOKEN}`,
+    'Content-Type': 'application/json',
+    'OpenAI-Beta': 'assistants=v2',
+  };
 
-    const response = await fetch(url, {
-        method: "DELETE",
-        headers
-    });
-    
-    if (!response.ok) {
-        const errorData = await response.json();
-        console.error(errorData);
-        throw new Error(`Error al cerrar el hilo: ${response.statusText}`);
-    }
+  const response = await fetch(url, {
+    method: 'DELETE',
+    headers,
+  });
 
-    console.log(`Thread ${threadId} cerrado exitosamente.`);
-    return await response.json();
+  if (!response.ok) {
+    const errorData = await response.json();
+    console.error(errorData);
+    throw new Error(`Error al cerrar el hilo: ${response.statusText}`);
+  }
+
+  console.log(`Thread ${threadId} cerrado exitosamente.`);
+  return await response.json();
 }
 
 export const SpeechToText = async (audioUrl: string) => {
-    try {
-        const responseAudio = await fetch(audioUrl);
-        if (!responseAudio.ok) {
-            throw new Error(`Error al descargar el audio: ${responseAudio.statusText}`);
-        }
-
-        const audioBuffer = Buffer.from(await responseAudio.arrayBuffer());
-
-        const stream = new Readable();
-        stream.push(audioBuffer);
-        stream.push(null);
-
-        const formData = new FormData();
-        formData.append('file', stream, {
-            filename: 'audio.wav',
-            contentType: 'audio/wav'
-        });
-        formData.append('model', 'whisper-1');
-
-        const response = await axios.post(
-            'https://api.openai.com/v1/audio/transcriptions',
-            formData,
-            {
-                headers: {
-                    'Authorization': `Bearer ${process.env.OPEN_AI_TOKEN}`,
-                    ...formData.getHeaders(),
-                },
-            }
-        );
-
-        return response.data.text;
-    } catch (error: any) {
-        console.error('Error:', error?.response?.data || error.message);
+  try {
+    const responseAudio = await fetch(audioUrl);
+    if (!responseAudio.ok) {
+      throw new Error(
+        `Error al descargar el audio: ${responseAudio.statusText}`,
+      );
     }
+
+    const audioBuffer = Buffer.from(await responseAudio.arrayBuffer());
+
+    const stream = new Readable();
+    stream.push(audioBuffer);
+    stream.push(null);
+
+    const formData = new FormData();
+    formData.append('file', stream, {
+      filename: 'audio.wav',
+      contentType: 'audio/wav',
+    });
+    formData.append('model', 'whisper-1');
+
+    const response = await axios.post(
+      'https://api.openai.com/v1/audio/transcriptions',
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.OPEN_AI_TOKEN}`,
+          ...formData.getHeaders(),
+        },
+      },
+    );
+
+    return response.data.text;
+  } catch (error: any) {
+    console.error('Error:', error?.response?.data || error.message);
+  }
 };
