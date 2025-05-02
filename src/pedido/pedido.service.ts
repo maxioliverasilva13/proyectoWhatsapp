@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { UpdatePedidoDto } from './dto/update-pedido.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, DataSource, MoreThan, Repository } from 'typeorm';
+import { Between, DataSource, In, MoreThan, Repository } from 'typeorm';
 import { Pedido } from './entities/pedido.entity';
 import { Estado } from 'src/estado/entities/estado.entity';
 import { CreatePedidoDto } from './dto/create-pedido.dto';
@@ -116,9 +116,13 @@ export class PedidoService implements OnModuleDestroy {
         where: { tipo: createPedidoDto.empresaType },
       });
 
-      const existChatPreview = await this.chatRepository.findOne({
-        where: { chatIdExternal: createPedidoDto.chatId },
-      });
+      let existChatPreview = undefined;
+
+      if (createPedidoDto.chatId) {
+        existChatPreview = await this.chatRepository.findOne({
+          where: { chatIdExternal: createPedidoDto.chatId },
+        });
+      }
 
       if (!firstStatus) {
         throw new BadRequestException('No existe un estado con ese id');
@@ -161,8 +165,9 @@ export class PedidoService implements OnModuleDestroy {
         const savedPedido = await this.pedidoRepository.save(newPedido);
 
         const productIds = products.map((product) => product.productoId);
-        const existingProducts =
-          await this.productoRespitory.findByIds(productIds);
+        const existingProducts = await this.productoRespitory.find({
+          where: { id: In(productIds) },
+        });
         try {
           await Promise.all(
             products.map(async (product) => {
@@ -240,6 +245,7 @@ export class PedidoService implements OnModuleDestroy {
           : messageFinal + '\n\nTotal:' + globalTotal,
       };
     } catch (error) {
+      console.log('error', error);
       throw new BadRequestException({
         ok: false,
         statusCode: 400,
