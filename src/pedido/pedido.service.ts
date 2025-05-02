@@ -507,7 +507,6 @@ export class PedidoService implements OnModuleDestroy {
         const inicio = moment(pedido.fecha);
         const fin = inicio.clone().add(intervaloTiempoCalendario, 'minutes');
         const actualUtc = actual.clone().utc().add(-3, "hours");
-        console.log("xd2", actualUtc)
         const isBetween = actualUtc.isBetween(inicio, fin, undefined, '[)');
 
         if (isBetween) {
@@ -521,7 +520,6 @@ export class PedidoService implements OnModuleDestroy {
       } else {
         conditionToAdd = !actual.isBefore(now);
       }
-      console.log(actualDate, conditionToAdd, overlapping)
       if (conditionToAdd && !overlapping) {
         if (!dontIncludeDisp.includes(actualDate)) {
           disponibilidad.push(actualDate);
@@ -531,8 +529,6 @@ export class PedidoService implements OnModuleDestroy {
       actual.add(intervaloTiempoCalendario, 'minutes');
     }
 
-
-    console.log("dontIncludeDisp", dontIncludeDisp)
     return disponibilidad;
   }
 
@@ -588,7 +584,7 @@ export class PedidoService implements OnModuleDestroy {
         const overlapping = pedidos.some((pedido) => {
           const inicio = moment(pedido.fecha);
           const fin = inicio.clone().add(intervaloTiempoCalendario, 'minutes');
-          const actualUtc = actual.clone().utc();
+          const actualUtc = actual.clone().utc().add(-3, "hours");
           const isBetween = actualUtc.isBetween(inicio, fin, undefined, '[)');
 
           if (isBetween) {
