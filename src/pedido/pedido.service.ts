@@ -174,7 +174,7 @@ export class PedidoService implements OnModuleDestroy {
               let producto = '';
 
               const productExist = existingProducts.find(
-                (p) => p.id === product.productoId,
+                (p) => p.id == product.productoId,
               );
               if (!productExist) {
                 throw new Error(
@@ -704,7 +704,7 @@ export class PedidoService implements OnModuleDestroy {
             total: pedidoProd?.cantidad * pedidoProd?.producto.precio,
             date: isOlder ? pedidoDate.format('LT') : pedidoDate.fromNow(),
             status: pedido.confirmado,
-            product: pedidoProd.producto.nombre,
+            product: pedidoProd?.producto?.nombre,
           };
 
           if (formattedDate in dates) {
