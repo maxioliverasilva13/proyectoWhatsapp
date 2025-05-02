@@ -440,7 +440,7 @@ export class PedidoService implements OnModuleDestroy {
     }
   }
 
-  async obtenerDisponibilidadActivasByFecha(fecha: string): Promise<string[]> {
+  async obtenerDisponibilidadActivasByFecha(fecha: string, withPast=false): Promise<string[]> {
     const empresa = await this.empresaRepository.findOne({
       where: { db_name: process.env.SUBDOMAIN },
     });
@@ -468,20 +468,21 @@ export class PedidoService implements OnModuleDestroy {
     const now = moment.tz(timeZone);
 
 
-    console.log("nowUtc", now.format('YYYY-MM-DD HH:mm:ss'))
-    const pedidos = await this.pedidoRepository
-      .createQueryBuilder('pedido')
-      .where(`pedido.fecha >= :inicioUTC AND pedido.fecha < :finUTC`, {
-        inicioUTC: apertura.clone().utc().format('YYYY-MM-DD HH:mm:ss'),
-        finUTC: cierre.clone().utc().format('YYYY-MM-DD HH:mm:ss'),
-      })
-      .andWhere('pedido.fecha > :nowUtc', {
-        nowUtc: now.format('YYYY-MM-DD HH:mm:ss'),
-      })
-      // rever esto , vamos a permitir crear dos reservas en la misma hora/fecha y confirmar solo una ?
-      // .andWhere('pedido.confirmado = :confirmado', { confirmado: true })
-      .andWhere('pedido.finalizado = :finalizado', { finalizado: false })
-      .getMany();
+    const query = this.pedidoRepository
+    .createQueryBuilder('pedido')
+    .where(`pedido.fecha >= :inicioUTC AND pedido.fecha < :finUTC`, {
+      inicioUTC: apertura.clone().utc().format('YYYY-MM-DD HH:mm:ss'),
+      finUTC: cierre.clone().utc().format('YYYY-MM-DD HH:mm:ss'),
+    })
+    .andWhere('pedido.finalizado = :finalizado', { finalizado: false });
+  
+  if (!withPast) {
+    query.andWhere('pedido.fecha > :nowUtc', {
+      nowUtc: now.format('YYYY-MM-DD HH:mm:ss'),
+    });
+  }
+  
+  const pedidos = await query.getMany();
 
     const disponibilidad: string[] = [];
     const dontIncludeDisp: string[] = [];

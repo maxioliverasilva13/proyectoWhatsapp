@@ -41,7 +41,8 @@ export class PedidoController {
   @Get("/calendar/dates-avaiable")
   getDatesAvailable(@Req() request: any) {
     const fecha = request.query['fecha'];
-    return this.pedidoService.obtenerDisponibilidadActivasByFecha(fecha);
+    const withPast = request.query['withPast'];
+    return this.pedidoService.obtenerDisponibilidadActivasByFecha(fecha, withPast);
   }
 
   @Post('/aviableDate')
