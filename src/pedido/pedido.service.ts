@@ -168,6 +168,7 @@ export class PedidoService implements OnModuleDestroy {
         const existingProducts = await this.productoRespitory.find({
           where: { id: In(productIds) },
         });
+
         try {
           await Promise.all(
             products.map(async (product) => {
@@ -501,10 +502,12 @@ export class PedidoService implements OnModuleDestroy {
     let actual = apertura.clone();
 
     while (actual.isBefore(cierre)) {
+      const actualDate = actual.clone().format('YYYY-MM-DD HH:mm');
       const overlapping = pedidos.some((pedido) => {
         const inicio = moment(pedido.fecha);
         const fin = inicio.clone().add(intervaloTiempoCalendario, 'minutes');
-        const actualUtc = actual.clone().utc();
+        const actualUtc = actual.clone().utc().add(-3, "hours");
+        console.log("xd2", actualUtc)
         const isBetween = actualUtc.isBetween(inicio, fin, undefined, '[)');
 
         if (isBetween) {
@@ -518,16 +521,18 @@ export class PedidoService implements OnModuleDestroy {
       } else {
         conditionToAdd = !actual.isBefore(now);
       }
+      console.log(actualDate, conditionToAdd, overlapping)
       if (conditionToAdd && !overlapping) {
-        const newDateToAdd = actual.clone().format('YYYY-MM-DD HH:mm');
-        if (!dontIncludeDisp.includes(newDateToAdd)) {
-          disponibilidad.push(newDateToAdd);
+        if (!dontIncludeDisp.includes(actualDate)) {
+          disponibilidad.push(actualDate);
         }
       }
 
       actual.add(intervaloTiempoCalendario, 'minutes');
     }
 
+
+    console.log("dontIncludeDisp", dontIncludeDisp)
     return disponibilidad;
   }
 
