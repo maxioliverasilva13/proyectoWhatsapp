@@ -105,8 +105,8 @@ export class PedidoService implements OnModuleDestroy {
   }
 
   async create(createPedidoDto: CreatePedidoDto) {
-    console.log("data crear pedido", createPedidoDto)
-    
+    console.log('data crear pedido', createPedidoDto);
+
     try {
       const [firstStatus] = await this.estadoRepository.find({
         order: { order: 'ASC' },
@@ -440,7 +440,10 @@ export class PedidoService implements OnModuleDestroy {
     }
   }
 
-  async obtenerDisponibilidadActivasByFecha(fecha: string, withPast=false): Promise<string[]> {
+  async obtenerDisponibilidadActivasByFecha(
+    fecha: string,
+    withPast = false,
+  ): Promise<string[]> {
     const empresa = await this.empresaRepository.findOne({
       where: { db_name: process.env.SUBDOMAIN },
     });
@@ -467,22 +470,22 @@ export class PedidoService implements OnModuleDestroy {
 
     const now = moment.tz(timeZone);
 
-
     const query = this.pedidoRepository
-    .createQueryBuilder('pedido')
-    .where(`pedido.fecha >= :inicioUTC AND pedido.fecha < :finUTC`, {
-      inicioUTC: apertura.clone().utc().format('YYYY-MM-DD HH:mm:ss'),
-      finUTC: cierre.clone().utc().format('YYYY-MM-DD HH:mm:ss'),
-    })
-    .andWhere('pedido.finalizado = :finalizado', { finalizado: false });
-  
-  if (!withPast) {
-    query.andWhere('pedido.fecha > :nowUtc', {
-      nowUtc: now.format('YYYY-MM-DD HH:mm:ss'),
-    });
-  }
-  
-  const pedidos = await query.getMany();
+      .createQueryBuilder('pedido')
+      .where(`pedido.fecha >= :inicioUTC AND pedido.fecha < :finUTC`, {
+        inicioUTC: apertura.clone().utc().format('YYYY-MM-DD HH:mm:ss'),
+        finUTC: cierre.clone().utc().format('YYYY-MM-DD HH:mm:ss'),
+      })
+      .andWhere('pedido.confirmado = :confirmado', { confirmado: true });
+
+    console.log('withPast', withPast);
+    if (!withPast) {
+      query.andWhere('pedido.fecha > :nowUtc', {
+        nowUtc: now.format('YYYY-MM-DD HH:mm:ss'),
+      });
+    }
+
+    const pedidos = await query.getMany();
 
     const disponibilidad: string[] = [];
     const dontIncludeDisp: string[] = [];
@@ -501,18 +504,23 @@ export class PedidoService implements OnModuleDestroy {
         }
         return isBetween;
       });
-      if (!actual.isBefore(now)) {
-        if (!overlapping) {
-          const newDateToAdd = actual.clone().format('YYYY-MM-DD HH:mm');
-          if (!dontIncludeDisp.includes(newDateToAdd)) {
-            disponibilidad.push(newDateToAdd);
-          }
+      let conditionToAdd = false;
+      if (withPast === true) {
+        console.log("si")
+        conditionToAdd = withPast;
+      } else {
+        console.log("no")
+        conditionToAdd = !actual.isBefore(now);
+      }
+      if (conditionToAdd && !overlapping) {
+        const newDateToAdd = actual.clone().format('YYYY-MM-DD HH:mm');
+        if (!dontIncludeDisp.includes(newDateToAdd)) {
+          disponibilidad.push(newDateToAdd);
         }
       }
 
       actual.add(intervaloTiempoCalendario, 'minutes');
     }
-    console.log("dontIncludeDisp", dontIncludeDisp, pedidos)
 
     return disponibilidad;
   }
@@ -593,9 +601,7 @@ export class PedidoService implements OnModuleDestroy {
     return allDisponibilidades;
   }
 
-  async getNextDateTimeAvailable(
-    timeZone: string,
-  ): Promise<any> {
+  async getNextDateTimeAvailable(timeZone: string): Promise<any> {
     try {
       const empresaInfo = await this.empresaRepository.findOne({
         where: { db_name: process.env.SUBDOMAIN },
