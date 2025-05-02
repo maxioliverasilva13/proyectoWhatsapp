@@ -149,7 +149,9 @@ export class PedidoService implements OnModuleDestroy {
             ? createPedidoDto.fecha || products[0].fecha
             : getCurrentDate();
         newPedido.infoLinesJson = infoLineToJson;
-        newPedido.chatIdWhatsapp = createPedidoDto.chatId.toString();
+        if (createPedidoDto?.chatId) {
+          newPedido.chatIdWhatsapp = createPedidoDto.chatId.toString();
+        }
         newPedido.detalle_pedido = createPedidoDto?.detalles ?? '';
 
         if (existChatPreview) {
