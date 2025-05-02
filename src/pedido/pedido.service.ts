@@ -506,10 +506,8 @@ export class PedidoService implements OnModuleDestroy {
       });
       let conditionToAdd = false;
       if (withPast === true) {
-        console.log("si")
         conditionToAdd = withPast;
       } else {
-        console.log("no")
         conditionToAdd = !actual.isBefore(now);
       }
       if (conditionToAdd && !overlapping) {
