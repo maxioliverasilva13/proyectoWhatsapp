@@ -401,7 +401,7 @@ export class PedidoService implements OnModuleDestroy {
           });
       }
 
-      query.orderBy('pedido.fecha', 'DESC');
+      query.orderBy('pedido.createdAt', 'DESC');
 
       const pedidos = await query.getMany();
 
