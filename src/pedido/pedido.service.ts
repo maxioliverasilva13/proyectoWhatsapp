@@ -148,6 +148,7 @@ export class PedidoService implements OnModuleDestroy {
         newPedido.cliente_id = createPedidoDto.clienteId;
         newPedido.estado = firstStatus;
         newPedido.tipo_servicio_id = tipoServicio.id;
+        newPedido.available = true;
         newPedido.fecha =
           createPedidoDto.empresaType === 'RESERVA'
             ? createPedidoDto.fecha || products[0].fecha
@@ -427,6 +428,8 @@ export class PedidoService implements OnModuleDestroy {
           direccion: direcciones,
           numberSender: clienteData?.telefono || 'N/A',
           total,
+          estado: pedido?.estado,
+          confirmado: pedido?.confirmado,
           detalle: pedido.detalle_pedido,
           orderId: pedido.id,
           date: pedido.fecha,
@@ -485,7 +488,8 @@ export class PedidoService implements OnModuleDestroy {
         inicioUTC: apertura.clone().utc().format('YYYY-MM-DD HH:mm:ss'),
         finUTC: cierre.clone().utc().format('YYYY-MM-DD HH:mm:ss'),
       })
-      .andWhere('pedido.confirmado = :confirmado', { confirmado: true });
+      .andWhere('pedido.confirmado = :confirmado', { confirmado: true })
+      .andWhere('pedido.available = :available', { available: true })
 
     console.log('withPast', withPast);
     if (!withPast) {
@@ -577,6 +581,7 @@ export class PedidoService implements OnModuleDestroy {
         })
         .andWhere('pedido.confirmado = :confirmado', { confirmado: true })
         .andWhere('pedido.finalizado = :finalizado', { finalizado: false })
+        .andWhere('pedido.available = :available', { available: true })
         .getMany();
 
       let actual = apertura.clone();
