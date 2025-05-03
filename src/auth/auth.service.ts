@@ -93,6 +93,7 @@ export class AuthService implements OnModuleDestroy {
       let userConfigured = !!user.nombre?.trim() && !!user.apellido?.trim();
       let apiConfigured;
       let paymentMade = false;
+      let payment = null;
       let oldPlan = null;
       let apiUrl = '';
       let greenApiConfigured = false;
@@ -129,7 +130,7 @@ export class AuthService implements OnModuleDestroy {
           intervaloTiempoCalendario = empresa.intervaloTiempoCalendario;
           notificarReservaHoras = empresa.notificarReservaHoras;
           remaindersHorsRemainder = empresa.remaindersHorsRemainder;
-          
+          payment = empresa.payment;
           timeZone = empresa.timeZone
           apiConfigured = empresa.apiConfigured;
           apiUrl = `${process.env.ENV === 'dev' ? 'http' : 'https'}://${process.env.VIRTUAL_HOST?.replace(
@@ -173,6 +174,7 @@ export class AuthService implements OnModuleDestroy {
         tipo_servicioNombre,
         paymentMade,
         userConfigured,
+        payment: payment,
         greenApiConfigured,
         globalConfig: greenApiConfigured && userConfigured && paymentMade && apiConfigured,
         intervaloTiempoCalendario,
