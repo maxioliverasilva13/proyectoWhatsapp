@@ -23,6 +23,9 @@ export class Payment extends BaseEntity {
   @Column({ nullable: true })
   subscription_date: string;
 
+  @Column({ nullable: true, default: false })
+  isCancelled: boolean;
+
   @Column({ nullable: true })
   package: string;
 

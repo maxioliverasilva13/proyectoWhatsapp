@@ -1,4 +1,9 @@
-import { BadRequestException, HttpException, Injectable, OnModuleDestroy } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  Injectable,
+  OnModuleDestroy,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Usuario } from 'src/usuario/entities/usuario.entity';
@@ -25,7 +30,8 @@ export class AuthService implements OnModuleDestroy {
       this.globalConnection = await handleGetGlobalConnection();
     }
     this.empresaRepository = this.globalConnection.getRepository(Empresa);
-    this.planesEmpresaRepository = this.globalConnection.getRepository(PlanEmpresa);
+    this.planesEmpresaRepository =
+      this.globalConnection.getRepository(PlanEmpresa);
     this.planesRepository = this.globalConnection.getRepository(Plan);
   }
 
@@ -52,7 +58,12 @@ export class AuthService implements OnModuleDestroy {
   }
 
   async login(user: Usuario) {
-    const payload = { userId: user?.id, empresaId: user?.id_empresa, correo: user.correo, sub: user.id };
+    const payload = {
+      userId: user?.id,
+      empresaId: user?.id_empresa,
+      correo: user.correo,
+      sub: user.id,
+    };
     return {
       access_token: this.jwtService.sign(payload),
     };
@@ -81,7 +92,10 @@ export class AuthService implements OnModuleDestroy {
       const currencyRepository = globalConnection.getRepository(Currency);
 
       const now = moment.tz(timeZoneCompany);
-      const user = await userRepository.findOne({ where: { id: userId }, relations: ['dispositivos'] });
+      const user = await userRepository.findOne({
+        where: { id: userId },
+        relations: ['dispositivos'],
+      });
       if (!user) {
         throw new HttpException('Invalid user', 400);
       }
@@ -100,7 +114,8 @@ export class AuthService implements OnModuleDestroy {
       let tipo_servicio = 0;
       let tipo_servicioNombre = '';
       let hora_apertura;
-      let empresaName = "";``
+      let empresaName = '';
+      ``;
       let hora_cierre;
       let abierto;
       let timeZone;
@@ -108,10 +123,12 @@ export class AuthService implements OnModuleDestroy {
 
       if (user.id_empresa) {
         const allCurrencies = await currencyRepository
-        .createQueryBuilder("currency")
-        .leftJoinAndSelect("currency.empresa", "empresa")
-        .where("empresa.id = :empresaId OR currency.empresa IS NULL", { empresaId: user?.id_empresa })
-        .getMany();
+          .createQueryBuilder('currency')
+          .leftJoinAndSelect('currency.empresa', 'empresa')
+          .where('empresa.id = :empresaId OR currency.empresa IS NULL', {
+            empresaId: user?.id_empresa,
+          })
+          .getMany();
 
         currencies = allCurrencies ?? [];
 
@@ -120,7 +137,7 @@ export class AuthService implements OnModuleDestroy {
           relations: ['tipoServicioId', 'currencies', 'payment'],
         });
         if (empresa) {
-          logo = empresa.logo?? "No logo"
+          logo = empresa.logo ?? 'No logo';
           hora_apertura = empresa.hora_apertura;
           hora_cierre = empresa.hora_cierre;
           abierto = empresa.abierto;
@@ -131,7 +148,7 @@ export class AuthService implements OnModuleDestroy {
           notificarReservaHoras = empresa.notificarReservaHoras;
           remaindersHorsRemainder = empresa.remaindersHorsRemainder;
           payment = empresa.payment;
-          timeZone = empresa.timeZone
+          timeZone = empresa.timeZone;
           apiConfigured = empresa.apiConfigured;
           apiUrl = `${process.env.ENV === 'dev' ? 'http' : 'https'}://${process.env.VIRTUAL_HOST?.replace(
             'app',
@@ -152,8 +169,12 @@ export class AuthService implements OnModuleDestroy {
             }
           }
 
-
-          if (empresa?.payment && empresa?.payment?.active === true) {
+          if (
+            empresa?.payment &&
+            (empresa.payment.active === true ||
+              (empresa.payment.subscription_date &&
+                moment(empresa.payment.subscription_date).isAfter(now)))
+          ) {
             paymentMade = true;
           } else {
             if (empresa?.payment) {
@@ -176,7 +197,8 @@ export class AuthService implements OnModuleDestroy {
         userConfigured,
         payment: payment,
         greenApiConfigured,
-        globalConfig: greenApiConfigured && userConfigured && paymentMade && apiConfigured,
+        globalConfig:
+          greenApiConfigured && userConfigured && paymentMade && apiConfigured,
         intervaloTiempoCalendario,
         notificarReservaHoras,
         hora_apertura,
@@ -187,10 +209,10 @@ export class AuthService implements OnModuleDestroy {
         timeZone,
         oldPlan: oldPlan,
         currencies: currencies,
-        logo:logo
+        logo: logo,
       };
     } catch (error) {
-      console.log(error)
+      console.log(error);
       throw new BadRequestException({
         ok: false,
         statusCode: 400,

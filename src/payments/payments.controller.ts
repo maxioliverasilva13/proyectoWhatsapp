@@ -25,7 +25,6 @@ export class PaymentsController {
 
   @Post('createInitial')
   async createInitial(@Body() body: any, @Request() req) {
-    console.log('createInitial ', body);
     const userId = req?.user?.userId;
     await this.paymentsService.handleInitial({ ...body, userId: userId });
     return { success: true };
@@ -35,6 +34,14 @@ export class PaymentsController {
   async isPaymentVerifiedOk(@Body() body: any) {
     console.log('isPaymentOk?:', JSON.stringify(body));
     const resp = await this.paymentsService.isPaymentOk(body);
+    return resp;
+  }
+
+  @Post('cancel')
+  async cancelPayment(@Body() body: any, @Request() req) {
+    const userId = req?.user?.userId;
+    console.log('cancelPayment?:', JSON.stringify(body));
+    const resp = await this.paymentsService.cancelPayment(userId, body?.purchaseToken);
     return resp;
   }
 

@@ -8,6 +8,8 @@ import { Payment } from './payment.entity';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import { Usuario } from 'src/usuario/entities/usuario.entity';
+import moment from 'moment';
 
 @Injectable()
 export class PaymentsService {
@@ -17,6 +19,7 @@ export class PaymentsService {
   constructor(
     @InjectRepository(Empresa) private empresaRepo: Repository<Empresa>,
     @InjectRepository(Payment) private paymentRepo: Repository<Payment>,
+    @InjectRepository(Usuario) private userRepo: Repository<Usuario>,
   ) {
     if (process.env.SUBDOMAIN === 'app') {
       const keyfileJson = process.env.GOOGLE_PRIVATE_KEY;
@@ -39,16 +42,48 @@ export class PaymentsService {
     }
   }
 
+  async cancelPayment(userId: any, purchaseToken: string) {
+    try {
+      const loggedUser = await this.userRepo.find({
+        where: { id: userId, firstUser: true },
+      });
+      if (!loggedUser) {
+        return { success: false, onlyAdmin: true };
+      }
+      const payment = await this.paymentRepo.findOne({
+        where: { purchaseToken: purchaseToken },
+        relations: ['empresa'],
+      });
+
+      if (!payment || !payment?.empresa) {
+        return { success: false };
+      }
+      const now = new Date();
+      payment.active = false;
+      payment.isCancelled = true;
+      payment.subscription_date = moment(now).add(3, 'days').toISOString();
+      await this.paymentRepo.save(payment);
+      return { success: true };
+    } catch (error) {
+      console.error('Error verificando compra:', error?.errors ?? error);
+      throw new Error('Error verificando compra');
+    }
+  }
+
   async isPaymentOk(data: { empresaId: string; purcheaseToken: string }) {
     try {
       const empresa = await this.empresaRepo.findOne({
-        where: { id: Number(data.empresaId) }, relations: ['payment'],
+        where: { id: Number(data.empresaId) },
+        relations: ['payment'],
       });
       if (!empresa) {
-        console.log("no empresa")
+        console.log('no empresa');
         return { success: false };
       }
-      if (!empresa?.payment || (empresa?.payment && empresa?.payment?.active === false)) {
+      if (
+        !empresa?.payment ||
+        (empresa?.payment && empresa?.payment?.active === false)
+      ) {
         return { success: false };
       }
       return { success: true };
@@ -91,8 +126,12 @@ export class PaymentsService {
     });
 
     if (existingPayment?.id) {
-      console.log('actualizando pago con empresa id', data?.empresaId, existingPayment);
-      console.log("existingPayment", existingPayment)
+      console.log(
+        'actualizando pago con empresa id',
+        data?.empresaId,
+        existingPayment,
+      );
+      console.log('existingPayment', existingPayment);
       existingPayment.active = false;
       existingPayment.started_by_user_id = data?.userId;
 
@@ -100,9 +139,9 @@ export class PaymentsService {
         const empresa = await this.empresaRepo.findOne({
           where: { id: Number(data.empresaId) },
         });
-        console.log("sip, empresa es", empresa)
+        console.log('sip, empresa es', empresa);
         if (empresa?.id) {
-        console.log("xd2", empresa)
+          console.log('xd2', empresa);
           existingPayment.empresa = empresa;
         }
       }
@@ -143,7 +182,6 @@ export class PaymentsService {
       throw new BadRequestException('Invalid params');
     }
     console.log('PAGO - RTDN recibido:', rtdnData);
-
 
     const purchase = await this.verifyPurchase(
       packageName,
@@ -189,6 +227,7 @@ export class PaymentsService {
       case 4: // SUBSCRIPTION_PURCHASED
       case 7: // SUBSCRIPTION_RESTARTED
         payment.active = true;
+        payment.isCancelled = false;
         payment.subscription_date = new Date(
           Number(purchase?.expiryTimeMillis ?? now.getTime()),
         ).toISOString();
@@ -202,7 +241,8 @@ export class PaymentsService {
       case 12: // SUBSCRIPTION_REVOKED
       case 13: // SUBSCRIPTION_EXPIRED
         payment.active = false;
-        payment.subscription_date = now.toISOString();
+        payment.isCancelled = true;
+        payment.subscription_date = moment(now).add(3, 'days').toISOString();
         console.log(
           'Suscripción desactivada (cancelada, en pausa, expirada o revocada)',
         );
@@ -224,7 +264,7 @@ export class PaymentsService {
       await this.empresaRepo.save(empresa);
       console.log('Empresa activada');
     } else {
-      console.log("Emrpesa desactivada")
+      console.log('Emrpesa desactivada');
     }
 
     console.log('Proceso de RTDN completado');
