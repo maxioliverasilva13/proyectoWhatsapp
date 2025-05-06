@@ -5,6 +5,7 @@ import { Readable } from 'stream';
 import axios from 'axios';
 import { ProductoService } from 'src/producto/producto.service';
 import { PedidoService } from 'src/pedido/pedido.service';
+import { GreenApiService } from 'src/greenApi/GreenApi.service';
 
 export const askAssistant = async (question, instrucciones) => {
   try {
@@ -81,7 +82,14 @@ export async function sendMessageToThread(
   timeZone,
   productoService: ProductoService,
   pedidoService: PedidoService,
+  greenApiService: GreenApiService,
+  empresaId: any,
   clienteId: any,
+  empresaType: any,
+  clientName: any,
+  numberSender: any,
+  chatIdExist: any,
+  clientId: any,
 ) {
   const today = moment.tz(timeZone);
   const headers = {
@@ -160,7 +168,6 @@ export async function sendMessageToThread(
         }
 
         let toolResult;
-
         try {
           if (name === 'getProductsByEmpresa') {
             console.log('getProductsByEmpresa');
@@ -171,7 +178,22 @@ export async function sendMessageToThread(
           } else if (name === 'getCurrencies') {
             console.log('getCurrencies');
             toolResult = await productoService.getCurrencies();
-          } else if (name === 'getAvailability') {
+          } else if (name === 'confirmOrder') {
+            console.log("args aca", args)
+            toolResult = await greenApiService.hacerPedido({
+              currentThreadId: threadId,
+              clienteId: clientId,
+              empresaId: empresaId,
+              detalles: args.detalles,
+              openAIResponse: args.info,
+              empresaType: empresaType,
+              clientName: clientName,
+              numberSender: numberSender,
+              chatIdExist: chatIdExist,
+              messagePushTitle: args.messagePushTitle,
+              messagePush: args.messagePush,
+            });
+        } else if (name === 'getAvailability') {
             console.log('getAvailability');
             toolResult =
               await pedidoService.obtenerDisponibilidadActivasByFecha(
@@ -184,7 +206,6 @@ export async function sendMessageToThread(
             toolResult = { error: `Tool ${name} no implementada` };
           }
         } catch (err) {
-          console.error(`Error ejecutando ${name}:`, err);
           toolResult = { error: 'Error ejecutando la función' };
         }
 
@@ -192,7 +213,6 @@ export async function sendMessageToThread(
         try {
           toolOutputStr = JSON.stringify(toolResult);
         } catch (err) {
-          console.error('Error serializando toolResult:', err);
           toolOutputStr = JSON.stringify({
             error: 'Error serializando toolResult',
           });
@@ -214,7 +234,6 @@ export async function sendMessageToThread(
       );
 
       const submitData = await submitRes.json();
-      console.log('Respuesta submit_tool_outputs:', submitData);
 
       if (!submitRes.ok) {
         console.error('Error al enviar tool output:', submitData);

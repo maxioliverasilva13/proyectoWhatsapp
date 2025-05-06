@@ -7,7 +7,6 @@ export class CreatePedidoDto {
     clientName: string
     products:any[];
     empresaType: TipoPedido;
-    messages: any[];
     numberSender? : number;
     infoLinesJson: any;
     fecha?: any;

@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { encode } from 'querystring';
 import { ChatGptThreadsService } from 'src/chatGptThreads/chatGptThreads.service';
 import { ClienteService } from 'src/cliente/cliente.service';
 import { DeviceService } from 'src/device/device.service';
@@ -50,7 +51,6 @@ export class GreenApiService {
         nombre: senderName,
         telefono: numberSender,
       });
-    let currentPedidosInText = '';
 
     let currentThreadId = threadId;
     if (!threadId) {
@@ -76,6 +76,13 @@ export class GreenApiService {
       timeZone,
       this.productoService,
       this.pedidoService,
+      this,
+      empresaId,
+      clienteId,
+      empresaType,
+      clientName,
+      numberSender,
+      chatIdExist,
       clienteId,
     );
 
@@ -106,9 +113,10 @@ export class GreenApiService {
       console.error('Error al parsear el JSON:', error);
     }
     let textError;
-    let respFinalToUser;
+    await this.chatGptThreadsService.updateThreadStatus(threadId, timeZone);
 
     if (openAIResponseFormatted?.pedidoIdToEdit) {
+      console.log("intentando editar", openAIResponseFormatted)
       this.pedidoService.update(
         openAIResponseFormatted?.pedidoIdToEdit,
         openAIResponseFormatted?.pedidoEdited,
@@ -117,59 +125,26 @@ export class GreenApiService {
     } else if (openAIResponseFormatted?.pedidoIdToCancel) {
       this.pedidoService.cancel(openAIResponseFormatted?.pedidoIdToCancel);
       return openAIResponseFormatted;
-    } else if (openAIResponseFormatted?.placeOrder) {
-      if (empresaType === 'RESERVA') {
-        let status = true;
-        console.log('voy a hacer el pedido');
-        respFinalToUser = await this.hacerPedido(
-          currentThreadId,
-          clienteId,
-          openAIResponseFormatted,
-          empresaType,
-          clientName,
-          numberSender,
-          chatIdExist,
-          empresaId,
-          openAIResponseFormatted?.messagePushTitle,
-          openAIResponseFormatted?.messagePush,
-        );
-      } else {
-        respFinalToUser = await this.hacerPedido(
-          currentThreadId,
-          clienteId,
-          openAIResponseFormatted,
-          empresaType,
-          clientName,
-          numberSender,
-          chatIdExist,
-          empresaId,
-          openAIResponseFormatted?.messagePushTitle,
-          openAIResponseFormatted?.messagePush,
-        );
-      }
     } else {
       const respToUser = textError ? textError : openAIResponseFormatted;
       return respToUser;
     }
-    if (openAIResponseFormatted.placeOrder) {
-      return { ok: true, message: respFinalToUser };
-    } else {
-      await this.chatGptThreadsService.updateThreadStatus(threadId, timeZone);
-    }
   }
 
-  async hacerPedido(
+  async hacerPedido({
     currentThreadId,
     clienteId,
+    empresaId,
     openAIResponse,
     empresaType,
     clientName,
     numberSender,
+    detalles,
     chatIdExist,
     empresaId: any,
     messagePushTitle = 'Test 1',
     messagePush = 'Test',
-  ) {
+  }: any) {
     try {
       const newOrder = await this.pedidoService.create({
         clienteId: clienteId,
@@ -178,7 +153,7 @@ export class GreenApiService {
         estadoId: 1,
         products: openAIResponse.data,
         empresaType,
-        messages: openAIResponse.messages,
+        detalles: detalles,
         numberSender,
         infoLinesJson: openAIResponse.infoLines,
         fecha: openAIResponse.fecha,
@@ -191,10 +166,10 @@ export class GreenApiService {
         messagePushTitle,
         messagePush,
       );
-      return newOrder.messageToUser;
+      return newOrder?.ok;
     } catch (error) {
       console.log('error haciendo pedido', error);
-      return null;
+      return false;
     }
   }
 }
