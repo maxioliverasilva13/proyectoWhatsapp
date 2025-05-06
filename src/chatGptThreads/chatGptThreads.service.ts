@@ -75,7 +75,7 @@ export class ChatGptThreadsService {
             const thread = await this.threadsRepository.findOne({ where: { threadId } });
 
             if (!thread) {
-                throw new BadRequestException("El hilo no fue encontrado.");
+                return;
             }
 
             const result = await this.threadsRepository.update(thread.id, {

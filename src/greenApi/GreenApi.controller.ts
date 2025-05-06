@@ -15,6 +15,8 @@ import { Repository } from 'typeorm';
 import { Mensaje } from 'src/mensaje/entities/mensaje.entity';
 import { ChatService } from 'src/chat/chat.service';
 import { MensajeService } from 'src/mensaje/mensaje.service';
+import { encode } from 'gpt-3-encoder';
+import { RedisService } from 'src/redis/redis.service';
 
 @Controller()
 export class GrenApiController {
@@ -29,11 +31,11 @@ export class GrenApiController {
     private readonly messagesService: MensajeService,
     @InjectQueue(`GreenApiResponseMessagee-${process.env.SUBDOMAIN}`)
     private readonly messageQueue: Queue,
+    private readonly redisService: RedisService,
   ) {}
 
   @Post('/webhooks')
   async handleWebhook(@Req() request: Request, @Body() body: any) {
-
     if (process.env.SUBDOMAIN === 'app') return;
     if (body.stateInstance) {
       const greenApiStatus = body.stateInstance;
@@ -73,24 +75,24 @@ export class GrenApiController {
           } else {
             const now = moment.tz(timeZone);
             const apertura = now.clone().set({
-              hour: parseInt(InfoCompany.hora_apertura.split(":")[0]),
-              minute: parseInt(InfoCompany.hora_apertura.split(":")[1]),
+              hour: parseInt(InfoCompany.hora_apertura.split(':')[0]),
+              minute: parseInt(InfoCompany.hora_apertura.split(':')[1]),
               second: 0,
-              millisecond: 0
+              millisecond: 0,
             });
-            
+
             const cierre = now.clone().set({
-              hour: parseInt(InfoCompany.hora_cierre.split(":")[0]),
-              minute: parseInt(InfoCompany.hora_cierre.split(":")[1]),
+              hour: parseInt(InfoCompany.hora_cierre.split(':')[0]),
+              minute: parseInt(InfoCompany.hora_cierre.split(':')[1]),
               second: 0,
-              millisecond: 0
+              millisecond: 0,
             });
 
             const estaDentroDeHorario =
-            InfoCompany.abierto &&
-            (apertura.isBefore(cierre)
-              ? now.isBetween(apertura, cierre)
-              : now.isSameOrAfter(apertura) || now.isBefore(cierre));
+              InfoCompany.abierto &&
+              (apertura.isBefore(cierre)
+                ? now.isBetween(apertura, cierre)
+                : now.isSameOrAfter(apertura) || now.isBefore(cierre));
 
             if (estaDentroDeHorario) {
               let messageToSend;
@@ -108,55 +110,98 @@ export class GrenApiController {
 
               console.log('voy a crear un thread', messageData);
 
-              const respText = await this.greenApi.handleMessagetText(
-                messageToSend,
-                numberSender,
-                empresaType,
-                empresaId,
-                senderName,
-                timeZone,
-                chatId,
-              );
-
-              console.log("respText", respText)
-              if (respText?.isError === true) {
-                console.log('Mensaje descartado, no se responderá');
-                return;
-              } else {
+              const tokens = encode(messageToSend);
+              console.log("tokens length", tokens?.length)
+              if (tokens.length > 250) {
+                console.log('Error, mensaje muy largo, tokens length', tokens);
                 await this.messageQueue.add(
                   'send',
                   {
-                    message: respText,
-                    chatId,
+                    chatId: chatId,
+                    message: {
+                      message:
+                        'Lo sentimos, tu mensaje es demasiado extenso para procesarlo correctamente. ¿Podés resumirlo un poco para que podamos ayudarte mejor? 😊',
+                    },
                   },
                   {
                     priority: 0,
                     attempts: 5,
                   },
                 );
-
-                if (!chatExist) {
-                  const { data } = await this.chatService.create({
-                    chatIdExternal: chatId,
-                  });
-                  chatExist = data;
-                }
-
-                if (chatExist) {
-                  await Promise.all([
-                    this.messagesService.create({
-                      chat: chatExist.id,
-                      isClient: true,
-                      mensaje: messageToSend,
-                    }),
-                    this.messagesService.create({
-                      chat: chatExist.id,
-                      isClient: false,
-                      mensaje: respText,
-                    }),
-                  ]);
-                }
+                return;
               }
+
+              await this.redisService.handleIncomingMessageWithBuffering({
+                chatId,
+                message: messageToSend,
+                delayMs: 10000,
+                maxTokens: 250,
+                numberSender,
+                empresaType,
+                empresaId,
+                senderName,
+                timeZone,
+                process: async (fullMessage: string) => {
+                  if (fullMessage === '[ERROR]:too-long') {
+                    await this.messageQueue.add(
+                      'send',
+                      {
+                        chatId: chatId,
+                        message: {
+                          message:
+                            'Lo sentimos, tu mensaje es demasiado extenso para procesarlo correctamente. ¿Podés resumirlo un poco para que podamos ayudarte mejor?',
+                        },
+                      },
+                      { priority: 0, attempts: 5 },
+                    );
+                    return;
+                  }
+
+                  console.log("fullMessage", fullMessage)
+
+                  const respText = await this.greenApi.handleMessagetText(
+                    fullMessage,
+                    numberSender,
+                    empresaType,
+                    empresaId,
+                    senderName,
+                    timeZone,
+                    chatId,
+                  );
+                  if (!respText?.isError) {
+                    await this.messageQueue.add(
+                      'send',
+                      { chatId, message: respText },
+                      { priority: 0, attempts: 5 },
+                    );
+
+                    if (!chatExist) {
+                      const { data } = await this.chatService.create({
+                        chatIdExternal: chatId,
+                      });
+                      chatExist = data;
+                    }
+
+                    if (chatExist) {
+                      await Promise.all([
+                        this.messagesService.create({
+                          chat: chatExist.id,
+                          isClient: true,
+                          mensaje: messageToSend,
+                        }),
+                        this.messagesService.create({
+                          chat: chatExist.id,
+                          isClient: false,
+                          mensaje: respText,
+                        }),
+                      ]);
+                    }
+                  } else {
+                    console.log('Mensaje descartado, no se responderá');
+                    return;
+                  }
+                },
+              });
             } else {
               let textReponse = '';
               if (InfoCompany.hora_apertura && InfoCompany.hora_cierre) {

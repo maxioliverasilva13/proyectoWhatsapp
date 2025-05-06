@@ -67,6 +67,7 @@ export class PedidoService implements OnModuleDestroy {
     });
     if (pedido) {
       pedido.finalizado = true;
+      pedido.available = false;
       const statusFinalizador = await this.estadoRepository.findOne({
         where: { finalizador: true },
       });
@@ -105,7 +106,7 @@ export class PedidoService implements OnModuleDestroy {
   }
 
   async create(createPedidoDto: CreatePedidoDto) {
-    console.log('data crear pedido', createPedidoDto);
+    console.log('voy a crear pedido con', createPedidoDto);
 
     try {
       const [firstStatus] = await this.estadoRepository.find({
@@ -489,8 +490,8 @@ export class PedidoService implements OnModuleDestroy {
         inicioUTC: apertura.clone().utc().format('YYYY-MM-DD HH:mm:ss'),
         finUTC: cierre.clone().utc().format('YYYY-MM-DD HH:mm:ss'),
       })
-      .andWhere('pedido.confirmado = :confirmado', { confirmado: true })
-      .andWhere('pedido.available = :available', { available: true })
+      .andWhere('pedido.available = :available', { available: true });
+      // ver si conviene el fitro de confirmado: true
 
     console.log('withPast', withPast);
     if (!withPast) {
@@ -511,7 +512,7 @@ export class PedidoService implements OnModuleDestroy {
       const overlapping = pedidos.some((pedido) => {
         const inicio = moment(pedido.fecha);
         const fin = inicio.clone().add(intervaloTiempoCalendario, 'minutes');
-        const actualUtc = actual.clone().utc().add(-3, "hours");
+        const actualUtc = actual.clone().utc().add(-3, 'hours');
         const isBetween = actualUtc.isBetween(inicio, fin, undefined, '[)');
 
         if (isBetween) {
@@ -590,7 +591,7 @@ export class PedidoService implements OnModuleDestroy {
         const overlapping = pedidos.some((pedido) => {
           const inicio = moment(pedido.fecha);
           const fin = inicio.clone().add(intervaloTiempoCalendario, 'minutes');
-          const actualUtc = actual.clone().utc().add(-3, "hours");
+          const actualUtc = actual.clone().utc().add(-3, 'hours');
           const isBetween = actualUtc.isBetween(inicio, fin, undefined, '[)');
 
           if (isBetween) {
