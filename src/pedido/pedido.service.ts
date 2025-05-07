@@ -200,7 +200,8 @@ export class PedidoService implements OnModuleDestroy {
         const newStatusOrder = await this.cambioEstadoRepository.create({
           estado: firstStatus,
           pedido: newPedido,
-          createdAt: new Date()
+          createdAt: new Date(),
+          id_user: null,
         })
 
         await this.cambioEstadoRepository.save(newStatusOrder)

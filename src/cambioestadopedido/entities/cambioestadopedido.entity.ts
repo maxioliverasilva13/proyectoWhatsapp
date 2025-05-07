@@ -11,7 +11,7 @@ export class Cambioestadopedido extends BaseEntity {
     @ManyToOne(() => Pedido, (pedido) => pedido.cambioEstados, {onDelete:'CASCADE'})
     pedido: Pedido;
 
-    @Column()
+    @Column({ nullable: true, default: 0 })
     id_user: number;
 
     @ManyToOne(() => Estado, (estado) => estado.cambioEstados, {onDelete:'CASCADE'})
