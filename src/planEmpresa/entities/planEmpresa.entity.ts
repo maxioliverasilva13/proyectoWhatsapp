@@ -12,12 +12,4 @@ export class PlanEmpresa extends BaseEntity {
 
     @PrimaryColumn({ type: 'date' })
     fecha_inicio: Date;
-
-    @ManyToOne(() => Empresa, empresa => empresa.planEmpresa)
-    @JoinColumn({ name: "id_empresa" })
-    empresa: Empresa;
-
-    @ManyToOne(() => Plan, plan => plan.planEmpresa)
-    @JoinColumn({ name: "id_plan" })
-    plan: Plan;
 }
