@@ -156,7 +156,7 @@ export class PaymentsService {
         }
       }
 
-      await this.paymentRepo.update(existingPayment?.id, existingPayment);
+      await this.paymentRepo.save( existingPayment);
       return existingPayment;
     } else {
       console.log('creando nuevo pago con empresa id', data?.empresaId);
