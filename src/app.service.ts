@@ -13,7 +13,8 @@ export class AppService {
 
   async onModuleInit() {
     const subdomain = process.env.SUBDOMAIN;
-    if (subdomain === "app") {
+    
+    if (subdomain === "app") {      
       this.shouldExecuteInterval = true;
     } else {
       this.shouldExecuteIntervalRemainders = true;

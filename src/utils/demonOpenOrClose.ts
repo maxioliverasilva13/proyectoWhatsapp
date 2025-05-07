@@ -14,9 +14,16 @@ export const OpenOrClose = async () => {
 
         await Promise.all(empresas.map(async (empresa: Empresa) => {
             const now = moment.tz(empresa.timeZone); 
-            const hoursFormated = now.format("HH:mm:ss"); 
+                    
+            const openingTime = moment.tz(`${now.format("YYYY-MM-DD")}T${empresa.hora_apertura}`, empresa.timeZone);
+            let closingTime = moment.tz(`${now.format("YYYY-MM-DD")}T${empresa.hora_cierre}`, empresa.timeZone);
             
-            const isWithinOperatingHours = hoursFormated >= empresa.hora_apertura && hoursFormated <= empresa.hora_cierre;
+            if (closingTime.isBefore(openingTime)) {
+                closingTime.add(1, 'day');
+            }
+            
+            const isWithinOperatingHours = now.isBetween(openingTime, closingTime, undefined, '[]');
+                        
             let cierreProvisorio = false;
 
             const cierresProvisoriosEmpresa = await repoCierreProvisorio.find({
@@ -31,7 +38,7 @@ export const OpenOrClose = async () => {
                     cierreProvisorio = true;
                 }
             });
-
+            
             empresa.abierto = !cierreProvisorio && isWithinOperatingHours;
 
             await repoEmpresa.save(empresa);

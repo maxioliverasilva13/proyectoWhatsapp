@@ -15,10 +15,11 @@ import { ProductoPedido } from 'src/productopedido/entities/productopedido.entit
 import { Cambioestadopedido } from 'src/cambioestadopedido/entities/cambioestadopedido.entity';
 import { Mensaje } from 'src/mensaje/entities/mensaje.entity';
 import { Cliente } from 'src/cliente/entities/cliente.entity';
+import { Category } from 'src/category/entities/category.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Pedido, Estado, Producto, Tiposervicio, Chat, ProductoPedido, Cambioestadopedido, Mensaje, Cliente]),ProductopedidoModule, ChatModule, MensajeModule, WebSocketModule],  
+    TypeOrmModule.forFeature([Pedido, Estado, ProductoPedido, Category, Producto, Tiposervicio, Chat, ProductoPedido, Cambioestadopedido, Mensaje, Cliente]),ProductopedidoModule, ChatModule, MensajeModule, WebSocketModule],  
   controllers: [PedidoController],
   providers: [PedidoService],
   exports:[PedidoService]
