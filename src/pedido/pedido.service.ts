@@ -197,6 +197,14 @@ export class PedidoService implements OnModuleDestroy {
 
         const savedPedido = await this.pedidoRepository.save(newPedido);
 
+        const newStatusOrder = await this.cambioEstadoRepository.create({
+          estado: firstStatus,
+          pedido: newPedido,
+          createdAt: new Date()
+        })
+
+        await this.cambioEstadoRepository.save(newStatusOrder)
+
         const productIds = products.map((product) => product.productoId);
         const existingProducts = await this.productoRespitory.find({
           where: { id: In(productIds) },
