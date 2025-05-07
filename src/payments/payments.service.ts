@@ -46,7 +46,7 @@ export class PaymentsService {
   }
 
   async getPlans() {
-    const payments = await this.paymentRepo.find({ where: { active: true } });
+    const payments = await this.planRepo.find({ where: { active: true } });
     return payments;
   }
 
