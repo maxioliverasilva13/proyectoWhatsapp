@@ -25,6 +25,8 @@ import getCurrentDate from 'src/utils/getCurrentDate';
 import { Empresa } from 'src/empresa/entities/empresa.entity';
 import { EstadoDefectoIds } from 'src/enums/estadoDefecto';
 import * as moment from 'moment-timezone';
+import { log } from 'node:console';
+import { Category } from 'src/category/entities/category.entity';
 
 const LOCALE_TIMEZONE = 'America/Montevideo';
 @Injectable()
@@ -49,7 +51,11 @@ export class PedidoService implements OnModuleDestroy {
     @InjectRepository(Producto)
     private readonly productoRespitory: Repository<Producto>,
     private readonly webSocketService: WebsocketGateway,
-  ) {}
+    @InjectRepository(Category)
+    private readonly categoryService: Repository<Category>,
+    @InjectRepository(ProductoPedido)
+    private readonly productoPedidoRepository: Repository<ProductoPedido>
+  ) { }
 
   async onModuleInit() {
     if (!this.globalConnection) {
@@ -83,6 +89,31 @@ export class PedidoService implements OnModuleDestroy {
       await this.globalConnection.destroy();
     }
   }
+
+  async getSalesForCategory() {
+    try {
+      const resultados = await this.productoPedidoRepository
+        .createQueryBuilder('pp')
+        .leftJoin('pp.pedido', 'pedido')
+        .leftJoin('pp.producto', 'producto')
+        .leftJoin('producto.category', 'categoria') 
+        .select('categoria.name', 'categoria')
+        .addSelect('COUNT(pp.productoId)', 'cantidadVendida')
+        .groupBy('categoria.id')
+        .addGroupBy('categoria.name')
+        .getRawMany();
+
+      return {
+        ok: true,
+        data: resultados
+      };
+
+
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
 
   async getMyOrders(client_id: any) {
     if (client_id) {
@@ -491,7 +522,7 @@ export class PedidoService implements OnModuleDestroy {
         finUTC: cierre.clone().utc().format('YYYY-MM-DD HH:mm:ss'),
       })
       .andWhere('pedido.available = :available', { available: true });
-      // ver si conviene el fitro de confirmado: true
+    // ver si conviene el fitro de confirmado: true
 
     console.log('withPast', withPast);
     if (!withPast) {

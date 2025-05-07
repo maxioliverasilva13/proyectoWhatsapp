@@ -70,6 +70,11 @@ export class PedidoController {
     return this.pedidoService.getOrdersOfTheDay(fecha, timeZone);
   }
 
+  @Get('/stats/salesForCategory/')
+  getSalesForCategory() {
+    return this.pedidoService.getSalesForCategory();
+  }
+
   @Get('/stats/momeyInDay/:date')
   getMoneyOfTheDay(@Param('date') fecha: string, @Req() request: Request) {
     const timeZone = request['timeZone'];
