@@ -2,7 +2,6 @@ import { CierreProvisorio } from 'src/cierreProvisorio/entities/cierreProvisorio
 import { Currency } from 'src/currencies/entities/currency.entity';
 import { NumeroConfianza } from 'src/numerosConfianza/entities/numeroConfianza.entity';
 import { Payment } from 'src/payments/payment.entity';
-import { Plan } from 'src/plan/entities/plan.entity';
 import { PlanEmpresa } from 'src/planEmpresa/entities/planEmpresa.entity';
 import { Tiposervicio } from 'src/tiposervicio/entities/tiposervicio.entity';
 import { BaseEntity } from 'src/utils/base.entity';
@@ -91,9 +90,6 @@ export class Empresa extends BaseEntity {
 
   @Column({ default: 'America/Montevideo' })
   timeZone: string;
-
-  @OneToMany(() => PlanEmpresa, (planEmpresa) => planEmpresa.empresa)
-  planEmpresa: PlanEmpresa[];
 
   @OneToMany(() => Currency, (curr) => curr.empresa)
   currencies: Currency[];

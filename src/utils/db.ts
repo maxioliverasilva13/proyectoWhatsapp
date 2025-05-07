@@ -15,7 +15,6 @@ import { ProductoPedido } from "src/productopedido/entities/productopedido.entit
 import { ChatGptThreads } from "src/chatGptThreads/entities/chatGpThreads.entity";
 import { NumeroConfianza } from "src/numerosConfianza/entities/numeroConfianza.entity";
 import { CierreProvisorio } from "src/cierreProvisorio/entities/cierreProvisorio.entitty";
-import { PlanEmpresa } from "src/planEmpresa/entities/planEmpresa.entity";
 import { Infoline } from "src/infoline/entities/infoline.entity";
 import { Currency } from "src/currencies/entities/currency.entity";
 import { Category } from "src/category/entities/category.entity";
@@ -32,7 +31,6 @@ export const ENTITIES_TO_MAP_GLOBAL_DB = [
   Cliente,
   Usuario,
   NumeroConfianza,
-  PlanEmpresa,
   Device,
   Payment
 ];

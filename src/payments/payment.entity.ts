@@ -1,4 +1,5 @@
 import { Empresa } from 'src/empresa/entities/empresa.entity';
+import { Plan } from 'src/plan/entities/plan.entity';
 import { BaseEntity } from 'src/utils/base.entity';
 import { Entity, Column, PrimaryGeneratedColumn, Unique, ManyToOne, OneToMany, OneToOne } from 'typeorm';
 
@@ -32,4 +33,6 @@ export class Payment extends BaseEntity {
   @OneToOne(() => Empresa, emp => emp.payment, { onDelete: "SET NULL" })
   empresa: Empresa;
 
+  @ManyToOne(() => Plan, emp => emp.payments, { onDelete: "SET NULL" })
+  plan: Plan;
 }

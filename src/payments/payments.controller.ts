@@ -1,5 +1,5 @@
 // payments.controller.ts
-import { Controller, Post, Body, Req, Request } from '@nestjs/common';
+import { Controller, Post, Body, Req, Request, Get } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { SubscriptionStatus } from './subscription-status.enum';
 
@@ -42,6 +42,13 @@ export class PaymentsController {
     const userId = req?.user?.userId;
     console.log('cancelPayment?:', JSON.stringify(body));
     const resp = await this.paymentsService.cancelPayment(userId, body?.purchaseToken);
+    return resp;
+  }
+
+
+  @Get('plans')
+  async getPayments() {
+    const resp = await this.paymentsService.getPlans();
     return resp;
   }
 

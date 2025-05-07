@@ -1,14 +1,22 @@
+import { Payment } from "src/payments/payment.entity";
 import { PlanEmpresa } from "src/planEmpresa/entities/planEmpresa.entity";
-import { BaseEntity, Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { BaseEntity, Column, Entity, OneToMany, PrimaryGeneratedColumn, Unique } from "typeorm";
 
-@Entity('plan')
+@Entity('planinfo')
+@Unique(['product_sku'])
 export class Plan extends BaseEntity {
 
     @PrimaryGeneratedColumn()
     id: number;
-  
+
     @Column()
     nombre: string;
+
+    @Column({ default: true })
+    active: boolean;
+
+    @Column({ nullable: false, default: "" })
+    product_sku: string;
 
     @Column()
     costoUSD: number;
@@ -19,9 +27,12 @@ export class Plan extends BaseEntity {
     @Column({default:false})
     mostPoppular: boolean;
 
-    @Column() 
+    @Column()
     adventages : string;
 
-    @OneToMany(()=> PlanEmpresa, (planEmpresa)=> planEmpresa.plan)
-    planEmpresa : PlanEmpresa[]
+    @Column()
+    maxPedidos: number;
+
+    @OneToMany(()=> Payment, (planEmpresa)=> planEmpresa.plan)
+    payments : Payment[]
 }

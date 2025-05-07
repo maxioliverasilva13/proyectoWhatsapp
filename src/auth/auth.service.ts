@@ -13,16 +13,12 @@ import { RegisterDTO } from './dto/register.dto';
 import { handleGetGlobalConnection } from 'src/utils/dbConnection';
 import { Empresa } from 'src/empresa/entities/empresa.entity';
 import { EmailService } from 'src/emailqueue/email.service';
-import { Plan } from 'src/plan/entities/plan.entity';
-import { PlanEmpresa } from 'src/planEmpresa/entities/planEmpresa.entity';
 import * as moment from 'moment-timezone';
 import { Currency } from 'src/currencies/entities/currency.entity';
 
 @Injectable()
 export class AuthService implements OnModuleDestroy {
   private empresaRepository: Repository<Empresa>;
-  private planesRepository: Repository<Plan>;
-  private planesEmpresaRepository: Repository<PlanEmpresa>;
   private globalConnection: DataSource;
 
   async onModuleInit() {
@@ -30,9 +26,6 @@ export class AuthService implements OnModuleDestroy {
       this.globalConnection = await handleGetGlobalConnection();
     }
     this.empresaRepository = this.globalConnection.getRepository(Empresa);
-    this.planesEmpresaRepository =
-      this.globalConnection.getRepository(PlanEmpresa);
-    this.planesRepository = this.globalConnection.getRepository(Plan);
   }
 
   async onModuleDestroy() {
@@ -134,7 +127,7 @@ export class AuthService implements OnModuleDestroy {
 
         const empresa = await this.empresaRepository.findOne({
           where: { id: user.id_empresa },
-          relations: ['tipoServicioId', 'currencies', 'payment'],
+          relations: ['tipoServicioId', 'currencies', 'payment', 'payment.plan'],
         });
         if (empresa) {
           logo = empresa.logo ?? 'No logo';

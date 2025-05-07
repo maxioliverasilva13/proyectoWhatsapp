@@ -10,6 +10,8 @@ import * as os from 'os';
 import * as path from 'path';
 import { Usuario } from 'src/usuario/entities/usuario.entity';
 import moment from 'moment';
+import { PlanEmpresa } from 'src/planEmpresa/entities/planEmpresa.entity';
+import { Plan } from 'src/plan/entities/plan.entity';
 
 @Injectable()
 export class PaymentsService {
@@ -20,6 +22,7 @@ export class PaymentsService {
     @InjectRepository(Empresa) private empresaRepo: Repository<Empresa>,
     @InjectRepository(Payment) private paymentRepo: Repository<Payment>,
     @InjectRepository(Usuario) private userRepo: Repository<Usuario>,
+    @InjectRepository(Plan) private planRepo: Repository<Plan>,
   ) {
     if (process.env.SUBDOMAIN === 'app') {
       const keyfileJson = process.env.GOOGLE_PRIVATE_KEY;
@@ -40,6 +43,11 @@ export class PaymentsService {
         auth: this.auth,
       });
     }
+  }
+
+  async getPlans() {
+    const payments = await this.planRepo.find({ where: { active: true } });
+    return payments;
   }
 
   async cancelPayment(userId: any, purchaseToken: string) {
@@ -125,16 +133,18 @@ export class PaymentsService {
       },
     });
 
+    const planEmpresa = await this.planRepo.findOne({
+      where: { product_sku: data?.sku },
+    });
+
+    if (!planEmpresa) {
+      return;
+    }
+
     if (existingPayment?.id) {
-      console.log(
-        'actualizando pago con empresa id',
-        data?.empresaId,
-        existingPayment,
-      );
-      console.log('existingPayment', existingPayment);
       existingPayment.active = false;
       existingPayment.started_by_user_id = data?.userId;
-
+      existingPayment.plan = planEmpresa;
       if (data?.empresaId) {
         const empresa = await this.empresaRepo.findOne({
           where: { id: Number(data.empresaId) },
@@ -155,6 +165,7 @@ export class PaymentsService {
         purchaseToken: data.purcheaseToken,
         subscription_sku: data.sku,
         active: false,
+        plan: planEmpresa,
       });
       newPayment.started_by_user_id = data?.userId;
 
