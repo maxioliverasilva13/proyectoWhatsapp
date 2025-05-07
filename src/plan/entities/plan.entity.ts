@@ -2,7 +2,7 @@ import { Payment } from "src/payments/payment.entity";
 import { PlanEmpresa } from "src/planEmpresa/entities/planEmpresa.entity";
 import { BaseEntity, Column, Entity, OneToMany, PrimaryGeneratedColumn, Unique } from "typeorm";
 
-@Entity('plan')
+@Entity('planinfo')
 @Unique(['product_sku'])
 export class Plan extends BaseEntity {
 
@@ -15,7 +15,7 @@ export class Plan extends BaseEntity {
     @Column({ default: true })
     active: boolean;
 
-    @Column()
+    @Column({ nullable: false, default: "" })
     product_sku: string;
 
     @Column()
