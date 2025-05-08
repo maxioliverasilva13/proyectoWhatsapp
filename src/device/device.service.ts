@@ -107,6 +107,7 @@ export class DeviceService {
         relations: ['dispositivos'],
       });
 
+      console.log("empresa id", empresaId)
       console.log("intentando enviar para ",usuarios)
 
       if (!usuarios || usuarios?.length === 0) {
