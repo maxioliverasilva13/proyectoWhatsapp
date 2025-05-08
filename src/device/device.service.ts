@@ -107,6 +107,8 @@ export class DeviceService {
         relations: ['dispositivos'],
       });
 
+      console.log("intentando enviar para ",usuarios)
+
       if (!usuarios || usuarios?.length === 0) {
         throw new NotFoundException('User not device registered!');
       }

@@ -15,6 +15,15 @@ export class DeviceController {
     } 
 
 
+    @Post("notify/empresa/:empresaId")
+    async sendNotificationToEmpresa(
+        @Param("empresaId") empresaId: number,
+        @Body("title") title: string,
+        @Body("description") desc: string
+    ) {
+        return this.dispositivoService.sendNotificationEmpresa(empresaId, title, desc);
+    }
+
     @Post("notify/:userId")
     async enviarNotificacionAUsuario(
         @Param("userId") userId: number,
