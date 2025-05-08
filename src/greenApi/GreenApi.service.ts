@@ -79,6 +79,7 @@ export class GreenApiService {
         originalChatId = resp?.thread?.originalChatId;
       }
     }
+    console.log("pertenece al chat", originalChatId)
     await this.chatGptThreadsService.createMessageByThrad(
       textMessage,
       numberSender,
