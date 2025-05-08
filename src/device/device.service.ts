@@ -14,12 +14,7 @@ import { handleGetGlobalConnection } from 'src/utils/dbConnection';
 export class DeviceService {
   private messaging: admin.messaging.Messaging;
 
-  constructor(
-    @InjectRepository(Device)
-    private readonly dispositivoRepository: Repository<Device>,
-    @InjectRepository(Usuario)
-    private readonly usuarioRepository: Repository<Usuario>,
-  ) {
+  private initializeService() {
     const subdomain = process.env.SUBDOMAIN;
     if (subdomain === 'app') {
       if (!admin.apps.length) {
@@ -33,6 +28,15 @@ export class DeviceService {
       }
       this.messaging = admin.messaging();
     }
+  }
+  
+  constructor(
+    @InjectRepository(Device)
+    private readonly dispositivoRepository: Repository<Device>,
+    @InjectRepository(Usuario)
+    private readonly usuarioRepository: Repository<Usuario>,
+  ) {
+    this.initializeService();
   }
 
   async registrarDispositivo(
@@ -62,6 +66,7 @@ export class DeviceService {
   }
 
   async sendNotificationUser(userId: number, title: string, desc: string) {
+    this.initializeService();
     const usuario = await this.usuarioRepository.findOne({
       where: { id: userId },
       relations: ['dispositivos'],
@@ -97,6 +102,7 @@ export class DeviceService {
     title: string,
     desc: string,
   ) {
+    this.initializeService();
     const globalConnection = await handleGetGlobalConnection();
 
     try {
