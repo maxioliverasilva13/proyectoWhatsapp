@@ -164,6 +164,8 @@ export class ProductoService implements OnModuleDestroy {
       return {
         categories: prod.category?.map((cat) => cat?.name),
         name: prod?.nombre,
+        id: prod?.id,
+        disponible: prod?.disponible,
         price: prod?.precio,
         description: prod?.descripcion,
         plazoDuracionEstimado: prod?.plazoDuracionEstimadoMinutos,
