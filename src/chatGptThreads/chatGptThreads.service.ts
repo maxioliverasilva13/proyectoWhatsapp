@@ -59,6 +59,7 @@ export class ChatGptThreadsService {
 
   async createThreads(data) {
     try {
+      console.log("aca", data)
       const originalChatId = data?.originalChatId;
       if (!data) {
         throw new BadRequestException('debe de proveer la data correctamente');
