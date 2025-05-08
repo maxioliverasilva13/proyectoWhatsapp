@@ -121,7 +121,7 @@ export class GreenApiService {
         openAIResponseFormatted?.pedidoIdToEdit,
         openAIResponseFormatted?.pedidoEdited,
       );
-      return openAIResponseFormatted?.message;
+      return { message: openAIResponseFormatted?.message };
     } else if (openAIResponseFormatted?.pedidoIdToCancel) {
       this.pedidoService.cancel(openAIResponseFormatted?.pedidoIdToCancel);
       return openAIResponseFormatted;
