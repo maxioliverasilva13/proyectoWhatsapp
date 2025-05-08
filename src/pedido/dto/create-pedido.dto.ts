@@ -10,6 +10,7 @@ export class CreatePedidoDto {
     numberSender? : number;
     infoLinesJson: any;
     fecha?: any;
+    originalChatId?: string;
     detalles?: string;
     messageToUser?: string;
     chatId : string

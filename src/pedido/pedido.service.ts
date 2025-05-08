@@ -156,6 +156,13 @@ export class PedidoService implements OnModuleDestroy {
         });
       }
 
+      let originalChat = undefined;
+      if (createPedidoDto?.originalChatId) {
+         originalChat = await this.chatRepository.findOne({
+          where: { id: Number(createPedidoDto?.originalChatId) },
+        });
+      }
+
       if (!firstStatus) {
         throw new BadRequestException('No existe un estado con ese id');
       }
@@ -193,6 +200,9 @@ export class PedidoService implements OnModuleDestroy {
 
         if (existChatPreview) {
           newPedido.chat = existChatPreview;
+        }
+        if (originalChat) {
+          newPedido.chat = originalChat;
         }
 
         const savedPedido = await this.pedidoRepository.save(newPedido);
