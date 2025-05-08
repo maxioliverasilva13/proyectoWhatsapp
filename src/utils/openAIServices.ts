@@ -175,7 +175,12 @@ export async function sendMessageToThread(
           } else if (name === 'getPedidosByUser') {
             console.log('getPedidosByUser');
             toolResult = await pedidoService.getMyOrders(clienteId);
-          } else if (name === 'getCurrencies') {
+          } else if (name === 'editOrder') {
+            console.log('editOrder');
+            const resp = await pedidoService.update(args.orderId, args.order);
+            return resp.id;
+          }
+          else if (name === 'getCurrencies') {
             console.log('getCurrencies');
             toolResult = await productoService.getCurrencies();
           } else if (name === 'confirmOrder') {

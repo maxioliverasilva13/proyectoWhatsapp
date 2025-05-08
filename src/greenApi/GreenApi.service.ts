@@ -115,14 +115,7 @@ export class GreenApiService {
     let textError;
     await this.chatGptThreadsService.updateThreadStatus(threadId, timeZone);
 
-    if (openAIResponseFormatted?.pedidoIdToEdit) {
-      console.log("intentando editar", openAIResponseFormatted)
-      this.pedidoService.update(
-        openAIResponseFormatted?.pedidoIdToEdit,
-        openAIResponseFormatted?.pedidoEdited,
-      );
-      return { message: openAIResponseFormatted?.message };
-    } else if (openAIResponseFormatted?.pedidoIdToCancel) {
+    if (openAIResponseFormatted?.pedidoIdToCancel) {
       this.pedidoService.cancel(openAIResponseFormatted?.pedidoIdToCancel);
       return openAIResponseFormatted;
     } else {
