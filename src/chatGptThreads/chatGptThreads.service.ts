@@ -12,7 +12,7 @@ export class ChatGptThreadsService {
   constructor(
     @InjectRepository(ChatGptThreads)
     private threadsRepository: Repository<ChatGptThreads>,
-    @InjectRepository(ChatGptThreads)
+    @InjectRepository(Chat)
     private chatRepository: Repository<Chat>,
     @InjectRepository(ChatGptThreads)
     private messageRepository: Repository<Mensaje>,
@@ -59,7 +59,7 @@ export class ChatGptThreadsService {
 
   async createThreads(data) {
     try {
-      console.log("aca", data)
+      console.log('aca', data);
       const originalChatId = data?.originalChatId;
       if (!data) {
         throw new BadRequestException('debe de proveer la data correctamente');
@@ -113,7 +113,7 @@ export class ChatGptThreadsService {
       });
 
       if (chatOfThread) {
-       await this.messageRepository.save({
+        await this.messageRepository.save({
           mensaje: message,
           isClient: !isFromIA,
           chat: chatOfThread,
