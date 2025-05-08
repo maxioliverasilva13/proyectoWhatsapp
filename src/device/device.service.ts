@@ -67,7 +67,6 @@ export class DeviceService {
       relations: ['dispositivos'],
     });
 
-    console.log('usuario', usuario);
     if (!usuario || usuario.dispositivos?.length === 0) {
       throw new NotFoundException('User not device registered!');
     }
@@ -80,9 +79,10 @@ export class DeviceService {
             notification: { title: title, body: desc },
             token: device.fcmToken,
           };
-          await admin.messaging().send(message);
+          const resp = await admin.messaging().send(message);
+          console.log("resultado", resp)
         } catch (error) {
-          throw new InternalServerErrorException(
+          console.log(
             'Error sending notification',
             error.message,
           );
