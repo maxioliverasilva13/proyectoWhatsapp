@@ -74,6 +74,7 @@ export class DeviceService {
 
     await Promise.all(
       usuario?.dispositivos?.map(async (device) => {
+        console.log("intentando enviar al device", device)
         try {
           const message = {
             notification: { title: title, body: desc },
