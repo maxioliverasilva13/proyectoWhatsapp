@@ -6,7 +6,7 @@ import {
 import { Pedido } from 'src/pedido/entities/pedido.entity';
 import { Empresa } from 'src/empresa/entities/empresa.entity';
 import { Cliente } from 'src/cliente/entities/cliente.entity';
-import moment from 'moment';
+import * as moment from 'moment';
 import { ProductoPedido } from 'src/productopedido/entities/productopedido.entity';
 import { DeviceService } from 'src/device/device.service';
 import { Usuario } from 'src/usuario/entities/usuario.entity';

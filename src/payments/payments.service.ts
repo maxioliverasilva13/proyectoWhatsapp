@@ -9,7 +9,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import { Usuario } from 'src/usuario/entities/usuario.entity';
-import moment from 'moment';
+import * as moment from 'moment';
 import { PlanEmpresa } from 'src/planEmpresa/entities/planEmpresa.entity';
 import { Plan } from 'src/plan/entities/plan.entity';
 
