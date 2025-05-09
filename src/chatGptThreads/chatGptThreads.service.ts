@@ -14,7 +14,7 @@ export class ChatGptThreadsService {
     private threadsRepository: Repository<ChatGptThreads>,
     @InjectRepository(Chat)
     private chatRepository: Repository<Chat>,
-    @InjectRepository(ChatGptThreads)
+    @InjectRepository(Mensaje)
     private messageRepository: Repository<Mensaje>,
   ) {}
 
