@@ -450,6 +450,7 @@ export class PedidoService implements OnModuleDestroy {
       return {
         currentMonthPedidos: currentMonthPedidos,
         slotsToCreate: maxPedidos - (currentMonthPedidos ?? 0),
+        maxPedidos: currentMonthPedidos,
       };
     } catch (error) {
       throw new BadRequestException({
