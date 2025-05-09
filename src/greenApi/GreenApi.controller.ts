@@ -17,6 +17,7 @@ import { ChatService } from 'src/chat/chat.service';
 import { MensajeService } from 'src/mensaje/mensaje.service';
 import { encode } from 'gpt-3-encoder';
 import { RedisService } from 'src/redis/redis.service';
+import { PedidoService } from 'src/pedido/pedido.service';
 
 @Controller()
 export class GrenApiController {
@@ -29,6 +30,7 @@ export class GrenApiController {
     @InjectRepository(Mensaje)
     private readonly chatService: ChatService,
     private readonly messagesService: MensajeService,
+    private readonly pedidoService: PedidoService,
     @InjectQueue(`GreenApiResponseMessagee-${process.env.SUBDOMAIN}`)
     private readonly messageQueue: Queue,
     private readonly redisService: RedisService,
@@ -51,7 +53,14 @@ export class GrenApiController {
       const empresaType = request['empresaType'];
       const { typeWebhook, messageData } = body;
 
+
       if (typeWebhook === 'incomingMessageReceived') {
+        const orderPlanStatus = await this.pedidoService.orderPlanStatus();
+        console.log("orderPlanStatus", orderPlanStatus)
+        if (orderPlanStatus?.slotsToCreate <= 0) {
+          return;
+        }
+
         const senderData = body?.senderData;
         const sender = senderData?.sender;
         const chatId = senderData?.chatId;
@@ -67,7 +76,14 @@ export class GrenApiController {
 
         const globalCconnection = await handleGetGlobalConnection();
         const empresa = await globalCconnection.getRepository(Empresa);
-        const InfoCompany = await empresa.findOne({ where: { id: empresaId } });
+        const InfoCompany = await empresa.findOne({ where: { id: empresaId }, relations: ['payment', 'payment.plan'] });
+
+        if (!InfoCompany) {
+          console.error("Comania no encontrada")
+          return;
+        }
+        
+        
 
         try {
           if (numberExist?.data) {

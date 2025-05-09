@@ -19,6 +19,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Mensaje } from 'src/mensaje/entities/mensaje.entity';
 import { Chat } from 'src/chat/entities/chat.entity';
 import { RedisService } from 'src/redis/redis.service';
+import { PedidoService } from 'src/pedido/pedido.service';
 
 @Module({
   imports:[ TypeOrmModule.forFeature([Chat, Mensaje]),ChatGptThreadsModule, PedidoModule, DeviceModule, ClienteModule, ProductoModule,EmpresaModule, NumeroConfianzaModule, WebSocketModule, InfolineModule, MensajeModule, ChatModule, BullModule.registerQueue({
@@ -30,7 +31,7 @@ import { RedisService } from 'src/redis/redis.service';
     },
   })],
   controllers: [GrenApiController],
-  providers: [GreenApiService , TenantConnectionService, GreenApiRetirveMessage, RedisService],
+  providers: [GreenApiService, PedidoService , TenantConnectionService, GreenApiRetirveMessage, RedisService],
   exports: [GreenApiService],
 })
 export class GreenApiModule {}
