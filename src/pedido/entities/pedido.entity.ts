@@ -13,6 +13,9 @@ export class Pedido extends BaseEntity {
     @Column({ default: false })
     confirmado: boolean;
 
+    @Column({ default: false })
+    withIA: boolean;
+
     @OneToMany(() => Cambioestadopedido, (cmbe) => cmbe.pedido)
     cambioEstados: Cambioestadopedido[];
 

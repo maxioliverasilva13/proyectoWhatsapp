@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Req, ParseEnumPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  Req,
+  ParseEnumPipe,
+} from '@nestjs/common';
 import { PedidoService } from './pedido.service';
 import { CreatePedidoDto } from './dto/create-pedido.dto';
 import { UpdatePedidoDto } from './dto/update-pedido.dto';
@@ -11,16 +22,22 @@ enum OrderStatus {
 
 @Controller('pedido')
 export class PedidoController {
-  constructor(private readonly pedidoService: PedidoService) { }
+  constructor(private readonly pedidoService: PedidoService) {}
 
   @Post()
   create(@Body() createPedidoDto: CreatePedidoDto) {
     return this.pedidoService.create(createPedidoDto);
   }
 
+  @Get('/orderPlanStatus')
+  pedidosStatus() {
+    return this.pedidoService.orderPlanStatus();
+  }
+
   @Get('/:orderStatus')
   findAllFinish(
-    @Param('orderStatus', new ParseEnumPipe(OrderStatus)) orderStatus: OrderStatus,
+    @Param('orderStatus', new ParseEnumPipe(OrderStatus))
+    orderStatus: OrderStatus,
   ) {
     return this.pedidoService.findOrders(orderStatus);
   }
@@ -31,26 +48,38 @@ export class PedidoController {
     return this.pedidoService.getOrdersForCalendar(date, timeZone);
   }
 
-  @Get("/calendar/next-date-avaiable")
+  @Get('/calendar/next-date-avaiable')
   getNextDateAvailable(@Req() request: Request) {
     const timeZone = request['timeZone'];
 
     return this.pedidoService.getNextDateTimeAvailable(timeZone);
   }
 
-  @Get("/calendar/dates-avaiable")
+  @Get('/calendar/dates-avaiable')
   getDatesAvailable(@Req() request: any) {
     const fecha = request.query['fecha'];
     const withPast = request.query['withPast'];
-    return this.pedidoService.obtenerDisponibilidadActivasByFecha(fecha, withPast === "true");
+    return this.pedidoService.obtenerDisponibilidadActivasByFecha(
+      fecha,
+      withPast === 'true',
+    );
   }
 
   @Post('/aviableDate')
-  disponible(@Query('date') date: string, @Body() producto, @Req() request: Request) {
+  disponible(
+    @Query('date') date: string,
+    @Body() producto,
+    @Req() request: Request,
+  ) {
     const timeZone = request['timeZone'];
-    const empresaId = request['empresaId']
+    const empresaId = request['empresaId'];
 
-    return this.pedidoService.consultarHorario(date, producto, timeZone, empresaId);
+    return this.pedidoService.consultarHorario(
+      date,
+      producto,
+      timeZone,
+      empresaId,
+    );
   }
 
   @Get('/confirm/:id')

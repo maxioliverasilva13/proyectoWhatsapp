@@ -198,6 +198,7 @@ export async function sendMessageToThread(
               messagePushTitle: args.messagePushTitle,
               messagePush: args.messagePush,
               originalChatId: originalChatId,
+              withIA: true,
             });
         } else if (name === 'getAvailability') {
             console.log('getAvailability');
