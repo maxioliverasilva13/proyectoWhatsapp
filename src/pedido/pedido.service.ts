@@ -13,8 +13,6 @@ import { ProductopedidoService } from 'src/productopedido/productopedido.service
 import { Producto } from 'src/producto/entities/producto.entity';
 import { Tiposervicio } from 'src/tiposervicio/entities/tiposervicio.entity';
 import { handleGetGlobalConnection } from 'src/utils/dbConnection';
-import { ChatService } from 'src/chat/chat.service';
-import { MensajeService } from 'src/mensaje/mensaje.service';
 import { WebsocketGateway } from 'src/websocket/websocket.gatewat';
 import { Cambioestadopedido } from 'src/cambioestadopedido/entities/cambioestadopedido.entity';
 import { Chat } from 'src/chat/entities/chat.entity';
@@ -450,7 +448,7 @@ export class PedidoService implements OnModuleDestroy {
       return {
         currentMonthPedidos: currentMonthPedidos,
         slotsToCreate: maxPedidos - (currentMonthPedidos ?? 0),
-        maxPedidos: currentMonthPedidos,
+        maxPedidos: maxPedidos,
       };
     } catch (error) {
       throw new BadRequestException({
@@ -985,6 +983,7 @@ export class PedidoService implements OnModuleDestroy {
     try {
       const lastOrders = await this.pedidoRepository.find({
         order: { id: 'DESC' },
+        where: { available: true, finalizado: false },
         take: 3,
         relations: ['pedidosprod', 'pedidosprod.producto'],
       });
