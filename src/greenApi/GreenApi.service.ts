@@ -170,7 +170,8 @@ export class GreenApiService {
     chatIdExist,
     messagePushTitle = 'Test 1',
     messagePush = 'Test',
-    originalChatId
+    originalChatId,
+    withIA = false,
   }: any) {
     try {
       const newOrder = await this.pedidoService.create({
@@ -187,6 +188,7 @@ export class GreenApiService {
         messageToUser: openAIResponse?.messageToUser,
         chatId: chatIdExist,
         originalChatId: originalChatId,
+        withIA: withIA,
       });
       // await this.chatGptThreadsService.deleteThread(currentThreadId);
       await this.deviceService.sendNotificationEmpresa(

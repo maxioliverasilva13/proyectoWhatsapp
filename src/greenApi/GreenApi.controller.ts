@@ -82,8 +82,6 @@ export class GrenApiController {
           console.error("Comania no encontrada")
           return;
         }
-        
-        
 
         try {
           if (numberExist?.data) {

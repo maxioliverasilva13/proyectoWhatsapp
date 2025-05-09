@@ -20,9 +20,10 @@ import { Mensaje } from 'src/mensaje/entities/mensaje.entity';
 import { Chat } from 'src/chat/entities/chat.entity';
 import { RedisService } from 'src/redis/redis.service';
 import { PedidoService } from 'src/pedido/pedido.service';
+import { Pedido } from 'src/pedido/entities/pedido.entity';
 
 @Module({
-  imports:[ TypeOrmModule.forFeature([Chat, Mensaje]),ChatGptThreadsModule, PedidoModule, DeviceModule, ClienteModule, ProductoModule,EmpresaModule, NumeroConfianzaModule, WebSocketModule, InfolineModule, MensajeModule, ChatModule, BullModule.registerQueue({
+  imports:[ TypeOrmModule.forFeature([Chat, Mensaje, Pedido]),ChatGptThreadsModule, PedidoModule, DeviceModule, ClienteModule, ProductoModule,EmpresaModule, NumeroConfianzaModule, WebSocketModule, InfolineModule, MensajeModule, ChatModule, BullModule.registerQueue({
     name:`GreenApiResponseMessagee-${process.env.SUBDOMAIN}`,
     connection: {
       host: process.env.REDIS_HOST || 'localhost',
@@ -31,7 +32,7 @@ import { PedidoService } from 'src/pedido/pedido.service';
     },
   })],
   controllers: [GrenApiController],
-  providers: [GreenApiService, PedidoService , TenantConnectionService, GreenApiRetirveMessage, RedisService],
+  providers: [GreenApiService , TenantConnectionService, GreenApiRetirveMessage, RedisService],
   exports: [GreenApiService],
 })
 export class GreenApiModule {}
