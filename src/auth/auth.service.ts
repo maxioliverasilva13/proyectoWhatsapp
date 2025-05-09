@@ -166,18 +166,8 @@ export class AuthService implements OnModuleDestroy {
             }
           }
 
-          if (
-            empresa?.payment &&
-            (empresa.payment.active === true ||
-              (empresa.payment.subscription_date &&
-                moment(empresa.payment.subscription_date).isAfter(now)))
-          ) {
-            paymentMade = true;
-          } else {
-            if (empresa?.payment) {
-              oldPlan = empresa?.payment;
-            }
-            paymentMade = false;
+          if (empresa.payment) {
+            paymentMade = empresa.payment.isActive();
           }
         }
       }
