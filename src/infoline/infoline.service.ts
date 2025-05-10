@@ -82,8 +82,11 @@ export class InfolineService implements OnModuleDestroy {
       let text = []
 
       allInfoLines.map((infoLine) => {
-        text.push(infoLine.nombre)
-      })      
+        text.push({
+          nombre: infoLine.nombre,
+          requerido: infoLine.requerido,
+        })
+      });
       return text
     } catch (error) {
       console.log('error', error);
