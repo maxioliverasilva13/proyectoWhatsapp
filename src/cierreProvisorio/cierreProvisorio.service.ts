@@ -54,6 +54,7 @@ export class CierreProvisorioService {
             ok: true,
             statusCode: 200,
             message: "Cierre creado correctamente",
+            data: newCierre
           };
       
         } catch (error) {
