@@ -1,6 +1,5 @@
 import {
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -14,25 +13,26 @@ import { handleGetGlobalConnection } from 'src/utils/dbConnection';
 export class DeviceService {
   private messaging: admin.messaging.Messaging;
 
+  private initializeService(withoutAppValidation = false) {
+    if (!admin.apps.length) {
+      admin.initializeApp({
+        credential: admin.credential.cert({
+          projectId: process.env.FIREBASE_PROJECT_ID,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+        }),
+      });
+    }
+    this.messaging = admin.messaging();
+  }
+
   constructor(
     @InjectRepository(Device)
     private readonly dispositivoRepository: Repository<Device>,
     @InjectRepository(Usuario)
     private readonly usuarioRepository: Repository<Usuario>,
   ) {
-    const subdomain = process.env.SUBDOMAIN;
-    if (subdomain === 'app') {
-      if (!admin.apps.length) {
-        admin.initializeApp({
-          credential: admin.credential.cert({
-            projectId: process.env.FIREBASE_PROJECT_ID,
-            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-            privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-          }),
-        });
-      }
-      this.messaging = admin.messaging();
-    }
+    this.initializeService();
   }
 
   async registrarDispositivo(
@@ -73,19 +73,16 @@ export class DeviceService {
 
     await Promise.all(
       usuario?.dispositivos?.map(async (device) => {
-        console.log("intentando enviar al device", device)
+        console.log('intentando enviar al device', device);
         try {
           const message = {
             notification: { title: title, body: desc },
             token: device.fcmToken,
           };
           const resp = await admin.messaging().send(message);
-          console.log("resultado", resp)
+          console.log('resultado', resp);
         } catch (error) {
-          console.log(
-            'Error sending notification',
-            error.message,
-          );
+          console.log('Error sending notification', error.message);
         }
       }),
     );
@@ -107,8 +104,8 @@ export class DeviceService {
         relations: ['dispositivos'],
       });
 
-      console.log("empresa id", empresaId)
-      console.log("intentando enviar para ",usuarios)
+      console.log('empresa id', empresaId);
+      console.log('intentando enviar para ', usuarios);
 
       if (!usuarios || usuarios?.length === 0) {
         throw new NotFoundException('User not device registered!');
@@ -125,10 +122,7 @@ export class DeviceService {
                 };
                 await admin.messaging().send(message);
               } catch (error) {
-                console.error(
-                  'Error sending notification',
-                  error.message,
-                );
+                console.error('Error sending notification', error.message);
               }
             }),
           );

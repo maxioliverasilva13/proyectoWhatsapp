@@ -1,7 +1,16 @@
 import { Empresa } from 'src/empresa/entities/empresa.entity';
 import { Plan } from 'src/plan/entities/plan.entity';
 import { BaseEntity } from 'src/utils/base.entity';
-import { Entity, Column, PrimaryGeneratedColumn, Unique, ManyToOne, OneToMany, OneToOne } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  Unique,
+  ManyToOne,
+  OneToMany,
+  OneToOne,
+} from 'typeorm';
+import * as moment from 'moment-timezone';
 
 @Entity('payment')
 @Unique(['purchaseToken'])
@@ -30,9 +39,17 @@ export class Payment extends BaseEntity {
   @Column({ nullable: true })
   package: string;
 
-  @OneToOne(() => Empresa, emp => emp.payment, { onDelete: "SET NULL" })
+  @OneToOne(() => Empresa, (emp) => emp.payment, { onDelete: 'SET NULL' })
   empresa: Empresa;
 
-  @ManyToOne(() => Plan, emp => emp.payments, { onDelete: "SET NULL" })
+  @ManyToOne(() => Plan, (emp) => emp.payments, { onDelete: 'SET NULL' })
   plan: Plan;
+
+  isActive(): boolean {
+    const now = moment();
+    return (
+      this.active === true ||
+      (!!this.subscription_date && moment(this.subscription_date).isAfter(now))
+    );
+  }
 }

@@ -13,8 +13,6 @@ import { ProductopedidoService } from 'src/productopedido/productopedido.service
 import { Producto } from 'src/producto/entities/producto.entity';
 import { Tiposervicio } from 'src/tiposervicio/entities/tiposervicio.entity';
 import { handleGetGlobalConnection } from 'src/utils/dbConnection';
-import { ChatService } from 'src/chat/chat.service';
-import { MensajeService } from 'src/mensaje/mensaje.service';
 import { WebsocketGateway } from 'src/websocket/websocket.gatewat';
 import { Cambioestadopedido } from 'src/cambioestadopedido/entities/cambioestadopedido.entity';
 import { Chat } from 'src/chat/entities/chat.entity';
@@ -54,8 +52,8 @@ export class PedidoService implements OnModuleDestroy {
     @InjectRepository(Category)
     private readonly categoryService: Repository<Category>,
     @InjectRepository(ProductoPedido)
-    private readonly productoPedidoRepository: Repository<ProductoPedido>
-  ) { }
+    private readonly productoPedidoRepository: Repository<ProductoPedido>,
+  ) {}
 
   async onModuleInit() {
     if (!this.globalConnection) {
@@ -96,7 +94,7 @@ export class PedidoService implements OnModuleDestroy {
         .createQueryBuilder('pp')
         .leftJoin('pp.pedido', 'pedido')
         .leftJoin('pp.producto', 'producto')
-        .leftJoin('producto.category', 'categoria') 
+        .leftJoin('producto.category', 'categoria')
         .select('categoria.name', 'categoria')
         .addSelect('COUNT(pp.productoId)', 'cantidadVendida')
         .groupBy('categoria.id')
@@ -105,15 +103,12 @@ export class PedidoService implements OnModuleDestroy {
 
       return {
         ok: true,
-        data: resultados
+        data: resultados,
       };
-
-
     } catch (error) {
       console.log(error);
     }
   }
-
 
   async getMyOrders(client_id: any) {
     if (client_id) {
@@ -156,6 +151,13 @@ export class PedidoService implements OnModuleDestroy {
         });
       }
 
+      let originalChat = undefined;
+      if (createPedidoDto?.originalChatId) {
+        originalChat = await this.chatRepository.findOne({
+          where: { id: Number(createPedidoDto?.originalChatId) },
+        });
+      }
+
       if (!firstStatus) {
         throw new BadRequestException('No existe un estado con ese id');
       }
@@ -179,6 +181,7 @@ export class PedidoService implements OnModuleDestroy {
         newPedido.confirmado = createPedidoDto.confirmado || false;
         newPedido.cliente_id = createPedidoDto.clienteId;
         newPedido.estado = firstStatus;
+        newPedido.withIA = createPedidoDto?.withIA ?? false;
         newPedido.tipo_servicio_id = tipoServicio.id;
         newPedido.available = true;
         newPedido.fecha =
@@ -194,6 +197,9 @@ export class PedidoService implements OnModuleDestroy {
         if (existChatPreview) {
           newPedido.chat = existChatPreview;
         }
+        if (originalChat) {
+          newPedido.chat = originalChat;
+        }
 
         const savedPedido = await this.pedidoRepository.save(newPedido);
 
@@ -202,9 +208,9 @@ export class PedidoService implements OnModuleDestroy {
           pedido: newPedido,
           createdAt: new Date(),
           id_user: null,
-        })
+        });
 
-        await this.cambioEstadoRepository.save(newStatusOrder)
+        await this.cambioEstadoRepository.save(newStatusOrder);
 
         const productIds = products.map((product) => product.productoId);
         const existingProducts = await this.productoRespitory.find({
@@ -406,6 +412,49 @@ export class PedidoService implements OnModuleDestroy {
         ok: false,
         statusCode: 400,
         message: error?.message || 'Error al crear el pedido',
+        error: 'Bad Request',
+      });
+    }
+  }
+
+  async orderPlanStatus() {
+    try {
+      const empresa = await this.empresaRepository.findOne({
+        where: { db_name: process.env.SUBDOMAIN },
+        relations: ['payment', 'payment.plan'],
+      });
+      if (!empresa) {
+        throw new Error('Emrpesa no valida');
+      }
+      const maxPedidos = empresa.payment.isActive()
+        ? (empresa?.payment?.plan?.maxPedidos ?? 0)
+        : 0;
+
+      const startOfMonth = moment()
+        .tz(empresa.timeZone)
+        .startOf('month')
+        .toDate();
+      const endOfMonth = moment().tz(empresa.timeZone).endOf('month').toDate();
+
+      const currentMonthPedidos = await this.pedidoRepository
+        .createQueryBuilder('pedido')
+        .where('pedido.withIA = :withIA', { withIA: true })
+        .andWhere('pedido.created_at BETWEEN :start AND :end', {
+          start: startOfMonth,
+          end: endOfMonth,
+        })
+        .getCount();
+
+      return {
+        currentMonthPedidos: currentMonthPedidos,
+        slotsToCreate: maxPedidos - (currentMonthPedidos ?? 0),
+        maxPedidos: maxPedidos,
+      };
+    } catch (error) {
+      throw new BadRequestException({
+        ok: false,
+        statusCode: 400,
+        message: error?.message || 'Error al obtener estado de la empresa',
         error: 'Bad Request',
       });
     }
@@ -934,6 +983,7 @@ export class PedidoService implements OnModuleDestroy {
     try {
       const lastOrders = await this.pedidoRepository.find({
         order: { id: 'DESC' },
+        where: { available: true, finalizado: false },
         take: 3,
         relations: ['pedidosprod', 'pedidosprod.producto'],
       });

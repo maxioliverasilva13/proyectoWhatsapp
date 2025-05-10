@@ -42,8 +42,15 @@ export class GreenApiService {
     timeZone,
     chatId,
   ) {
-    const { threadId, chatId: chatIdExist } =
-      await this.chatGptThreadsService.getLastThreads(numberSender);
+    let originalChatId = "";
+    const {
+      threadId,
+      chatId: chatIdExist,
+      originalChatId: originalChatFromThread,
+    } = await this.chatGptThreadsService.getLastThreads(numberSender);
+    if (originalChatFromThread) {
+      originalChatId = originalChatFromThread;
+    }
 
     const { clienteId, clientName } =
       await this.clienteService.createOrReturnExistClient({
@@ -62,12 +69,30 @@ export class GreenApiService {
         empresaId,
         clienteId,
       );
-      await this.chatGptThreadsService.createThreads({
+      console.log("llamo a createThreads", {
         numberPhone: numberSender,
         threadId: currentThreadId,
-        chatId,
+        chatId: chatId,
+        originalChatId: originalChatId,
+      })
+
+      const resp = await this.chatGptThreadsService.createThreads({
+        numberPhone: numberSender,
+        threadId: currentThreadId,
+        chatId: chatId,
+        originalChatId: originalChatId,
       });
+      if (resp?.thread?.originalChatId) {
+        originalChatId = resp?.thread?.originalChatId;
+      }
     }
+    console.log("pertenece al chat", originalChatId)
+    await this.chatGptThreadsService.createMessageByThrad(
+      textMessage,
+      numberSender,
+      false,
+    );
+
 
     const openAIResponse = await sendMessageToThread(
       currentThreadId,
@@ -84,6 +109,7 @@ export class GreenApiService {
       numberSender,
       chatIdExist,
       clienteId,
+      originalChatId,
     );
 
     if (openAIResponse?.isError === true) {
@@ -115,6 +141,14 @@ export class GreenApiService {
     let textError;
     await this.chatGptThreadsService.updateThreadStatus(threadId, timeZone);
 
+    if (openAIResponseFormatted?.message) {
+      await this.chatGptThreadsService.createMessageByThrad(
+        openAIResponseFormatted?.message,
+        numberSender,
+        true,
+      );
+    }
+
     if (openAIResponseFormatted?.pedidoIdToCancel) {
       this.pedidoService.cancel(openAIResponseFormatted?.pedidoIdToCancel);
       return openAIResponseFormatted;
@@ -134,9 +168,10 @@ export class GreenApiService {
     numberSender,
     detalles,
     chatIdExist,
-    empresaId: any,
     messagePushTitle = 'Test 1',
     messagePush = 'Test',
+    originalChatId,
+    withIA = false,
   }: any) {
     try {
       const newOrder = await this.pedidoService.create({
@@ -152,8 +187,10 @@ export class GreenApiService {
         fecha: openAIResponse.fecha,
         messageToUser: openAIResponse?.messageToUser,
         chatId: chatIdExist,
+        originalChatId: originalChatId,
+        withIA: withIA,
       });
-      await this.chatGptThreadsService.deleteThread(currentThreadId);
+      // await this.chatGptThreadsService.deleteThread(currentThreadId);
       await this.deviceService.sendNotificationEmpresa(
         empresaId,
         messagePushTitle,

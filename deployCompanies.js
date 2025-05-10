@@ -40,6 +40,9 @@ function createEnvFile(empresa) {
     POSTGRES_GLOBAL_DB_HOST=${process.env.POSTGRES_GLOBAL_DB_HOST}
     POSTGRES_GLOBAL_DB_PORT=${process.env.POSTGRES_GLOBAL_DB_PORT}
     ID_INSTANCE=${empresa?.greenApiInstance}
+    FIREBASE_PROJECT_ID=${process.env.FIREBASE_PROJECT_ID}
+    FIREBASE_PRIVATE_KEY=${process.env.FIREBASE_PRIVATE_KEY}
+    FIREBASE_CLIENT_EMAIL=${process.env.FIREBASE_CLIENT_EMAIL}
     REDIS_HOST=${process.env.REDIS_HOST}
     REDIS_PORT=${process.env.REDIS_PORT}
     REDIS_PASSWORD=${process.env.REDIS_PASSWORD}

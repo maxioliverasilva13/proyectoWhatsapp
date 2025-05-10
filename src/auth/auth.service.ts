@@ -109,10 +109,12 @@ export class AuthService implements OnModuleDestroy {
       let hora_apertura;
       let empresaName = '';
       ``;
+      let maxPedidos = 0;
       let hora_cierre;
       let abierto;
       let timeZone;
       let logo;
+      let currentPedidos = 0;
 
       if (user.id_empresa) {
         const allCurrencies = await currencyRepository
@@ -130,10 +132,12 @@ export class AuthService implements OnModuleDestroy {
           relations: ['tipoServicioId', 'currencies', 'payment', 'payment.plan'],
         });
         if (empresa) {
+
           logo = empresa.logo ?? 'No logo';
           hora_apertura = empresa.hora_apertura;
           hora_cierre = empresa.hora_cierre;
           abierto = empresa.abierto;
+          maxPedidos = empresa?.payment?.plan?.maxPedidos ?? 0;
           tipo_servicio = empresa?.tipoServicioId?.id;
           tipo_servicioNombre = empresa.tipoServicioId.nombre;
           empresaName = empresa?.nombre;
@@ -162,18 +166,8 @@ export class AuthService implements OnModuleDestroy {
             }
           }
 
-          if (
-            empresa?.payment &&
-            (empresa.payment.active === true ||
-              (empresa.payment.subscription_date &&
-                moment(empresa.payment.subscription_date).isAfter(now)))
-          ) {
-            paymentMade = true;
-          } else {
-            if (empresa?.payment) {
-              oldPlan = empresa?.payment;
-            }
-            paymentMade = false;
+          if (empresa.payment) {
+            paymentMade = empresa.payment.isActive();
           }
         }
       }
@@ -188,6 +182,8 @@ export class AuthService implements OnModuleDestroy {
         tipo_servicioNombre,
         paymentMade,
         userConfigured,
+        maxPedidos: maxPedidos,
+        currentPedidos: currentPedidos,
         payment: payment,
         greenApiConfigured,
         globalConfig:

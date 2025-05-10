@@ -90,6 +90,7 @@ export async function sendMessageToThread(
   numberSender: any,
   chatIdExist: any,
   clientId: any,
+  originalChatId?: string,
 ) {
   const today = moment.tz(timeZone);
   const headers = {
@@ -184,7 +185,6 @@ export async function sendMessageToThread(
             console.log('getCurrencies');
             toolResult = await productoService.getCurrencies();
           } else if (name === 'confirmOrder') {
-            console.log("args aca", args)
             toolResult = await greenApiService.hacerPedido({
               currentThreadId: threadId,
               clienteId: clientId,
@@ -197,6 +197,8 @@ export async function sendMessageToThread(
               chatIdExist: chatIdExist,
               messagePushTitle: args.messagePushTitle,
               messagePush: args.messagePush,
+              originalChatId: originalChatId,
+              withIA: true,
             });
         } else if (name === 'getAvailability') {
             console.log('getAvailability');
