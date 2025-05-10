@@ -262,7 +262,7 @@ export class PedidoService implements OnModuleDestroy {
         const formatToSendFrontend = {
           clientName: createPedidoDto.clientName,
           direccion:
-            createPedidoDto.infoLinesJson.direccion || 'No hay direccion',
+            createPedidoDto?.infoLinesJson?.direccion || 'No hay direccion',
           numberSender: createPedidoDto.numberSender,
           total,
           orderId: savedPedido.id,
@@ -504,7 +504,7 @@ export class PedidoService implements OnModuleDestroy {
 
       const pedidosFinal = pedidos.map((pedido) => {
         const infoLinesJson = JSON.parse(pedido.infoLinesJson || '{}');
-        const direcciones = infoLinesJson.direccion || 'No hay direccion';
+        const direcciones = infoLinesJson?.direccion || 'No hay direccion';
         let total = 0;
 
         pedido.pedidosprod.forEach((producto) => {
