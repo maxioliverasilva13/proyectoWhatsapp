@@ -403,6 +403,7 @@ export class PedidoService implements OnModuleDestroy {
           estimateTime,
           estadoActual: pedidoExist.estado,
           cambiosEstado: pedidoExist.cambioEstados,
+          detalle_pedido: pedidoExist?.detalle_pedido,
           total,
           infoLines: JSON.parse(pedidoExist.infoLinesJson),
         },
