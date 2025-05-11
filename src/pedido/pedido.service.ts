@@ -874,16 +874,21 @@ export class PedidoService implements OnModuleDestroy {
           currentInfoLines = pedido.infoLinesJson
             ? JSON.parse(pedido.infoLinesJson)
             : {};
+          
         } catch (e) {
           console.error('Error al parsear infoLinesJson actual:', e);
         }
 
         let newInfoLines = {};
         try {
+          console.log("typeof 1 value", typeof value, value)
           newInfoLines = typeof value === 'string' ? JSON.parse(value) : value;
         } catch (e) {
           console.error('Error al parsear infoLinesJson entrante:', e);
         }
+
+        console.log("newInfoLines", newInfoLines);
+        console.log("currentInfoLines", currentInfoLines);
 
         const mergedInfo = {
           ...currentInfoLines,
