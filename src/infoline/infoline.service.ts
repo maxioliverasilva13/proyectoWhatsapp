@@ -87,7 +87,7 @@ export class InfolineService implements OnModuleDestroy {
           requerido: infoLine.requerido,
         })
       });
-      return text
+      return JSON.stringify(text);
     } catch (error) {
       console.log('error', error);
       throw new BadRequestException({
