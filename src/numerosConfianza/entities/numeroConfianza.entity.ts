@@ -6,7 +6,7 @@ export class NumeroConfianza extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ type: 'bigint' })
+    @Column()
     telefono: string;
 
     @Column()
