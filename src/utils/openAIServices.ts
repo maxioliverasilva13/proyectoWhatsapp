@@ -130,9 +130,9 @@ export async function sendMessageToThread(
   const runData = await response.json();
   const runId = runData.id;
 
-  let delay = 1000;
+  const maxRetries = 30;
+  let delay = 2000;
   let status = 'queued';
-  const maxRetries = 10;
   const maxToolCallRetries = 3;
   let toolCallAttempts = 0;
 
@@ -180,8 +180,7 @@ export async function sendMessageToThread(
             console.log('editOrder');
             const resp = await pedidoService.update(args.orderId, args.order);
             return resp.id;
-          }
-          else if (name === 'getCurrencies') {
+          } else if (name === 'getCurrencies') {
             console.log('getCurrencies');
             toolResult = await productoService.getCurrencies();
           } else if (name === 'confirmOrder') {
@@ -200,7 +199,7 @@ export async function sendMessageToThread(
               originalChatId: originalChatId,
               withIA: true,
             });
-        } else if (name === 'getAvailability') {
+          } else if (name === 'getAvailability') {
             console.log('getAvailability');
             toolResult =
               await pedidoService.obtenerDisponibilidadActivasByFecha(

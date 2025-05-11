@@ -137,6 +137,7 @@ export class GreenApiService {
       }
     } catch (error) {
       console.error('Error al parsear el JSON:', error);
+      return { isError: true };
     }
     let textError;
     await this.chatGptThreadsService.updateThreadStatus(threadId, timeZone);
