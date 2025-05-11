@@ -82,13 +82,14 @@ export class NumeroConfianzaService implements OnModuleDestroy {
 
     async getAll(empresaId) {
         try {
+            console.log('entro aqui el empresas id es', empresaId );
+            
             const allNumbers = await this.NmroConfianzaRepository.find({
                 where: { empresa: { id: empresaId } }
             })
 
             return {
                 ok: true,
-                statusCode: 200,
                 data: allNumbers
             }
 
