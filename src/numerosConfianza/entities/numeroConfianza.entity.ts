@@ -6,7 +6,7 @@ export class NumeroConfianza extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column()
+    @Column({ nullable: true, default: "" })
     telefono: string;
 
     @Column()
