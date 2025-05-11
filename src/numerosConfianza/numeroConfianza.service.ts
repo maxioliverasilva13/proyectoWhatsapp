@@ -12,51 +12,64 @@ export class NumeroConfianzaService implements OnModuleDestroy {
 
     private NmroConfianzaRepository: Repository<NumeroConfianza>;
 
-    private empresaRepository : Repository<Empresa>;
+    private empresaRepository: Repository<Empresa>;
 
     private globalConnection: DataSource;
-    
+
+    constructor(
+        @InjectRepository(NumeroConfianza)
+        private readonly defaultNmroConfianzaRepo: Repository<NumeroConfianza>,
+
+        @InjectRepository(Empresa)
+        private readonly defaultEmpresaRepo: Repository<Empresa>
+    ) { }
 
     async onModuleInit() {
-      if (!this.globalConnection) {
-      this.globalConnection = await handleGetGlobalConnection();
-    }
-      this.NmroConfianzaRepository = this.globalConnection.getRepository(NumeroConfianza); 
-      this.empresaRepository = this.globalConnection.getRepository(Empresa); 
+        if (process.env.SUBDOMAIN !== 'app') {
+            if (!this.globalConnection) {
+                this.globalConnection = await handleGetGlobalConnection();
+            }
+            this.NmroConfianzaRepository = this.globalConnection.getRepository(NumeroConfianza);
+            this.empresaRepository = this.globalConnection.getRepository(Empresa);
+        } else {
+            this.NmroConfianzaRepository = this.defaultNmroConfianzaRepo;
+            this.empresaRepository = this.defaultEmpresaRepo;
+        }
     }
 
     async onModuleDestroy() {
-      if (this.globalConnection && this.globalConnection.isInitialized) {
-        await this.globalConnection.destroy();
-      }
+        if (this.globalConnection && this.globalConnection.isInitialized) {
+            await this.globalConnection.destroy();
+        }
     }
 
-    async create(info: numeroConfianzaDto , empresaId : number) {
+    async create(info: numeroConfianzaDto, empresaId: number) {
         try {
             const empresaExist = await this.empresaRepository.findOne({ where: { id: empresaId } });
 
-            if(!empresaExist) {
+            if (!empresaExist) {
                 throw new BadRequestException("There no are empresa with that id")
             }
-            const existNumberWithPhone = await this.NmroConfianzaRepository.findOne({where: {telefono: info.telefono}})
+            const existNumberWithPhone = await this.NmroConfianzaRepository.findOne({ where: { telefono: info.telefono } })
 
-            if(existNumberWithPhone) {
+            if (existNumberWithPhone) {
                 throw new BadRequestException("There is already a number with that phone number")
             }
 
             const newNumber = await this.NmroConfianzaRepository.create({
                 nombre: info.nombre,
-                telefono: info.telefono
+                telefono: info.telefono,
+                empresa: empresaExist
             })
 
             await this.NmroConfianzaRepository.save(newNumber)
 
             return {
-                ok:true,
+                ok: true,
                 message: "number trusted created successfully",
                 data: newNumber
             }
-            
+
         } catch (error) {
             console.log(error);
         }
@@ -65,12 +78,12 @@ export class NumeroConfianzaService implements OnModuleDestroy {
     async getAll(empresaId) {
         try {
             const allNumbers = await this.NmroConfianzaRepository.find({
-                where:{empresa:{id:empresaId}}
+                where: { empresa: { id: empresaId } }
             })
 
             return {
-                ok:true,
-                statusCode:200,
+                ok: true,
+                statusCode: 200,
                 data: allNumbers
             }
 
@@ -85,17 +98,17 @@ export class NumeroConfianzaService implements OnModuleDestroy {
     }
 
     async getOne(numberPhone, empresaId) {
-        try {            
+        try {
             const empresa = await this.empresaRepository.findOne({ where: { id: empresaId } });
-            
+
             const numberDate = await this.NmroConfianzaRepository.findOne({
-                where:{telefono:numberPhone,empresa: { id: empresa.id }  }
+                where: { telefono: numberPhone, empresa: { id: empresa.id } }
             })
             console.log(numberDate);
-            
+
             return {
-                ok:true,
-                statusCode:200,
+                ok: true,
+                statusCode: 200,
                 data: numberDate,
             }
 
@@ -108,13 +121,13 @@ export class NumeroConfianzaService implements OnModuleDestroy {
             });
         }
     }
-    
+
     async Update(idNumber, datos) {
         try {
             const numberConfianza = await this.NmroConfianzaRepository.findOne({
-                where:{id:idNumber}
+                where: { id: idNumber }
             })
-            if(!numberConfianza) {
+            if (!numberConfianza) {
                 return new BadRequestException('Debes de proporcionar un id valido')
             }
             numberConfianza.nombre = datos.nombre;
@@ -123,8 +136,8 @@ export class NumeroConfianzaService implements OnModuleDestroy {
             await this.NmroConfianzaRepository.save(numberConfianza)
 
             return {
-                ok:true,
-                statusCode:200,
+                ok: true,
+                statusCode: 200,
                 message: "numero de confianza actualizado correctamente"
             }
 
@@ -141,11 +154,11 @@ export class NumeroConfianzaService implements OnModuleDestroy {
     async Delete(idNumber: number) {
         try {
             const result = await this.NmroConfianzaRepository.delete(idNumber);
-    
+
             if (result.affected === 0) {
                 throw new BadRequestException('No se encontró un registro con el ID proporcionado');
             }
-    
+
             return {
                 ok: true,
                 statusCode: 200,
