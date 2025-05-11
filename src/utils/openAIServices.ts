@@ -179,7 +179,7 @@ export async function sendMessageToThread(
           } else if (name === 'editOrder') {
             console.log('editOrder');
             const resp = await pedidoService.update(args.orderId, args.order);
-            return resp.id;
+            toolResult = resp;
           } else if (name === 'getCurrencies') {
             console.log('getCurrencies');
             toolResult = await productoService.getCurrencies();
