@@ -6,6 +6,7 @@ import axios from 'axios';
 import { ProductoService } from 'src/producto/producto.service';
 import { PedidoService } from 'src/pedido/pedido.service';
 import { GreenApiService } from 'src/greenApi/GreenApi.service';
+import { InfolineService } from 'src/infoline/infoline.service';
 
 export const askAssistant = async (question, instrucciones) => {
   try {
@@ -40,14 +41,8 @@ export const askAssistant = async (question, instrucciones) => {
   }
 };
 
-export async function createThread(
-  infoLines,
-  empresaType,
-  empresaId = '',
-  userId,
-) {
-  const formatedText = `EmpresaId: ${empresaId} \n EmpresaType: ${empresaType} \n UserId: ${userId} \n 
-    INFO-LINES: ${infoLines} \n
+export async function createThread(empresaType, empresaId = '', userId) {
+  const formatedText = `EmpresaId: ${empresaId} \n EmpresaType: ${empresaType} \n UserId: ${userId} \n
     CURRENT_TIME:${getCurrentDate()} \n`;
 
   const response = await fetch(`https://api.openai.com/v1/threads`, {
@@ -83,6 +78,7 @@ export async function sendMessageToThread(
   productoService: ProductoService,
   pedidoService: PedidoService,
   greenApiService: GreenApiService,
+  infoLineService: InfolineService,
   empresaId: any,
   clienteId: any,
   empresaType: any,
@@ -176,6 +172,10 @@ export async function sendMessageToThread(
           } else if (name === 'getPedidosByUser') {
             console.log('getPedidosByUser');
             toolResult = await pedidoService.getMyOrders(clienteId);
+          } else if (name === 'getInfoLines') {
+            const textInfoLines =
+              await this.infoLineService.findAllFormatedText(empresaType);
+            toolResult = textInfoLines;
           } else if (name === 'editOrder') {
             console.log('editOrder');
             const resp = await pedidoService.update(args.orderId, args.order);

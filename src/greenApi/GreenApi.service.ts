@@ -61,10 +61,7 @@ export class GreenApiService {
 
     let currentThreadId = threadId;
     if (!threadId) {
-      const textInfoLines =
-        await this.infoLineService.findAllFormatedText(empresaType);
       currentThreadId = await createThread(
-        textInfoLines,
         empresaType,
         empresaId,
         clienteId,
@@ -102,6 +99,7 @@ export class GreenApiService {
       this.productoService,
       this.pedidoService,
       this,
+      this.infoLineService,
       empresaId,
       clienteId,
       empresaType,
