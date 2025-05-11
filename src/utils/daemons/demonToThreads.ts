@@ -1,6 +1,7 @@
 import { handleGetCurrentConnection } from 'src/utils/dbConnection';
 import * as moment from 'moment-timezone';
 import { ChatGptThreads } from 'src/chatGptThreads/entities/chatGpThreads.entity';
+import { LessThanOrEqual } from 'typeorm';
 
 export const DemonDeleteOldsThreads = async () => {
   console.log('Ejecuto daemon delete old threads');
@@ -13,7 +14,7 @@ export const DemonDeleteOldsThreads = async () => {
 
     const oldThreads = await repoThread.find({
       where: {
-        last_update: { $lte: fifteenMinutesAgo } as any,
+        last_update: LessThanOrEqual(fifteenMinutesAgo),
       },
     });
 
