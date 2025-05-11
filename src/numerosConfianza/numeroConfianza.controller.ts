@@ -9,6 +9,13 @@ export class NumeroConfianzaController {
     ) {
     }
 
+    @Post() 
+    async create(@Req() request: Request, @Body() data : numeroConfianzaDto) {
+        const empresaId = request['empresaId']
+        await this.numeroConfianzaService.create(data,empresaId)
+
+    }
+
     @Get()
     async getAll(@Req() request: Request){
         const empresaId = request['empresaId']
