@@ -31,6 +31,36 @@ export class NumeroConfianzaService implements OnModuleDestroy {
       }
     }
 
+    async create(info: numeroConfianzaDto , empresaId : number) {
+        try {
+            const empresaExist = await this.empresaRepository.findOne({ where: { id: empresaId } });
+
+            if(!empresaExist) {
+                throw new BadRequestException("There no are empresa with that id")
+            }
+            const existNumberWithPhone = await this.NmroConfianzaRepository.findOne({where: {telefono: info.telefono}})
+
+            if(existNumberWithPhone) {
+                throw new BadRequestException("There is already a number with that phone number")
+            }
+
+            const newNumber = await this.NmroConfianzaRepository.create({
+                nombre: info.nombre,
+                telefono: info.telefono
+            })
+
+            await this.NmroConfianzaRepository.save(newNumber)
+
+            return {
+                ok:true,
+                message: "number trusted created successfully"
+            }
+            
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     async getAll(empresaId) {
         try {
             const allNumbers = await this.NmroConfianzaRepository.find({
@@ -160,5 +190,4 @@ export class NumeroConfianzaService implements OnModuleDestroy {
             });
         }
     }
-    
 }
