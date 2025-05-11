@@ -129,6 +129,7 @@ export class AppModule {
         AuthController,
         ImageController,
         DeviceController,
+        NumeroConfianzaController
       );
 
     // EMPRESA ROUTES
@@ -137,7 +138,6 @@ export class AppModule {
       .forRoutes(
         ProductoController,
         GrenApiController,
-        NumeroConfianzaController,
         PedidoController,
         InfolineController,
         ChatGptThreadsController,
