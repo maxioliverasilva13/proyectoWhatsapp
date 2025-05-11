@@ -53,7 +53,8 @@ export class NumeroConfianzaService implements OnModuleDestroy {
 
             return {
                 ok:true,
-                message: "number trusted created successfully"
+                message: "number trusted created successfully",
+                data: newNumber
             }
             
         } catch (error) {
