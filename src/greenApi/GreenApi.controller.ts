@@ -58,6 +58,7 @@ export class GrenApiController {
         const orderPlanStatus = await this.pedidoService.orderPlanStatus();
         console.log("orderPlanStatus", orderPlanStatus)
         if (orderPlanStatus?.slotsToCreate <= 0) {
+
           return;
         }
 
@@ -74,6 +75,8 @@ export class GrenApiController {
           where: { chatIdExternal: chatId },
         });
 
+        console.log("xd1")
+
         const globalCconnection = await handleGetGlobalConnection();
         const empresa = await globalCconnection.getRepository(Empresa);
         const InfoCompany = await empresa.findOne({ where: { id: empresaId }, relations: ['payment', 'payment.plan'] });
@@ -85,6 +88,7 @@ export class GrenApiController {
 
         try {
           if (numberExist?.data) {
+            console.log("xd2222");
             return;
           } else {
             const now = moment.tz(timeZone);
@@ -243,6 +247,7 @@ export class GrenApiController {
           globalCconnection.destroy();
         }
       } else {
+        console.log("no2")
         return;
       }
     }
