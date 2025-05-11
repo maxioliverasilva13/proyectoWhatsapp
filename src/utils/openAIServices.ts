@@ -173,8 +173,9 @@ export async function sendMessageToThread(
             console.log('getPedidosByUser');
             toolResult = await pedidoService.getMyOrders(clienteId);
           } else if (name === 'getInfoLines') {
+            console.log("getInfoLines")
             const textInfoLines =
-              await this.infoLineService.findAllFormatedText(empresaType);
+              await infoLineService.findAllFormatedText(empresaType);
             toolResult = textInfoLines;
           } else if (name === 'editOrder') {
             console.log('editOrder');
