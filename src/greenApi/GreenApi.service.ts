@@ -126,6 +126,9 @@ export class GreenApiService {
     };
 
     let openAIResponseFormatted;
+
+    console.log("afuera", openAIResponse)
+
     try {
       const openAIResponseRaw = openAIResponse.content[0].text.value;
       console.log('openAIResponseRaw', openAIResponseRaw);
