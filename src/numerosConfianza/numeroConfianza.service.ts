@@ -123,6 +123,7 @@ export class NumeroConfianzaService implements OnModuleDestroy {
             }
 
         } catch (error) {
+            console.log("error", error)
             throw new BadRequestException({
                 ok: false,
                 statusCode: 400,
