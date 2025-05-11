@@ -108,38 +108,7 @@ export class NumeroConfianzaService implements OnModuleDestroy {
             });
         }
     }
-
-    async Create(datos : numeroConfianzaDto, empresaId) {
-        try {
-            const empresa = await this.empresaRepository.findOne({ where: { id: empresaId } });
-            
-            if(!datos.nombre || !datos.telefono) {
-                return new BadRequestException('Debes de proporcionar los datos validos')
-            }
-
-            const nroConfianza = new NumeroConfianza
-            nroConfianza.nombre = datos.nombre;
-            nroConfianza.telefono = datos.telefono
-            nroConfianza.empresa = empresa
-
-            await this.NmroConfianzaRepository.save(nroConfianza)
-
-            return {
-                ok:true,
-                statusCode:200,
-                message: "numero de confianza creado correctamente"
-            }
-
-        } catch (error) {
-            throw new BadRequestException({
-                ok: false,
-                statusCode: 400,
-                message: error?.message || 'Error al crear el nro de confiana',
-                error: 'Bad Request',
-            });
-        }
-    }
-
+    
     async Update(idNumber, datos) {
         try {
             const numberConfianza = await this.NmroConfianzaRepository.findOne({

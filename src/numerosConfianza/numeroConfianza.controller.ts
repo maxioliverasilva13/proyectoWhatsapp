@@ -28,12 +28,6 @@ export class NumeroConfianzaController {
         await this.numeroConfianzaService.getOne(numberPhone, empresaId)
     }
 
-    @Post()
-    async Create(@Body() numeroConfianzaDto : numeroConfianzaDto, @Req() request: Request){        
-        const empresaId = request['empresaId']        
-        await this.numeroConfianzaService.Create(numeroConfianzaDto, empresaId)
-    }
-
     @Put(':id')
     async Update(@Param('id') id : number, @Body() datos){
         await this.numeroConfianzaService.Update(id, datos)
