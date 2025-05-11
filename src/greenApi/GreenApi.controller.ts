@@ -52,7 +52,7 @@ export class GrenApiController {
       const empresaId = request['empresaId'];
       const empresaType = request['empresaType'];
       const { typeWebhook, messageData } = body;
-
+      console.log("typeWebhook", typeWebhook)
 
       if (typeWebhook === 'incomingMessageReceived') {
         const orderPlanStatus = await this.pedidoService.orderPlanStatus();
