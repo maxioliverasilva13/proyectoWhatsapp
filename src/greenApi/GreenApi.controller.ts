@@ -56,9 +56,9 @@ export class GrenApiController {
 
       if (typeWebhook === 'incomingMessageReceived') {
         const orderPlanStatus = await this.pedidoService.orderPlanStatus();
-        console.log("orderPlanStatus", orderPlanStatus)
+        console.log("orderPlanStatus", orderPlanStatus, typeWebhook)
         if (orderPlanStatus?.slotsToCreate <= 0) {
-
+          console.log("salgo")
           return;
         }
 
