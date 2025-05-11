@@ -7,7 +7,7 @@ export class NumeroConfianza extends BaseEntity {
     id: number;
 
     @Column({ type: 'bigint' })
-    telefono: number;
+    telefono: string;
 
     @Column()
     nombre:string;

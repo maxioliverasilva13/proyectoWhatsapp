@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, OnModuleDestroy, Req } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { DataSource, Repository } from "typeorm";
+import { DataSource, Like, Repository } from "typeorm";
 import { NumeroConfianza } from "./entities/numeroConfianza.entity";
 import { numeroConfianzaDto } from "./dto/numeroConfianza.create";
 import { Empresa } from "src/empresa/entities/empresa.entity";
@@ -108,8 +108,12 @@ export class NumeroConfianzaService implements OnModuleDestroy {
             const empresa = await this.empresaRepository.findOne({ where: { id: empresaId } });
 
             const numberDate = await this.NmroConfianzaRepository.findOne({
-                where: { telefono: numberPhone, empresa: { id: empresa.id } }
-            })
+                where: {
+                    telefono: Like(`%${numberPhone}%`),
+                    empresa: { id: empresa.id }
+                }
+            });
+
             console.log(numberDate);
 
             return {

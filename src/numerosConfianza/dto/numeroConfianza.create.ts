@@ -1,5 +1,5 @@
 export class numeroConfianzaDto {
-    telefono:number;
+    telefono: string;
     nombre: string;
 }
 
