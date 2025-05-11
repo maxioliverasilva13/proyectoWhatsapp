@@ -894,7 +894,7 @@ export class PedidoService implements OnModuleDestroy {
           ...currentInfoLines,
           ...value,
         };
-        console.log("mergedInfo", mergedInfo)
+        console.log("mergedInfo t", mergedInfo)
 
         pedido.infoLinesJson = JSON.stringify(mergedInfo);
       } else {
