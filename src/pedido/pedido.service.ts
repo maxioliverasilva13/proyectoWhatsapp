@@ -860,6 +860,7 @@ export class PedidoService implements OnModuleDestroy {
   }
 
   async update(id: number, updatePedidoDto: UpdatePedidoDto) {
+    console.log("voy a editar", id, updatePedidoDto);
     const pedido = await this.pedidoRepository.findOne({ where: { id } });
 
     if (!pedido) {
