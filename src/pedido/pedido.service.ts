@@ -860,7 +860,7 @@ export class PedidoService implements OnModuleDestroy {
   }
 
   async update(id: number, updatePedidoDto: UpdatePedidoDto) {
-    console.log("voy a editar", id, updatePedidoDto);
+    console.log('voy a editar', id, updatePedidoDto);
     const pedido = await this.pedidoRepository.findOne({ where: { id } });
 
     if (!pedido) {
@@ -876,6 +876,13 @@ export class PedidoService implements OnModuleDestroy {
             : {};
         } catch (e) {
           console.error('Error al parsear infoLinesJson actual:', e);
+        }
+
+        let newInfoLines = {};
+        try {
+          newInfoLines = typeof value === 'string' ? JSON.parse(value) : value;
+        } catch (e) {
+          console.error('Error al parsear infoLinesJson entrante:', e);
         }
 
         const mergedInfo = {
