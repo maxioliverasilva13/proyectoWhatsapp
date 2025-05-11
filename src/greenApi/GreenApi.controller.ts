@@ -67,10 +67,12 @@ export class GrenApiController {
         const chatId = senderData?.chatId;
         const numberSender = sender.match(/^\d+/)[0];
         const senderName = sender.senderName;
+        console.log("before")
         const numberExist = await this.numeroConfianza.getOne(
           numberSender,
           empresaId,
         );
+        console.log("numberExist", numberExist)
         let chatExist = await this.chatRepository.findOne({
           where: { chatIdExternal: chatId },
         });
