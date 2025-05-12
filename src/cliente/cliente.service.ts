@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, OnModuleDestroy } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  OnModuleDestroy,
+} from '@nestjs/common';
 import { CreateClienteDto } from './dto/create-cliente.dto';
 import { UpdateClienteDto } from './dto/update-cliente.dto';
 import { Cliente } from './entities/cliente.entity';
@@ -8,7 +12,6 @@ import { GetEmpresaDTO } from './dto/get-empresa-.dto';
 
 @Injectable()
 export class ClienteService implements OnModuleDestroy {
-
   private clienteRepository: Repository<Cliente>;
   private globalConnection: DataSource;
 
@@ -16,7 +19,7 @@ export class ClienteService implements OnModuleDestroy {
     if (!this.globalConnection) {
       this.globalConnection = await handleGetGlobalConnection();
     }
-    this.clienteRepository = this.globalConnection.getRepository(Cliente); 
+    this.clienteRepository = this.globalConnection.getRepository(Cliente);
   }
 
   async onModuleDestroy() {
@@ -32,12 +35,17 @@ export class ClienteService implements OnModuleDestroy {
       });
 
       if (existClient) {
+        if (existClient?.nombre !== createClienteDto?.nombre) {
+          existClient.nombre = createClienteDto.nombre;
+          await this.clienteRepository.save(existClient);
+        }
+
         return {
           statusCode: 200,
           ok: true,
           message: 'Cliente encontrado',
           clienteId: existClient.id,
-          clientName: existClient.nombre
+          clientName: existClient.nombre,
         };
       }
 
@@ -46,7 +54,7 @@ export class ClienteService implements OnModuleDestroy {
       newCliente.telefono = createClienteDto.telefono;
       newCliente.empresa_id = createClienteDto.empresaId || 1;
 
-      await this.clienteRepository.save(newCliente); 
+      await this.clienteRepository.save(newCliente);
 
       return {
         statusCode: 200,
@@ -72,7 +80,9 @@ export class ClienteService implements OnModuleDestroy {
       whereCondition.nombre = ILike(`%${query}%`);
     }
 
-    const clientes = await this.clienteRepository.find({ where: whereCondition });
+    const clientes = await this.clienteRepository.find({
+      where: whereCondition,
+    });
     return clientes;
   }
 

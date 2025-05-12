@@ -52,13 +52,10 @@ export class GrenApiController {
       const empresaId = request['empresaId'];
       const empresaType = request['empresaType'];
       const { typeWebhook, messageData } = body;
-      console.log("typeWebhook", typeWebhook)
 
       if (typeWebhook === 'incomingMessageReceived') {
         const orderPlanStatus = await this.pedidoService.orderPlanStatus();
-        console.log("orderPlanStatus", orderPlanStatus, typeWebhook)
         if (orderPlanStatus?.slotsToCreate <= 0) {
-          console.log("salgo")
           return;
         }
 
@@ -66,18 +63,16 @@ export class GrenApiController {
         const sender = senderData?.sender;
         const chatId = senderData?.chatId;
         const numberSender = sender.match(/^\d+/)[0];
+        console.log("sender", sender)
         const senderName = sender.senderName;
-        console.log("before")
         const numberExist = await this.numeroConfianza.getOne(
           numberSender,
           empresaId,
         );
-        console.log("numberExist", numberExist)
         let chatExist = await this.chatRepository.findOne({
           where: { chatIdExternal: chatId },
         });
 
-        console.log("xd1")
 
         const globalCconnection = await handleGetGlobalConnection();
         const empresa = await globalCconnection.getRepository(Empresa);
@@ -90,7 +85,6 @@ export class GrenApiController {
 
         try {
           if (numberExist?.data) {
-            console.log("xd2222");
             return;
           } else {
             const now = moment.tz(timeZone);
@@ -127,8 +121,6 @@ export class GrenApiController {
               } else {
                 return;
               }
-
-              console.log('voy a crear un thread', messageData);
 
               const tokens = encode(messageToSend);
               console.log("tokens length", tokens?.length)
@@ -249,7 +241,6 @@ export class GrenApiController {
           globalCconnection.destroy();
         }
       } else {
-        console.log("no2")
         return;
       }
     }

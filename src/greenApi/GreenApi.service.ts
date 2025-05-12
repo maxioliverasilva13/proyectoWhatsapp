@@ -52,6 +52,8 @@ export class GreenApiService {
       originalChatId = originalChatFromThread;
     }
 
+    console.log("senderName", senderName)
+
     const { clienteId, clientName } =
       await this.clienteService.createOrReturnExistClient({
         empresaId: empresaId,
@@ -66,12 +68,6 @@ export class GreenApiService {
         empresaId,
         clienteId,
       );
-      console.log("llamo a createThreads", {
-        numberPhone: numberSender,
-        threadId: currentThreadId,
-        chatId: chatId,
-        originalChatId: originalChatId,
-      })
 
       const resp = await this.chatGptThreadsService.createThreads({
         numberPhone: numberSender,
