@@ -63,8 +63,7 @@ export class GrenApiController {
         const sender = senderData?.sender;
         const chatId = senderData?.chatId;
         const numberSender = sender.match(/^\d+/)[0];
-        console.log("sender", senderData)
-        const senderName = sender.senderName;
+        const senderName = senderData?.chatName ?? senderData.senderName;
         const numberExist = await this.numeroConfianza.getOne(
           numberSender,
           empresaId,
@@ -168,8 +167,6 @@ export class GrenApiController {
                     );
                     return;
                   }
-
-                  console.log("fullMessage", fullMessage)
 
                   const respText = await this.greenApi.handleMessagetText(
                     fullMessage,
