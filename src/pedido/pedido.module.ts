@@ -16,12 +16,38 @@ import { Cambioestadopedido } from 'src/cambioestadopedido/entities/cambioestado
 import { Mensaje } from 'src/mensaje/entities/mensaje.entity';
 import { Cliente } from 'src/cliente/entities/cliente.entity';
 import { Category } from 'src/category/entities/category.entity';
+import { BullModule } from '@nestjs/bullmq';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Pedido, Estado, ProductoPedido, Category, Producto, Tiposervicio, Chat, ProductoPedido, Cambioestadopedido, Mensaje, Cliente]),ProductopedidoModule, ChatModule, MensajeModule, WebSocketModule],  
+    TypeOrmModule.forFeature([
+      Pedido,
+      Estado,
+      ProductoPedido,
+      Category,
+      Producto,
+      Tiposervicio,
+      Chat,
+      ProductoPedido,
+      Cambioestadopedido,
+      Mensaje,
+      Cliente,
+    ]),
+    ProductopedidoModule,
+    ChatModule,
+    MensajeModule,
+    WebSocketModule,
+    BullModule.registerQueue({
+      name: `sendMessageChangeStatusOrder-${process.env.SUBDOMAIN}`,
+      connection: {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT, 10) || 6379,
+        password: process.env.REDIS_PASSWORD || '',
+      },
+    }),
+  ],
   controllers: [PedidoController],
   providers: [PedidoService],
-  exports:[PedidoService]
+  exports: [PedidoService],
 })
 export class PedidoModule {}

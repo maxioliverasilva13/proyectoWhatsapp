@@ -25,6 +25,9 @@ import { EstadoDefectoIds } from 'src/enums/estadoDefecto';
 import * as moment from 'moment-timezone';
 import { log } from 'node:console';
 import { Category } from 'src/category/entities/category.entity';
+import { Queue } from 'bullmq';
+import { InjectQueue } from '@nestjs/bullmq';
+import { TIPO_SERVICIO_DELIVERY_ID } from 'src/database/seeders/app/tipopedido.seed';
 
 const LOCALE_TIMEZONE = 'America/Montevideo';
 @Injectable()
@@ -53,6 +56,8 @@ export class PedidoService implements OnModuleDestroy {
     private readonly categoryService: Repository<Category>,
     @InjectRepository(ProductoPedido)
     private readonly productoPedidoRepository: Repository<ProductoPedido>,
+    @InjectQueue(`sendMessageChangeStatusOrder-${process.env.SUBDOMAIN}`)
+    private readonly messageQueue: Queue,
   ) {}
 
   async onModuleInit() {
@@ -836,10 +841,29 @@ export class PedidoService implements OnModuleDestroy {
         throw new BadRequestException('There is no order with that ID');
       }
 
+      const clientId = pedido?.cliente_id;
+
+      const client = await this.clienteRepository.findOne({
+        where: { id: clientId },
+      });
+
       pedido.confirmado = true;
 
       await this.pedidoRepository.save(pedido);
 
+      if (client) {
+        await this.messageQueue.add(
+          'send',
+          {
+            message: `Su ${pedido?.tipo_servicio_id === TIPO_SERVICIO_DELIVERY_ID ? 'Orden' : 'Reserva'} numero #${pedido?.id} fue confirmado exitosamente 🎉`,
+            chatId: pedido?.chatIdWhatsapp,
+          },
+          {
+            priority: 0,
+            attempts: 5,
+          },
+        );
+      }
       return {
         ok: true,
         statusCode: 200,
