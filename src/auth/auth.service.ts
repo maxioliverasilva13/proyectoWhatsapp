@@ -191,6 +191,7 @@ export class AuthService implements OnModuleDestroy {
         intervaloTiempoCalendario,
         notificarReservaHoras,
         hora_apertura,
+        isAdmin: user.isAdmin,
         hora_cierre,
         abierto,
         empresaName: empresaName,

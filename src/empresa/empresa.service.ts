@@ -73,19 +73,19 @@ export class EmpresaService {
         
         const empresaCreated = await this.empresaRepository.save(newEmpresa);
         const hashedPassword = await bcrypt.hash(createEmpresaDto?.password, 10);
-        const user = this.usuarioRepository.create({
+        this.usuarioRepository.save({
           activo: true,
           nombre: '',
+          isAdmin: true,
           correo: createEmpresaDto?.userEmail,
           apellido: '',
           id_empresa: empresaCreated?.id,
-          // admin empresa
           id_rol: 2,
           firstUser: true,
           password: hashedPassword,
         });
 
-        // send email
+        // TODO: send email
 
         return {
           ok: true,
