@@ -13,7 +13,7 @@ import {
 } from 'typeorm';
 
 @Entity('usuario')
-@Index('idx_usuario_id_correo', ['correo'], { unique: true })
+@Index('idx_usuario_id_correo', ['id', 'correo'], { unique: true })
 export class Usuario extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
