@@ -60,6 +60,7 @@ export class EmpresaService {
         newEmpresa.descripcion = createEmpresaDto.descripcion;
         newEmpresa.menu = createEmpresaDto.menu;
         newEmpresa.timeZone = createEmpresaDto.timeZone
+        newEmpresa.tipoServicioId = createEmpresaDto?.tipoServicioId as any;
         
         const existsTipoServicio = await this.tipoServicioRepository.findOne({ where: { id: Number(createEmpresaDto?.tipoServicioId) } });
         if (!existsTipoServicio) {
