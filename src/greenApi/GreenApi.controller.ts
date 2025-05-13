@@ -38,7 +38,6 @@ export class GrenApiController {
 
   @Post('/webhooks')
   async handleWebhook(@Req() request: Request, @Body() body: any) {
-    console.log("me llaman");
     if (process.env.SUBDOMAIN === 'app') return;
     if (body.stateInstance) {
       const greenApiStatus = body.stateInstance;

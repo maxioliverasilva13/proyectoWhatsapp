@@ -101,7 +101,7 @@ export async function sendMessageToThread(
     headers,
     body: JSON.stringify({
       role: 'user',
-      content: `Admin:${isAdmin} \n Current_Time:${today} \n Message: ${text}`,
+      content: `Message: ${text}`,
     }),
   });
 
