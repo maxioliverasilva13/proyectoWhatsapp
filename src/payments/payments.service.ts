@@ -205,6 +205,7 @@ export class PaymentsService {
         }
 
         empresa.payment = payment;
+        empresa.deploy = true;
         await empresaRepo.save(empresa);
       }
 
