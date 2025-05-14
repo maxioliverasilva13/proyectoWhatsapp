@@ -94,7 +94,7 @@ export class Empresa extends BaseEntity {
   @OneToMany(() => Currency, (curr) => curr.empresa)
   currencies: Currency[];
 
-  @OneToOne(() => Payment, (emp) => emp.empresa, { onDelete: 'SET NULL' })
+  @OneToOne(() => Payment, (emp) => emp.empresa, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn()
   payment: Payment;
 }

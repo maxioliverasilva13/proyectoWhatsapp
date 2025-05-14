@@ -19,7 +19,7 @@ export class PaymentsService {
   private androidPublisher;
 
   constructor(
-    private readonly dataSource: DataSource, 
+    private readonly dataSource: DataSource,
     @InjectRepository(Empresa) private empresaRepo: Repository<Empresa>,
     @InjectRepository(Payment) private paymentRepo: Repository<Payment>,
     @InjectRepository(Usuario) private userRepo: Repository<Usuario>,
@@ -147,69 +147,68 @@ export class PaymentsService {
     }
   }
 
-async handleInitial(data: {
-  empresaId?: string;
-  purcheaseToken: string;
-  sku: string;
-  newPurcheaseToken?: string;
-  userId?: string;
-}) {
-  return await this.dataSource.transaction(async (manager) => {
-    const paymentRepo = manager.getRepository(Payment);
-    const empresaRepo = manager.getRepository(Empresa);
-    const planRepo = manager.getRepository(Plan);
+  async handleInitial(data: {
+    empresaId?: string;
+    purcheaseToken: string;
+    sku: string;
+    newPurcheaseToken?: string;
+    userId?: string;
+  }) {
+    return await this.dataSource.transaction(async (manager) => {
+      const paymentRepo = manager.getRepository(Payment);
+      const empresaRepo = manager.getRepository(Empresa);
+      const planRepo = manager.getRepository(Plan);
 
-    const token = data.purcheaseToken?.trim();
-    if (!token) throw new Error('Purchase token inválido');
+      const token = data.purcheaseToken?.trim();
+      if (!token) throw new Error('Purchase token inválido');
 
-    const planEmpresa = await planRepo.findOne({
-      where: { product_sku: data.sku },
-    });
-    if (!planEmpresa) throw new Error('Plan no encontrado');
+      const planEmpresa = await planRepo.findOne({
+        where: { product_sku: data.sku },
+      });
+      if (!planEmpresa) throw new Error('Plan no encontrado');
 
-    let payment = await paymentRepo.findOne({
-      where: { purchaseToken: token },
-      relations: ['empresa'],
-    });
-
-    if (!payment) {
-      payment = paymentRepo.create({
-        purchaseToken: token,
-        subscription_sku: data.sku,
-        active: false,
-        plan: planEmpresa,
-        started_by_user_id: data.userId,
+      let payment = await paymentRepo.findOne({
+        where: { purchaseToken: token },
+        relations: ['empresa'],
       });
 
-      payment = await paymentRepo.save(payment);
-    } else {
-      payment.subscription_sku = data.sku;
-      payment.plan = planEmpresa;
-      payment.started_by_user_id = data.userId;
-      payment = await paymentRepo.save(payment);
-    }
+      if (!payment) {
+        payment = paymentRepo.create({
+          purchaseToken: token,
+          subscription_sku: data.sku,
+          active: false,
+          plan: planEmpresa,
+          started_by_user_id: data.userId,
+        });
 
-    if (data.empresaId) {
-      const empresa = await empresaRepo.findOne({
-        where: { id: Number(data.empresaId) },
-        relations: ['payment'],
-      });
+        payment = await paymentRepo.save(payment);
+      } else {
+        payment.subscription_sku = data.sku;
+        payment.plan = planEmpresa;
+        payment.started_by_user_id = data.userId;
+        payment = await paymentRepo.save(payment);
+      }
 
-      if (!empresa) throw new Error('Empresa no encontrada');
+      if (data.empresaId) {
+        const empresa = await empresaRepo.findOne({
+          where: { id: Number(data.empresaId) },
+          relations: ['payment'],
+        });
 
-      if (empresa.payment && empresa.payment.id !== payment.id) {
-        empresa.payment = null;
+        if (!empresa) throw new Error('Empresa no encontrada');
+
+        if (empresa.payment && empresa.payment.id !== payment.id) {
+          empresa.payment = null;
+          await empresaRepo.save(empresa);
+        }
+
+        empresa.payment = payment;
         await empresaRepo.save(empresa);
       }
 
-      empresa.payment = payment;
-      await empresaRepo.save(empresa);
-    }
-
-    return payment;
-  });
-}
-
+      return payment;
+    });
+  }
 
   async handleRtdn(rtdnData: any) {
     const packageName = rtdnData?.packageName;
@@ -306,14 +305,25 @@ async handleInitial(data: {
 
     await this.paymentRepo.save(payment);
 
-    if (payment.active) {
-      empresa.deploy = true;
-      empresa.payment = payment;
-      await this.empresaRepo.save(empresa);
-      console.log('Empresa activada');
-    } else {
-      console.log('Emrpesa desactivada');
-    }
+    if (payment.active)
+      if (payment.active) {
+        const existingEmpresa = await this.empresaRepo.findOne({
+          where: { payment: { id: payment.id } },
+          relations: ['payment'],
+        });
+
+        if (existingEmpresa && existingEmpresa.id !== empresa.id) {
+          existingEmpresa.payment = null;
+          await this.empresaRepo.save(existingEmpresa);
+        }
+
+        empresa.deploy = true;
+        empresa.payment = payment;
+        await this.empresaRepo.save(empresa);
+        console.log('Empresa activada');
+      } else {
+        console.log('Emrpesa desactivada');
+      }
 
     console.log('Proceso de RTDN completado');
     return { success: true };
