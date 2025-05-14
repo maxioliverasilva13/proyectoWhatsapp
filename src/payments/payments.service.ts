@@ -120,6 +120,32 @@ export class PaymentsService {
     }
   }
 
+  async findOrCreatePaymentSafe(data: {
+    empresaId?: string;
+    purcheaseToken: string;
+    sku: string;
+    newPurcheaseToken?: string;
+    userId?: string;
+  }): Promise<Payment | null> {
+    try {
+      return await this.handleInitial(data);
+    } catch (error: any) {
+      if (
+        error?.code === '23505' ||
+        error?.message?.includes('duplicate key')
+      ) {
+        console.warn(
+          'Conflicto de clave única, intentando recuperar payment existente',
+        );
+        return await this.paymentRepo.findOne({
+          where: { purchaseToken: data.purcheaseToken },
+          relations: ['empresa'],
+        });
+      }
+      throw error;
+    }
+  }
+
   async handleInitial(data: {
     empresaId?: string;
     purcheaseToken: string;
@@ -127,7 +153,7 @@ export class PaymentsService {
     newPurcheaseToken?: string;
     userId?: string;
   }) {
-    console.log("vengo aca con", data)
+    console.log('vengo aca con', data);
     let existingPayment = await this.paymentRepo.findOne({
       where: {
         purchaseToken: data?.purcheaseToken ?? '',
@@ -181,7 +207,7 @@ export class PaymentsService {
         }
       }
 
-      console.log("nono, es aca")
+      console.log('nono, es aca');
       return await this.paymentRepo.save(newPayment);
     }
   }
@@ -214,12 +240,14 @@ export class PaymentsService {
     });
 
     if (!payment) {
-      payment = await this.handleInitial({
+      payment = await this.findOrCreatePaymentSafe({
         purcheaseToken: purchaseToken,
         sku: subscriptionId,
         newPurcheaseToken: purchaseToken,
       });
-      console.log('Pago no encontrado, creando uno nuevo');
+      console.log(
+        'Pago no encontrado, creando uno nuevo o recuperando si ya fue creado',
+      );
     }
 
     const empresa = await this.empresaRepo.findOne({
