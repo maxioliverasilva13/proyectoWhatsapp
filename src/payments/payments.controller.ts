@@ -27,6 +27,7 @@ export class PaymentsController {
   async createInitial(@Body() body: any, @Request() req) {
     const userId = req?.user?.userId;
     await this.paymentsService.handleInitial({ ...body, userId: userId });
+    console.log("desde api")
     return { success: true };
   }
 
