@@ -127,6 +127,7 @@ export class PaymentsService {
     newPurcheaseToken?: string;
     userId?: string;
   }) {
+    console.log("vengo aca con", data)
     let existingPayment = await this.paymentRepo.findOne({
       where: {
         purchaseToken: data?.purcheaseToken ?? '',
