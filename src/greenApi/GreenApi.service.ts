@@ -28,7 +28,11 @@ export class GreenApiService {
 
   async onModuleInit() {
     const subdomain = process.env.SUBDOMAIN;
-    if (subdomain === 'works') {
+    if (
+      subdomain !== 'app' &&
+      process.env.ID_INSTANCE &&
+      process.env.API_TOKEN_INSTANCE
+    ) {
       await connectToGreenApi();
     }
   }
@@ -42,7 +46,7 @@ export class GreenApiService {
     timeZone,
     chatId,
   ) {
-    let originalChatId = "";
+    let originalChatId = '';
     const {
       threadId,
       chatId: chatIdExist,
@@ -52,7 +56,7 @@ export class GreenApiService {
       originalChatId = originalChatFromThread;
     }
 
-    console.log("senderName", senderName)
+    console.log('senderName', senderName);
 
     const { clienteId, clientName } =
       await this.clienteService.createOrReturnExistClient({
@@ -63,11 +67,7 @@ export class GreenApiService {
 
     let currentThreadId = threadId;
     if (!threadId) {
-      currentThreadId = await createThread(
-        empresaType,
-        empresaId,
-        clienteId,
-      );
+      currentThreadId = await createThread(empresaType, empresaId, clienteId);
 
       const resp = await this.chatGptThreadsService.createThreads({
         numberPhone: numberSender,
@@ -79,13 +79,12 @@ export class GreenApiService {
         originalChatId = resp?.thread?.originalChatId;
       }
     }
-    console.log("pertenece al chat", originalChatId)
+    console.log('pertenece al chat', originalChatId);
     await this.chatGptThreadsService.createMessageByThrad(
       textMessage,
       numberSender,
       false,
     );
-
 
     const openAIResponse = await sendMessageToThread(
       currentThreadId,
@@ -121,7 +120,7 @@ export class GreenApiService {
 
     let openAIResponseFormatted;
 
-    console.log("afuera", openAIResponse)
+    console.log('afuera', openAIResponse);
 
     try {
       const openAIResponseRaw = openAIResponse.content[0].text.value;
@@ -172,7 +171,7 @@ export class GreenApiService {
     withIA = false,
   }: any) {
     try {
-      console.log("openAIResponse", openAIResponse)
+      console.log('openAIResponse', openAIResponse);
       const newOrder = await this.pedidoService.create({
         clienteId: clienteId,
         clientName: clientName,
