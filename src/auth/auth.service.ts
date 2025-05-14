@@ -168,6 +168,7 @@ export class AuthService implements OnModuleDestroy {
 
           if (empresa.payment) {
             paymentMade = empresa.payment.isActive();
+            payment.isActive = empresa.payment.isActive();
           }
         }
       }
