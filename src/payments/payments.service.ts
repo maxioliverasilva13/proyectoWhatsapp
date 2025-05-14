@@ -239,11 +239,17 @@ export class PaymentsService {
     });
 
     if (!payment) {
-      payment = await this.findOrCreatePaymentSafe({
-        purcheaseToken: purchaseToken,
-        sku: subscriptionId,
-        newPurcheaseToken: purchaseToken,
-      });
+      const isCancelAction = [3, 5, 6, 10, 12, 13].includes(notificationType);
+      if (!isCancelAction) {
+        payment = await this.findOrCreatePaymentSafe({
+          purcheaseToken: purchaseToken,
+          sku: subscriptionId,
+          newPurcheaseToken: purchaseToken,
+        });
+      } else {
+        return { success: true };
+      }
+
       console.log(
         'Pago no encontrado, creando uno nuevo o recuperando si ya fue creado',
       );
