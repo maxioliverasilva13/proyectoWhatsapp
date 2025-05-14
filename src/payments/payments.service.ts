@@ -153,7 +153,6 @@ export class PaymentsService {
     newPurcheaseToken?: string;
     userId?: string;
   }) {
-    console.log('vengo aca con', data);
     let existingPayment = await this.paymentRepo.findOne({
       where: {
         purchaseToken: data?.purcheaseToken ?? '',
@@ -169,7 +168,6 @@ export class PaymentsService {
     }
 
     if (existingPayment?.id) {
-      existingPayment.active = false;
       existingPayment.started_by_user_id = data?.userId;
       existingPayment.plan = planEmpresa;
       existingPayment.purchaseToken = data.purcheaseToken;
@@ -184,6 +182,7 @@ export class PaymentsService {
           await this.empresaRepo.save(empresa);
         }
       }
+      console.log('antes aca');
 
       await this.paymentRepo.save(existingPayment);
       return existingPayment;
@@ -203,7 +202,8 @@ export class PaymentsService {
           where: { id: Number(data.empresaId) },
         });
         if (empresa?.id) {
-          newPayment.empresa = empresa;
+          empresa.payment = newPayment;
+          await this.empresaRepo.save(empresa);
         }
       }
 
