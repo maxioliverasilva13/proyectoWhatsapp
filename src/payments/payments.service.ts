@@ -171,19 +171,19 @@ export class PaymentsService {
       existingPayment.started_by_user_id = data?.userId;
       existingPayment.plan = planEmpresa;
       existingPayment.purchaseToken = data.purcheaseToken;
-      await this.paymentRepo.save(existingPayment);
+      const paymentResp = await this.paymentRepo.save(existingPayment);
       if (data?.empresaId) {
         const empresa = await this.empresaRepo.findOne({
           where: { id: Number(data.empresaId) },
         });
         if (empresa?.id) {
-          empresa.payment = existingPayment;
+          empresa.payment = paymentResp;
           await this.empresaRepo.save(empresa);
         }
       }
       console.log('antes aca');
 
-      return existingPayment;
+      return paymentResp;
     } else {
       console.log('creando nuevo pago con empresa id', data?.empresaId);
 
@@ -201,7 +201,7 @@ export class PaymentsService {
           where: { id: Number(data.empresaId) },
         });
         if (empresa?.id) {
-          empresa.payment = newPayment;
+          empresa.payment = paymentResp;
           await this.empresaRepo.save(empresa);
         }
       }
