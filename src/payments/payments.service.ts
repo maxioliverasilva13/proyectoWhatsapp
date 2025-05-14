@@ -157,13 +157,13 @@ async handleInitial(data: {
   return await this.dataSource.transaction(async (manager) => {
     const paymentRepo = manager.getRepository(Payment);
     const empresaRepo = manager.getRepository(Empresa);
-    const planRepo = manager.getRepository(PlanEmpresa);
+    const planRepo = manager.getRepository(Plan);
 
     const token = data.purcheaseToken?.trim();
     if (!token) throw new Error('Purchase token inválido');
 
     const planEmpresa = await planRepo.findOne({
-      where: { sŻ: data.sku },
+      where: { product_sku: data.sku },
     });
     if (!planEmpresa) throw new Error('Plan no encontrado');
 
