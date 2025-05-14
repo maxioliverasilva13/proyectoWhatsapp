@@ -2,7 +2,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { google } from 'googleapis';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 import { Empresa } from 'src/empresa/entities/empresa.entity';
 import { Payment } from './payment.entity';
 import * as fs from 'fs';
@@ -19,6 +19,7 @@ export class PaymentsService {
   private androidPublisher;
 
   constructor(
+    private readonly dataSource: DataSource, 
     @InjectRepository(Empresa) private empresaRepo: Repository<Empresa>,
     @InjectRepository(Payment) private paymentRepo: Repository<Payment>,
     @InjectRepository(Usuario) private userRepo: Repository<Usuario>,
@@ -146,70 +147,69 @@ export class PaymentsService {
     }
   }
 
-  async handleInitial(data: {
-    empresaId?: string;
-    purcheaseToken: string;
-    sku: string;
-    newPurcheaseToken?: string;
-    userId?: string;
-  }) {
-    let existingPayment = await this.paymentRepo.findOne({
-      where: {
-        purchaseToken: data?.purcheaseToken ?? '',
-      },
+async handleInitial(data: {
+  empresaId?: string;
+  purcheaseToken: string;
+  sku: string;
+  newPurcheaseToken?: string;
+  userId?: string;
+}) {
+  return await this.dataSource.transaction(async (manager) => {
+    const paymentRepo = manager.getRepository(Payment);
+    const empresaRepo = manager.getRepository(Empresa);
+    const planRepo = manager.getRepository(PlanEmpresa);
+
+    const token = data.purcheaseToken?.trim();
+    if (!token) throw new Error('Purchase token inválido');
+
+    const planEmpresa = await planRepo.findOne({
+      where: { sŻ: data.sku },
+    });
+    if (!planEmpresa) throw new Error('Plan no encontrado');
+
+    let payment = await paymentRepo.findOne({
+      where: { purchaseToken: token },
+      relations: ['empresa'],
     });
 
-    const planEmpresa = await this.planRepo.findOne({
-      where: { product_sku: data?.sku },
-    });
-
-    if (!planEmpresa) {
-      return;
-    }
-
-    if (existingPayment?.id) {
-      existingPayment.started_by_user_id = data?.userId;
-      existingPayment.plan = planEmpresa;
-      existingPayment.purchaseToken = data.purcheaseToken;
-      const paymentResp = await this.paymentRepo.save(existingPayment);
-      if (data?.empresaId) {
-        const empresa = await this.empresaRepo.findOne({
-          where: { id: Number(data.empresaId) },
-        });
-        if (empresa?.id) {
-          empresa.payment = paymentResp;
-          await this.empresaRepo.save(empresa);
-        }
-      }
-      console.log('antes aca');
-
-      return paymentResp;
-    } else {
-      console.log('creando nuevo pago con empresa id', data?.empresaId);
-
-      const newPayment: any = {
-        purchaseToken: data.purcheaseToken,
+    if (!payment) {
+      payment = paymentRepo.create({
+        purchaseToken: token,
         subscription_sku: data.sku,
         active: false,
         plan: planEmpresa,
-      };
-      newPayment.started_by_user_id = data?.userId;
+        started_by_user_id: data.userId,
+      });
 
-      const paymentResp = await this.paymentRepo.save(newPayment);
-      if (data?.empresaId) {
-        const empresa = await this.empresaRepo.findOne({
-          where: { id: Number(data.empresaId) },
-        });
-        if (empresa?.id) {
-          empresa.payment = paymentResp;
-          await this.empresaRepo.save(empresa);
-        }
+      payment = await paymentRepo.save(payment);
+    } else {
+      payment.subscription_sku = data.sku;
+      payment.plan = planEmpresa;
+      payment.started_by_user_id = data.userId;
+      payment = await paymentRepo.save(payment);
+    }
+
+    if (data.empresaId) {
+      const empresa = await empresaRepo.findOne({
+        where: { id: Number(data.empresaId) },
+        relations: ['payment'],
+      });
+
+      if (!empresa) throw new Error('Empresa no encontrada');
+
+      if (empresa.payment && empresa.payment.id !== payment.id) {
+        empresa.payment = null;
+        await empresaRepo.save(empresa);
       }
 
-      console.log('nono, es aca');
-      return paymentResp;
+      empresa.payment = payment;
+      await empresaRepo.save(empresa);
     }
-  }
+
+    return payment;
+  });
+}
+
 
   async handleRtdn(rtdnData: any) {
     const packageName = rtdnData?.packageName;
