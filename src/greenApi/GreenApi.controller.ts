@@ -55,10 +55,12 @@ export class GrenApiController {
       const { typeWebhook, messageData } = body;
 
       if (typeWebhook === 'incomingMessageReceived') {
+        console.log("mensaje recibido")
         const orderPlanStatus = await this.pedidoService.orderPlanStatus();
         if (orderPlanStatus?.slotsToCreate <= 0) {
           return;
         }
+        console.log("plan ok")
 
         const senderData = body?.senderData;
         const sender = senderData?.sender;
@@ -69,6 +71,7 @@ export class GrenApiController {
           numberSender,
           empresaId,
         );
+        console.log("numberExist", numberExist)
         let chatExist = await this.chatRepository.findOne({
           where: { chatIdExternal: chatId },
         });
