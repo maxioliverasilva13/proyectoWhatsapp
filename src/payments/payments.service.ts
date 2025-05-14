@@ -255,14 +255,6 @@ export class PaymentsService {
         'Pago no encontrado, creando uno nuevo o recuperando si ya fue creado',
       );
     }
-
-    console.log('la empresa que encuentro es', empresa, payment?.empresa?.id);
-
-    if (!empresa) {
-      console.log('Empresa no encontrada para RTDN');
-      return { success: false };
-    }
-
     payment.package = packageName;
 
     const now = new Date();
@@ -310,17 +302,12 @@ export class PaymentsService {
           where: { payment: { id: payment.id } },
           relations: ['payment'],
         });
-
-        console.log("existingEmpresa", existingEmpresa)
-
-        if (existingEmpresa && existingEmpresa.id !== empresa.id) {
-          existingEmpresa.payment = null;
-          await this.empresaRepo.save(existingEmpresa);
+        if (existingEmpresa) {
+        existingEmpresa.deploy = true;
+        existingEmpresa.payment = payment;
+        await this.empresaRepo.save(existingEmpresa);
         }
-
-        empresa.deploy = true;
-        empresa.payment = payment;
-        await this.empresaRepo.save(empresa);
+      
         console.log('Empresa activada');
       } else {
         console.log('Emrpesa desactivada o no encontrada');
