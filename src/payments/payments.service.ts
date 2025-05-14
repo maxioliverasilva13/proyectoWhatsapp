@@ -185,6 +185,7 @@ export class PaymentsService {
       } else {
         payment.subscription_sku = data.sku;
         payment.plan = planEmpresa;
+        payment.active = true;
         payment.started_by_user_id = data.userId;
         payment = await paymentRepo.save(payment);
       }
@@ -194,7 +195,7 @@ export class PaymentsService {
           where: { id: Number(data.empresaId) },
           relations: ['payment'],
         });
-        console.log("encuentro empresa 2", empresa);
+        console.log('encuentro empresa 2', empresa);
 
         if (!empresa) throw new Error('Empresa no encontrada');
 
@@ -255,12 +256,7 @@ export class PaymentsService {
       );
     }
 
-    const empresa = await this.empresaRepo.findOne({
-      where: { id: payment.empresa?.id },
-      relations: ['payment'],
-    });
-
-    console.log("la empresa que encuentro es", empresa, payment?.empresa?.id)
+    console.log('la empresa que encuentro es', empresa, payment?.empresa?.id);
 
     if (!empresa) {
       console.log('Empresa no encontrada para RTDN');
@@ -315,6 +311,8 @@ export class PaymentsService {
           relations: ['payment'],
         });
 
+        console.log("existingEmpresa", existingEmpresa)
+
         if (existingEmpresa && existingEmpresa.id !== empresa.id) {
           existingEmpresa.payment = null;
           await this.empresaRepo.save(existingEmpresa);
@@ -325,7 +323,7 @@ export class PaymentsService {
         await this.empresaRepo.save(empresa);
         console.log('Empresa activada');
       } else {
-        console.log('Emrpesa desactivada');
+        console.log('Emrpesa desactivada o no encontrada');
       }
 
     console.log('Proceso de RTDN completado');
