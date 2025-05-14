@@ -195,7 +195,6 @@ export class PaymentsService {
           where: { id: Number(data.empresaId) },
           relations: ['payment'],
         });
-        console.log('encuentro empresa 2', empresa);
 
         if (!empresa) throw new Error('Empresa no encontrada');
 
@@ -208,7 +207,7 @@ export class PaymentsService {
         empresa.deploy = true;
         await empresaRepo.save(empresa);
       }
-
+ 
       return payment;
     });
   }
