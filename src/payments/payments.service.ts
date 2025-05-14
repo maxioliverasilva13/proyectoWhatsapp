@@ -194,6 +194,7 @@ export class PaymentsService {
           where: { id: Number(data.empresaId) },
           relations: ['payment'],
         });
+        console.log("encuentro empresa 2", empresa);
 
         if (!empresa) throw new Error('Empresa no encontrada');
 
@@ -258,6 +259,8 @@ export class PaymentsService {
       where: { id: payment.empresa?.id },
       relations: ['payment'],
     });
+
+    console.log("la empresa que encuentro es", empresa, payment?.empresa?.id)
 
     if (!empresa) {
       console.log('Empresa no encontrada para RTDN');
