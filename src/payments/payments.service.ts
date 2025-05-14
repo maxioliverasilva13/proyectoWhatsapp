@@ -161,12 +161,12 @@ export class PaymentsService {
     } else {
       console.log('creando nuevo pago con empresa id', data?.empresaId);
 
-      const newPayment = this.paymentRepo.create({
+      const newPayment: any = {
         purchaseToken: data.purcheaseToken,
         subscription_sku: data.sku,
         active: false,
         plan: planEmpresa,
-      });
+      };
       newPayment.started_by_user_id = data?.userId;
 
       if (data?.empresaId) {
