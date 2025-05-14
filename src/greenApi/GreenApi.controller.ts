@@ -39,6 +39,7 @@ export class GrenApiController {
   @Post('/webhooks')
   async handleWebhook(@Req() request: Request, @Body() body: any) {
     if (process.env.SUBDOMAIN === 'app') return;
+    console.log("sip vengo", body?.stateInstance);
     if (body.stateInstance) {
       const greenApiStatus = body.stateInstance;
       if (greenApiStatus) {
