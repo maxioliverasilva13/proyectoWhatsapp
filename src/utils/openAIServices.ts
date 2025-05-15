@@ -217,6 +217,7 @@ export async function sendMessageToThread(
         }
 
         let toolOutputStr;
+        console.log("toolResult", toolResult)
         try {
           toolOutputStr = JSON.stringify(
             toolResult ?? { error: 'Respuesta vacía' },
