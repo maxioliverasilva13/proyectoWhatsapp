@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   Query,
+  Req,
 } from '@nestjs/common';
 import { ClienteService } from './cliente.service';
 import { CreateClienteDto } from './dto/create-cliente.dto';
@@ -41,6 +42,12 @@ export class ClienteController {
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateClienteDto: UpdateClienteDto) {
     return this.clienteService.update(+id, updateClienteDto);
+  }
+
+  @Get(':id')
+  findClientsByEmpresa(@Req() request: Request) {
+    const empresaId = request['empresaId'];
+    return this.clienteService.findByEmpresa(empresaId);
   }
 
   @Delete(':id')

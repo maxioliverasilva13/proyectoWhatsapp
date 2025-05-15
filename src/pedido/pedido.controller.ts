@@ -65,6 +65,12 @@ export class PedidoController {
     );
   }
 
+  @Get('/statistics')
+  getStatistics(@Req() request: any) {
+    const filterType = request.query['type'] as any;
+    return this.pedidoService.getStatistics(filterType);
+  }
+
   @Post('/aviableDate')
   disponible(
     @Query('date') date: string,

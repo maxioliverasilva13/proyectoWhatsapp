@@ -5,7 +5,14 @@ import {
 } from '@nestjs/common';
 import { UpdatePedidoDto } from './dto/update-pedido.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, DataSource, In, MoreThan, Repository } from 'typeorm';
+import {
+  Between,
+  DataSource,
+  In,
+  MoreThan,
+  MoreThanOrEqual,
+  Repository,
+} from 'typeorm';
 import { Pedido } from './entities/pedido.entity';
 import { Estado } from 'src/estado/entities/estado.entity';
 import { CreatePedidoDto } from './dto/create-pedido.dto';
@@ -68,6 +75,64 @@ export class PedidoService implements OnModuleDestroy {
       this.globalConnection.getRepository(Tiposervicio);
     this.clienteRepository = this.globalConnection.getRepository(Cliente);
     this.empresaRepository = this.globalConnection.getRepository(Empresa);
+  }
+
+  async getStatistics(filterType: 'today' | 'lastWeek' | 'lastMonth') {
+    const empresa = await this.empresaRepository.findOne({
+      where: { db_name: process.env.SUBDOMAIN },
+    });
+    if (!empresa) {
+      throw new BadRequestException('La empresa indicada no existe');
+    }
+    const now = moment.tz(empresa.timeZone ?? 'America/Montevideo');
+    let fromDate: Date;
+
+    switch (filterType) {
+      case 'today':
+        fromDate = now.clone().startOf('day').toDate();
+        break;
+      case 'lastWeek':
+        fromDate = now.clone().subtract(7, 'days').startOf('day').toDate();
+        break;
+      case 'lastMonth':
+        fromDate = now.clone().subtract(1, 'month').startOf('day').toDate();
+        break;
+      default:
+        fromDate = now.clone().startOf('day').toDate();
+        break;
+    }
+
+    const pedidos = await this.pedidoRepository.find({
+      where: {
+        confirmado: true,
+        available: true,
+        fecha: MoreThanOrEqual(fromDate),
+      },
+      relations: ['pedidosprod'],
+    });
+
+    const orders = pedidos.length;
+
+    const clientIds = new Set<number>();
+    let revenue = 0;
+
+    for (const pedido of pedidos) {
+      if (pedido.cliente_id) {
+        clientIds.add(pedido.cliente_id);
+      }
+
+      for (const prod of pedido.pedidosprod || []) {
+        const precio = (prod as any).precio || 0;
+        const cantidad = (prod as any).cantidad || 1;
+        revenue += precio * cantidad;
+      }
+    }
+
+    return {
+      clients: clientIds.size,
+      revenue,
+      orders,
+    };
   }
 
   async cancel(pedidoId: any) {

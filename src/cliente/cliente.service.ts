@@ -9,10 +9,12 @@ import { Cliente } from './entities/cliente.entity';
 import { DataSource, ILike, Repository } from 'typeorm';
 import { handleGetGlobalConnection } from 'src/utils/dbConnection';
 import { GetEmpresaDTO } from './dto/get-empresa-.dto';
+import { Empresa } from 'src/empresa/entities/empresa.entity';
 
 @Injectable()
 export class ClienteService implements OnModuleDestroy {
   private clienteRepository: Repository<Cliente>;
+  private empresaRepository: Repository<Empresa>;
   private globalConnection: DataSource;
 
   async onModuleInit() {
@@ -20,6 +22,12 @@ export class ClienteService implements OnModuleDestroy {
       this.globalConnection = await handleGetGlobalConnection();
     }
     this.clienteRepository = this.globalConnection.getRepository(Cliente);
+    this.empresaRepository = this.globalConnection.getRepository(Empresa);
+  }
+
+  async findByEmpresa(empresaId: number) {
+    const clients = await this.clienteRepository.find({ where: { empresa_id: empresaId } });
+    return clients?.length;
   }
 
   async onModuleDestroy() {
