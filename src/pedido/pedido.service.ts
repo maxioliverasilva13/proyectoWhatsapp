@@ -108,7 +108,7 @@ export class PedidoService implements OnModuleDestroy {
         available: true,
         fecha: MoreThanOrEqual(fromDate),
       },
-      relations: ['pedidosprod'],
+      relations: ['pedidosprod', 'pedidosprod.producto'],
     });
 
     const orders = pedidos.length;
@@ -122,7 +122,7 @@ export class PedidoService implements OnModuleDestroy {
       }
 
       for (const prod of pedido.pedidosprod || []) {
-        const precio = (prod as any).precio || 0;
+        const precio = (prod as any)?.producto?.precio || 0;
         const cantidad = (prod as any).cantidad || 1;
         revenue += precio * cantidad;
       }
