@@ -1046,7 +1046,7 @@ export class PedidoService implements OnModuleDestroy {
       const endDay = moment.tz(date, timeZone).endOf('day').toDate();
 
       const ordersDay = await this.pedidoRepository.find({
-        where: { fecha: Between(startDay, endDay) },
+        where: { fecha: Between(startDay, endDay), confirmado:true},
         relations: ['pedidosprod', 'pedidosprod.producto'],
       });
       console.log();
