@@ -43,10 +43,9 @@ export class PedidoController {
 
   @Get('/:orderStatus')
   findAllFinish(
-    @Param('orderStatus', new ParseEnumPipe(OrderStatus))
+    @Param('orderStatus', new ParseEnumPipe(OrderStatus)) orderStatus: OrderStatus,
     @Query('offset') offset : number,
     @Query('limit') limit : number,
-    orderStatus: OrderStatus,
   ) {
     return this.pedidoService.findOrders(orderStatus, offset, limit = 20);
   }
