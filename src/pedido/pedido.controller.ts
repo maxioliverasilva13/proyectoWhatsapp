@@ -44,9 +44,11 @@ export class PedidoController {
   @Get('/:orderStatus')
   findAllFinish(
     @Param('orderStatus', new ParseEnumPipe(OrderStatus))
+    @Query('offset') offset : number,
+    @Query('limit') limit : number,
     orderStatus: OrderStatus,
   ) {
-    return this.pedidoService.findOrders(orderStatus);
+    return this.pedidoService.findOrders(orderStatus, offset, limit = 20);
   }
 
   @Get('/calendar/formatCalendar/:date')
