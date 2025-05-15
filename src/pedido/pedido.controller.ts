@@ -47,7 +47,7 @@ export class PedidoController {
     @Query('offset') offset : number,
     @Query('limit') limit : number,
   ) {
-    return this.pedidoService.findOrders(orderStatus, offset, limit = 20);
+    return this.pedidoService.findOrders(orderStatus, offset, limit);
   }
 
   @Get('/calendar/formatCalendar/:date')
