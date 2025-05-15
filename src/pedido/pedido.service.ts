@@ -77,7 +77,7 @@ export class PedidoService implements OnModuleDestroy {
     this.empresaRepository = this.globalConnection.getRepository(Empresa);
   }
 
-  async getStatistics(filterType: 'today' | 'lastWeek' | 'lastMonth') {
+  async getStatistics(filterType: any) {
     const empresa = await this.empresaRepository.findOne({
       where: { db_name: process.env.SUBDOMAIN },
     });
