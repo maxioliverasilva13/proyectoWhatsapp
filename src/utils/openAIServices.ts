@@ -173,7 +173,7 @@ export async function sendMessageToThread(
             console.log('getPedidosByUser');
             toolResult = await pedidoService.getMyOrders(clienteId);
           } else if (name === 'getInfoLines') {
-            console.log("getInfoLines")
+            console.log('getInfoLines');
             const textInfoLines =
               await infoLineService.findAllFormatedText(empresaType);
             toolResult = textInfoLines;
@@ -216,10 +216,13 @@ export async function sendMessageToThread(
           toolResult = { error: 'Error ejecutando la función' };
         }
 
-        let toolOutputStr = '';
+        let toolOutputStr;
         try {
-          toolOutputStr = JSON.stringify(toolResult);
+          toolOutputStr = JSON.stringify(
+            toolResult ?? { error: 'Respuesta vacía' },
+          );
         } catch (err) {
+          console.error('Error serializando resultado:', err);
           toolOutputStr = JSON.stringify({
             error: 'Error serializando toolResult',
           });
