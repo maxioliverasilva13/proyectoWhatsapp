@@ -201,6 +201,7 @@ export class AuthService implements OnModuleDestroy {
         remaindersHorsRemainder,
         timeZone,
         oldPlan: oldPlan,
+        assistentEnabled: assistentEnabled,
         currencies: currencies,
         logo: logo,
       };
