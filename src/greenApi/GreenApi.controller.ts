@@ -236,12 +236,14 @@ export class GrenApiController {
                 const aperturaStr = apertura.format('HH:mm');
                 const cierreStr = cierre.format('HH:mm');
                 const lang = getLanguageFromTimezone(timezoneEmpresa);
-                if (InfoCompany.hora_apertura && InfoCompany.hora_cierre) {
-                  textReponse =
-                    translations[lang].closed_hours(aperturaStr, cierreStr) ??
-                    '';
-                } else {
-                  textReponse = translations[lang].closed ?? '';
+                if (translations[lang] ?? '') {
+                  if (InfoCompany.hora_apertura && InfoCompany.hora_cierre) {
+                    textReponse =
+                      translations[lang].closed_hours(aperturaStr, cierreStr) ??
+                      '';
+                  } else {
+                    textReponse = translations[lang].closed ?? '';
+                  }
                 }
 
                 await this.messageQueue.add(
