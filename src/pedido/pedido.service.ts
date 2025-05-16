@@ -65,7 +65,7 @@ export class PedidoService implements OnModuleDestroy {
     private readonly productoPedidoRepository: Repository<ProductoPedido>,
     @InjectQueue(`sendMessageChangeStatusOrder-${process.env.SUBDOMAIN}`)
     private readonly messageQueue: Queue,
-  ) {}
+  ) { }
 
   async onModuleInit() {
     if (!this.globalConnection) {
@@ -551,7 +551,7 @@ export class PedidoService implements OnModuleDestroy {
     }
   }
 
-  async findOrders(filter: 'active' | 'pending' | 'finished') {
+  async findOrders(filter: 'active' | 'pending' | 'finished', offset : number, limit : number) {
     try {
       if (!filter) {
         throw new BadRequestException(
@@ -582,7 +582,9 @@ export class PedidoService implements OnModuleDestroy {
           });
       }
 
-      query.orderBy('pedido.createdAt', 'DESC');
+      const totalItems = await query.getCount();
+
+      query.orderBy('pedido.createdAt', 'DESC').take(limit).skip(offset)
 
       const pedidos = await query.getMany();
 
@@ -623,6 +625,7 @@ export class PedidoService implements OnModuleDestroy {
         ok: true,
         statusCode: 200,
         data: pedidosFinal,
+        totalItems
       };
     } catch (error) {
       throw new BadRequestException({
@@ -1066,7 +1069,7 @@ export class PedidoService implements OnModuleDestroy {
       const endDay = moment.tz(date, timeZone).endOf('day').toDate();
 
       const ordersDay = await this.pedidoRepository.find({
-        where: { fecha: Between(startDay, endDay) },
+        where: { fecha: Between(startDay, endDay), confirmado: true },
         relations: ['pedidosprod', 'pedidosprod.producto'],
       });
       console.log();
