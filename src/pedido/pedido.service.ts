@@ -148,6 +148,26 @@ export class PedidoService implements OnModuleDestroy {
       if (statusFinalizador) {
         pedido.estado = statusFinalizador;
       }
+
+      const clientId = pedido?.cliente_id;
+
+      const client = await this.clienteRepository.findOne({
+        where: { id: clientId },
+      });
+      if (client) {
+        await this.messageQueue.add(
+          'send',
+          {
+            message: `Lamentamos informarte que tu ${pedido?.tipo_servicio_id === TIPO_SERVICIO_DELIVERY_ID ? 'orden' : 'reserva'} número #${pedido?.id} ha sido cancelada por la empresa. Para más información, por favor contáctanos.`,
+            chatId: pedido?.chatIdWhatsapp,
+          },
+          {
+            priority: 0,
+            attempts: 5,
+          },
+        );
+      }
+
       await this.pedidoRepository.save(pedido);
     }
   }
