@@ -20,7 +20,6 @@ import { RedisService } from 'src/redis/redis.service';
 import { PedidoService } from 'src/pedido/pedido.service';
 import { translations } from 'src/lenguage/translation';
 
-
 @Controller()
 export class GrenApiController {
   constructor(
