@@ -18,6 +18,7 @@ import { MensajeService } from 'src/mensaje/mensaje.service';
 import { encode } from 'gpt-3-encoder';
 import { RedisService } from 'src/redis/redis.service';
 import { PedidoService } from 'src/pedido/pedido.service';
+import { translations } from 'src/lenguage/translation';
 
 @Controller()
 export class GrenApiController {
@@ -76,7 +77,7 @@ export class GrenApiController {
           let chatExist = await this.chatRepository.findOne({
             where: { chatIdExternal: chatId },
           });
-          console.log("chatExist", chatExist)
+          console.log('chatExist', chatExist);
 
           const globalCconnection = await handleGetGlobalConnection();
           const empresa = await globalCconnection.getRepository(Empresa);
@@ -93,14 +94,13 @@ export class GrenApiController {
             console.error('Comania no encontrada');
             return;
           }
-          console.log("sigo 2")
+          console.log('sigo 2');
 
           try {
             if (numberExist?.data) {
               return;
             } else {
-
-              console.log("sigo 3")
+              console.log('sigo 3');
               const now = moment.tz(timeZone);
               const apertura = now.clone().set({
                 hour: parseInt(InfoCompany.hora_apertura.split(':')[0]),
@@ -121,8 +121,8 @@ export class GrenApiController {
                 (apertura.isBefore(cierre)
                   ? now.isBetween(apertura, cierre)
                   : now.isSameOrAfter(apertura) || now.isBefore(cierre));
-                
-              console.log("estaDentroDeHorario", estaDentroDeHorario)
+
+              console.log('estaDentroDeHorario', estaDentroDeHorario);
               if (estaDentroDeHorario) {
                 let messageToSend;
 
@@ -231,13 +231,17 @@ export class GrenApiController {
                   },
                 });
               } else {
+                const timezoneEmpresa = InfoCompany?.timeZone;
                 let textReponse = '';
+                const aperturaStr = apertura.format('HH:mm');
+                const cierreStr = cierre.format('HH:mm');
+                const lang = getLanguageFromTimezone(timezoneEmpresa);
                 if (InfoCompany.hora_apertura && InfoCompany.hora_cierre) {
-                  const aperturaStr = apertura.format('HH:mm');
-                  const cierreStr = cierre.format('HH:mm');
-                  textReponse = `Sorry, we are currently closed. Please remember that our business hours are from ${aperturaStr} to ${cierreStr}.`;
+                  textReponse =
+                    translations[lang].closed_hours(aperturaStr, cierreStr) ??
+                    '';
                 } else {
-                  textReponse = `Sorry, we are currently closed.`;
+                  textReponse = translations[lang].closed ?? '';
                 }
 
                 await this.messageQueue.add(

@@ -1,0 +1,42 @@
+function getLanguageFromTimezone(timezone: string): 'es' | 'en' {
+  const esTimezones = [
+    'Europe/Madrid',
+    'Africa/Ceuta',
+    'America/Argentina/Buenos_Aires',
+    'America/Argentina/Catamarca',
+    'America/Argentina/Cordoba',
+    'America/Argentina/Jujuy',
+    'America/Argentina/La_Rioja',
+    'America/Argentina/Mendoza',
+    'America/Argentina/Rio_Gallegos',
+    'America/Argentina/Salta',
+    'America/Argentina/San_Juan',
+    'America/Argentina/San_Luis',
+    'America/Argentina/Tucuman',
+    'America/Argentina/Ushuaia',
+    'America/Bogota',
+    'America/La_Paz',
+    'America/Santiago',
+    'America/Lima',
+    'America/Guayaquil',
+    'America/Asuncion', 
+    'America/Caracas',
+    'America/Montevideo',
+    'America/Panama',
+    'America/Mexico_City',
+    'America/Cancun',
+    'America/Merida',
+    'America/Monterrey',
+    'America/Tijuana',
+    'America/Guatemala',
+    'America/Managua', 
+    'America/Tegucigalpa',
+    'America/San_Salvador',
+    'America/Costa_Rica',
+    'America/Havana',
+    'America/Puerto_Rico',
+    'Atlantic/Canary'
+  ];
+
+  return esTimezones.includes(timezone) ? 'es' : 'en';
+}
