@@ -103,6 +103,7 @@ export class AuthService implements OnModuleDestroy {
       let payment = null;
       let oldPlan = null;
       let apiUrl = '';
+      let assistentEnabled = false;
       let greenApiConfigured = false;
       let tipo_servicio = 0;
       let tipo_servicioNombre = '';
@@ -136,6 +137,7 @@ export class AuthService implements OnModuleDestroy {
           logo = empresa.logo ?? 'No logo';
           hora_apertura = empresa.hora_apertura;
           hora_cierre = empresa.hora_cierre;
+          assistentEnabled = empresa?.assistentEnabled;
           abierto = empresa.abierto;
           maxPedidos = empresa?.payment?.plan?.maxPedidos ?? 0;
           tipo_servicio = empresa?.tipoServicioId?.id;

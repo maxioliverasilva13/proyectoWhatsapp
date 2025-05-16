@@ -40,6 +40,9 @@ export class Empresa extends BaseEntity {
   @Column({ default: false })
   abierto: boolean;
 
+  @Column({ default: true, nullable: false })
+  assistentEnabled: boolean;
+
   @Column({ type: 'time', nullable: true, default: null })
   hora_cierre: string;
 

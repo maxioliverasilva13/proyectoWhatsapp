@@ -84,7 +84,10 @@ export class GrenApiController {
             where: { id: empresaId },
             relations: ['payment', 'payment.plan'],
           });
-          console.log("sigo")
+
+          if (!InfoCompany.assistentEnabled) {
+            return;
+          }
 
           if (!InfoCompany) {
             console.error('Comania no encontrada');
