@@ -65,7 +65,7 @@ export class PedidoService implements OnModuleDestroy {
     private readonly productoPedidoRepository: Repository<ProductoPedido>,
     @InjectQueue(`sendMessageChangeStatusOrder-${process.env.SUBDOMAIN}`)
     private readonly messageQueue: Queue,
-  ) { }
+  ) {}
 
   async onModuleInit() {
     if (!this.globalConnection) {
@@ -225,6 +225,25 @@ export class PedidoService implements OnModuleDestroy {
     console.log('voy a crear pedido con', createPedidoDto);
 
     try {
+      const currentOrders = await this.pedidoRepository
+        .createQueryBuilder('pedido')
+        .leftJoinAndSelect('pedido.estado', 'estado')
+        .where('pedido.cliente_id = :clienteId', {
+          clienteId: createPedidoDto?.clienteId,
+        })
+        .andWhere('pedido.available = :available', { available: true })
+        .andWhere('pedido.finalizado = :finalizado', { finalizado: false })
+        .andWhere('estado.nombre != :cancelado', { cancelado: 'cancelado' })
+        .andWhere('pedido.fecha >= :hoy', {
+          hoy: moment().startOf('day').toDate(),
+        })
+        .getMany();
+      if (currentOrders?.length > 3) {
+        throw new BadRequestException(
+          'No se pueden tener mas de 3 ordenes activas.',
+        );
+      }
+
       const [firstStatus] = await this.estadoRepository.find({
         order: { order: 'ASC' },
         take: 1,
@@ -551,7 +570,11 @@ export class PedidoService implements OnModuleDestroy {
     }
   }
 
-  async findOrders(filter: 'active' | 'pending' | 'finished', offset : number, limit : number) {
+  async findOrders(
+    filter: 'active' | 'pending' | 'finished',
+    offset: number,
+    limit: number,
+  ) {
     try {
       if (!filter) {
         throw new BadRequestException(
@@ -584,7 +607,7 @@ export class PedidoService implements OnModuleDestroy {
 
       const totalItems = await query.getCount();
 
-      query.orderBy('pedido.createdAt', 'DESC').take(limit).skip(offset)
+      query.orderBy('pedido.createdAt', 'DESC').take(limit).skip(offset);
 
       const pedidos = await query.getMany();
 
@@ -625,7 +648,7 @@ export class PedidoService implements OnModuleDestroy {
         ok: true,
         statusCode: 200,
         data: pedidosFinal,
-        totalItems
+        totalItems,
       };
     } catch (error) {
       throw new BadRequestException({
