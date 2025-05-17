@@ -123,7 +123,11 @@ export class UsuarioService {
       throw new Error(`Usuario con ID ${id} no encontrado.`);
     }
 
-    const usuarioActualizado = this.usuarioRepository.merge(usuario, updateUsuarioDto);
+    const usuarioActualizado = this.usuarioRepository.merge(usuario, {
+      ...updateUsuarioDto,
+      isSuperAdmin: false,
+      isAdmin: usuario?.isAdmin,
+    });
 
     return this.usuarioRepository.save(usuarioActualizado);
   }
