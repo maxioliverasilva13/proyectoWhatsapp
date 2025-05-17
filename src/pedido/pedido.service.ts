@@ -233,7 +233,6 @@ export class PedidoService implements OnModuleDestroy {
         })
         .andWhere('pedido.available = :available', { available: true })
         .andWhere('pedido.finalizado = :finalizado', { finalizado: false })
-        .andWhere('estado.nombre != :cancelado', { cancelado: 'cancelado' })
         .andWhere('pedido.fecha >= :hoy', {
           hoy: moment().startOf('day').toDate(),
         })
