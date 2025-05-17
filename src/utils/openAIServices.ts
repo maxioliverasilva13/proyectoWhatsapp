@@ -129,7 +129,7 @@ export async function sendMessageToThread(
   const maxRetries = 30;
   let delay = 2000;
   let status = 'queued';
-  const maxToolCallRetries = 3;
+  const maxToolCallRetries = 10;
   let toolCallAttempts = 0;
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
