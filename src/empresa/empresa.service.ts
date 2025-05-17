@@ -30,7 +30,7 @@ export class EmpresaService {
     private usuarioRepository: Repository<Usuario>,
     @Inject(forwardRef(() => TenantConnectionService))
     private tenantService: TenantConnectionService,
-  ) { }
+  ) {}
 
   async create(createEmpresaDto: CreateEmpresaDto) {
     // TODO: agregar libreria para validar DTO
@@ -41,39 +41,50 @@ export class EmpresaService {
 
       if (process.env.ENV !== 'dev') {
         const dbName = getDbName(createEmpresaDto.nombre);
-        const empresaExistsWithThisDbName = await this.empresaRepository?.findOne({ where: { db_name: dbName } });
+        const empresaExistsWithThisDbName =
+          await this.empresaRepository?.findOne({ where: { db_name: dbName } });
         if (empresaExistsWithThisDbName) {
-          throw new Error("Ya existe una emrpesa con este nombre")
+          throw new Error('Ya existe una emrpesa con este nombre');
         }
 
         const newEmpresa = new Empresa();
         newEmpresa.nombre = createEmpresaDto.nombre;
         newEmpresa.db_name = dbName;
 
-        if (!isValidTimeFormat(createEmpresaDto?.hora_apertura) || !isValidTimeFormat(createEmpresaDto?.hora_cierre)) {
+        if (
+          !isValidTimeFormat(createEmpresaDto?.hora_apertura) ||
+          !isValidTimeFormat(createEmpresaDto?.hora_cierre)
+        ) {
           throw new Error('Hora de apertur y cierre invalidos');
         }
 
         newEmpresa.hora_apertura = createEmpresaDto.hora_apertura;
-        newEmpresa.hora_cierre = createEmpresaDto.hora_cierre
+        newEmpresa.hora_cierre = createEmpresaDto.hora_cierre;
         newEmpresa.logo = createEmpresaDto.logo;
         newEmpresa.descripcion = createEmpresaDto.descripcion;
         newEmpresa.menu = createEmpresaDto.menu;
-        newEmpresa.timeZone = createEmpresaDto.timeZone
+        newEmpresa.timeZone = createEmpresaDto.timeZone;
         newEmpresa.tipoServicioId = createEmpresaDto?.tipoServicioId as any;
-        
-        const existsTipoServicio = await this.tipoServicioRepository.findOne({ where: { id: Number(createEmpresaDto?.tipoServicioId) } });
+
+        const existsTipoServicio = await this.tipoServicioRepository.findOne({
+          where: { id: Number(createEmpresaDto?.tipoServicioId) },
+        });
         if (!existsTipoServicio) {
           throw new Error('El tipo de servicio es invalido');
         }
 
-        const userExistsWithThisEmail = await this.usuarioRepository.findOne({ where: { correo: createEmpresaDto?.userEmail } });
+        const userExistsWithThisEmail = await this.usuarioRepository.findOne({
+          where: { correo: createEmpresaDto?.userEmail },
+        });
         if (userExistsWithThisEmail) {
           throw new Error('Ya existe un usuario con el correo ingresado');
         }
-        
+
         const empresaCreated = await this.empresaRepository.save(newEmpresa);
-        const hashedPassword = await bcrypt.hash(createEmpresaDto?.password, 10);
+        const hashedPassword = await bcrypt.hash(
+          createEmpresaDto?.password,
+          10,
+        );
         this.usuarioRepository.save({
           activo: true,
           nombre: '',
@@ -106,6 +117,27 @@ export class EmpresaService {
     }
   }
 
+  async isEmpresaConfigured(id_empresa: any) {
+    const empresa = await this.empresaRepository.findOne({
+      where: { db_name: id_empresa },
+    });
+    let greenApiConfigured = false;
+    if (empresa.greenApiInstance && empresa.greenApiInstanceToken) {
+      const res = await fetch(
+        `https://api.green-api.com/waInstance${empresa.greenApiInstance}/getStateInstance/${empresa.greenApiInstanceToken}`,
+      );
+      try {
+        const resFormated = await res.json();
+
+        greenApiConfigured = resFormated.stateInstance === 'authorized';
+      } catch (error) {
+        greenApiConfigured = false;
+        console.log(error);
+      }
+    }
+    return { isDone: greenApiConfigured };
+  }
+
   async findOne(id: number): Promise<Empresa> {
     return this.empresaRepository.findOne({ where: { id } });
   }
@@ -120,13 +152,16 @@ export class EmpresaService {
 
   async update(id: number, updateEmpresaDto: UpdateEmpresaDto) {
     try {
-      const empresa = await this.empresaRepository.findOne({ where: { id }, relations: ['tipoServicioId'] });
+      const empresa = await this.empresaRepository.findOne({
+        where: { id },
+        relations: ['tipoServicioId'],
+      });
       console.log(empresa);
-      
+
       if (!empresa) {
         throw new BadRequestException('La empresa no existe');
       }
-  
+
       Object.keys(updateEmpresaDto).forEach((key) => {
         if (updateEmpresaDto[key] !== undefined) {
           if (key in empresa) {
@@ -136,9 +171,9 @@ export class EmpresaService {
           }
         }
       });
-      
+
       await this.empresaRepository.save(empresa);
-  
+
       return {
         ok: true,
         statusCode: 200,
@@ -159,32 +194,35 @@ export class EmpresaService {
     return `This action removes a #${id} empresa`;
   }
 
-  async getAuthCode(id:number, phoneNumber : number) {
+  async getAuthCode(id: number, phoneNumber: number) {
     try {
-      const existEmpresa = await this.empresaRepository.findOne({ where: { id } });
-      if (!existEmpresa) {
-        throw new BadRequestException('La empresa no existe')
-      }
-      
-      const authCode = await fetch(`https://7103.api.greenapi.com/waInstance${existEmpresa.greenApiInstance}/getAuthorizationCode/${existEmpresa.greenApiInstanceToken}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          phoneNumber: phoneNumber,
-        }),
-      
+      const existEmpresa = await this.empresaRepository.findOne({
+        where: { id },
       });
-
-      const resAuth = await authCode.json()
-      
-      return {
-        statusCode:200,
-        ok: true,
-        resAuth:resAuth
+      if (!existEmpresa) {
+        throw new BadRequestException('La empresa no existe');
       }
 
+      const authCode = await fetch(
+        `https://7103.api.greenapi.com/waInstance${existEmpresa.greenApiInstance}/getAuthorizationCode/${existEmpresa.greenApiInstanceToken}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            phoneNumber: phoneNumber,
+          }),
+        },
+      );
+
+      const resAuth = await authCode.json();
+
+      return {
+        statusCode: 200,
+        ok: true,
+        resAuth: resAuth,
+      };
     } catch (error) {
       throw new BadRequestException({
         ok: false,
@@ -197,20 +235,23 @@ export class EmpresaService {
 
   async getQR(id: number) {
     try {
-      const existEmpresa = await this.empresaRepository.findOne({ where: { id } });
+      const existEmpresa = await this.empresaRepository.findOne({
+        where: { id },
+      });
       if (!existEmpresa) {
-        throw new BadRequestException('La empresa no existe')
+        throw new BadRequestException('La empresa no existe');
       }
-      const myQr = await fetch(`https://7103.api.greenapi.com/waInstance${existEmpresa.greenApiInstance}/qr/${existEmpresa.greenApiInstanceToken}`)      
+      const myQr = await fetch(
+        `https://7103.api.greenapi.com/waInstance${existEmpresa.greenApiInstance}/qr/${existEmpresa.greenApiInstanceToken}`,
+      );
 
       const res = await myQr.json();
 
       return {
-        statusCode:200,
+        statusCode: 200,
         ok: true,
         qr: res,
-      }
-
+      };
     } catch (error) {
       throw new BadRequestException({
         ok: false,
@@ -223,25 +264,29 @@ export class EmpresaService {
 
   async getInfoByDomain(domain: string) {
     try {
-
-      if(!domain) {
-        throw new BadRequestException('Error, there not has domain query param')
+      if (!domain) {
+        throw new BadRequestException(
+          'Error, there not has domain query param',
+        );
       }
 
-      const empresaData = await this.empresaRepository.findOne({where: { nombre : domain }})
-      const connection = await handleGetConnectionByEmpresa(empresaData.db_name);
+      const empresaData = await this.empresaRepository.findOne({
+        where: { nombre: domain },
+      });
+      const connection = await handleGetConnectionByEmpresa(
+        empresaData.db_name,
+      );
 
-      const productoRepository = await connection.getRepository(Producto)
+      const productoRepository = await connection.getRepository(Producto);
 
-      const allProducts = await productoRepository.find()
+      const allProducts = await productoRepository.find();
 
       connection.destroy();
       return {
-        ok:true,
-        data : empresaData,
-        products: allProducts
-      }
-
+        ok: true,
+        data: empresaData,
+        products: allProducts,
+      };
     } catch (error) {
       throw new BadRequestException({
         ok: false,
@@ -251,5 +296,4 @@ export class EmpresaService {
       });
     }
   }
-
 }

@@ -27,6 +27,13 @@ export class EmpresaController {
     return this.empresaService.create(createEmpresaDto);
   }
 
+  @Post('/isGreenApiConfigured/:id')
+  @Roles(TypeRol.SUPER_ADMIN)
+  @UseGuards(RolesGuard)
+  isConfigured(@Param('id') id_empresa: number) {
+    return this.empresaService.isEmpresaConfigured(id_empresa);
+  }
+
   @Get()
   @Roles(TypeRol.SUPER_ADMIN)
   @UseGuards(RolesGuard)
@@ -63,13 +70,15 @@ export class EmpresaController {
   @Get('/authCode/:id/:numberPhone')
   @Roles(TypeRol.SUPER_ADMIN)
   @UseGuards(RolesGuard)
-  getAuthCode(@Param('id') id: number, @Param('numberPhone') numberPhone: number) {
-    return this.empresaService.getAuthCode(+id, +numberPhone );
+  getAuthCode(
+    @Param('id') id: number,
+    @Param('numberPhone') numberPhone: number,
+  ) {
+    return this.empresaService.getAuthCode(+id, +numberPhone);
   }
 
   @Get('/info/getInfoByDomain')
-  getInfoByDomain(@Query('domain') domain : string){
-    return this.empresaService.getInfoByDomain(domain)
+  getInfoByDomain(@Query('domain') domain: string) {
+    return this.empresaService.getInfoByDomain(domain);
   }
-  
 }
