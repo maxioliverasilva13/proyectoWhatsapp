@@ -9,7 +9,7 @@ export async function connectToGreenApi(): Promise < void> {
         await restAPI.settings.setSettings({
             webhookUrl: `https://${process.env.VIRTUAL_HOST}/webhooks`
         });
-        console.log('Conectado a Green APIii 2:');
+        console.log('Conectado a Green APIii 3:');
     } catch(error) {
         console.error('Error al conectar con Green API:', JSON.stringify(error));
     }
