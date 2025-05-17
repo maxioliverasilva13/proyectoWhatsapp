@@ -18,8 +18,8 @@ export class AdminController {
   @Get('/empresas')
   findAll(
     @Query('query') query: string,
-    @Query('query') page: number,
-    @Query('query') limit: number,
+    @Query('page') page: number,
+    @Query('limit') limit: number,
     @Req() request: any,
   ) {
     const loggedUserId = request?.user?.userId;
