@@ -31,7 +31,7 @@ export class EmpresaController {
   @Roles(TypeRol.SUPER_ADMIN)
   @UseGuards(RolesGuard)
   isConfigured(@Param('id') id_empresa: number) {
-    return this.empresaService.isEmpresaConfigured(id_empresa);
+    return this.empresaService.isGreenApiConfigured(id_empresa);
   }
 
   @Get()

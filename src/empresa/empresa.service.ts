@@ -117,9 +117,9 @@ export class EmpresaService {
     }
   }
 
-  async isEmpresaConfigured(id_empresa: any) {
+  async isGreenApiConfigured(id_empresa: any) {
     const empresa = await this.empresaRepository.findOne({
-      where: { db_name: id_empresa },
+      where: { id: id_empresa },
     });
     let greenApiConfigured = false;
     if (empresa.greenApiInstance && empresa.greenApiInstanceToken) {
