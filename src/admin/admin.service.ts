@@ -32,7 +32,8 @@ export class AdminService {
 
     const qb = this.empresaRepo
       .createQueryBuilder('empresa')
-      .leftJoinAndSelect('empresa.payment', 'payment');
+      .leftJoinAndSelect('empresa.payment', 'payment')
+      .orderBy('empresa.createdAt', 'DESC');;
 
     if (query) {
       const searchableFields = [
