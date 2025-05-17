@@ -237,6 +237,7 @@ export class PedidoService implements OnModuleDestroy {
           hoy: moment().startOf('day').toDate(),
         })
         .getMany();
+      console.log("currentOrders", currentOrders)
       if (currentOrders?.length > 3) {
         throw new BadRequestException(
           'No se pueden tener mas de 3 ordenes activas.',
