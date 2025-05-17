@@ -168,7 +168,8 @@ export class PedidoService implements OnModuleDestroy {
         );
       }
 
-      await this.pedidoRepository.save(pedido);
+      const resp = await this.pedidoRepository.save(pedido);
+      return resp;
     }
   }
 

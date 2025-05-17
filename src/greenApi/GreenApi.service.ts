@@ -146,13 +146,8 @@ export class GreenApiService {
       );
     }
 
-    if (openAIResponseFormatted?.pedidoIdToCancel) {
-      this.pedidoService.cancel(openAIResponseFormatted?.pedidoIdToCancel);
-      return openAIResponseFormatted;
-    } else {
-      const respToUser = textError ? textError : openAIResponseFormatted;
-      return respToUser;
-    }
+    const respToUser = textError ? textError : openAIResponseFormatted;
+    return respToUser;
   }
 
   async hacerPedido({
