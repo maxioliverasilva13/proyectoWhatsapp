@@ -1,9 +1,6 @@
 name: Deploy to QA
 
 on:
-  push:
-    branches:
-      - qa
   workflow_dispatch: 
 
 jobs:
@@ -13,6 +10,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
+      with:
+        ref: qa
 
     - name: Set up Node.js
       uses: actions/setup-node@v3
