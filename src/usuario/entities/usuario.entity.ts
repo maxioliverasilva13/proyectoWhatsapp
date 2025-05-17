@@ -24,6 +24,9 @@ export class Usuario extends BaseEntity {
   @Column({ default: false, nullable: true })
   isAdmin: boolean;
 
+  @Column({ default: false })
+  isSuperAdmin: boolean;
+
   @Column()
   apellido: string;
 

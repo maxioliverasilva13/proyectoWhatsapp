@@ -51,6 +51,8 @@ import { CategoryModule } from './category/category.module';
 import { DeviceModule } from './device/device.module';
 import { DeviceController } from './device/device.controller';
 import { PaymentsModule } from './payments/payments.module';
+import { AdminController } from './admin/admin.controller';
+import { AdminModule } from './admin/admin.module';
 
 ConfigModule.forRoot();
 
@@ -92,6 +94,7 @@ const connection = handleGetConnection();
     EstadoModule,
     CambioestadopedidoModule,
     UsuarioModule,
+    AdminModule,
     ClienteModule,
     RolesModule,
     PlanModule,
@@ -126,10 +129,11 @@ export class AppModule {
       .apply(AppWithoutSubdomainMiddleware)
       .forRoutes(
         EmpresaController,
+        AdminController,
         AuthController,
         ImageController,
         DeviceController,
-        NumeroConfianzaController
+        NumeroConfianzaController,
       );
 
     // EMPRESA ROUTES
