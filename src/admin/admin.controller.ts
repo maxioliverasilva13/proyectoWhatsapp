@@ -36,4 +36,5 @@ export class AdminController {
     const loggedUserId = request?.user?.userId;
     return this.adminService.deploy(id, loggedUserId);
   }
+  
 }

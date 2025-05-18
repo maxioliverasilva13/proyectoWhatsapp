@@ -140,6 +140,6 @@ export class AdminService {
       );
     }
 
-    return { message: `Workflow disparado con db_name: ${empresa?.db_name}` };
+    return { ok: true, message: `Workflow disparado con db_name: ${empresa?.db_name}` };
   }
 }
