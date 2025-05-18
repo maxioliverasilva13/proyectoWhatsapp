@@ -42,7 +42,6 @@ export class GrenApiController {
     try {
       if (process.env.SUBDOMAIN === 'app') return;
       if (body.stateInstance) {
-        console.log('entro 1', body);
         const greenApiStatus = body.stateInstance;
         if (greenApiStatus) {
           console.log('La API de Green está configurada');
@@ -51,6 +50,8 @@ export class GrenApiController {
           console.log('Hubo un problema con la configuración de la API');
         }
       } else {
+        console.log('Entro al procesamiento', body);
+
         const timeZone = request['timeZone'];
         const empresaId = request['empresaId'];
         const empresaType = request['empresaType'];
@@ -73,12 +74,9 @@ export class GrenApiController {
             numberSender,
             empresaId,
           );
-          console.log('numberExist', numberExist);
           let chatExist = await this.chatRepository.findOne({
             where: { chatIdExternal: chatId },
           });
-          console.log('chatExist', chatExist);
-
           const globalCconnection = await handleGetGlobalConnection();
           const empresa = await globalCconnection.getRepository(Empresa);
           const InfoCompany = await empresa.findOne({
@@ -100,7 +98,6 @@ export class GrenApiController {
             if (numberExist?.data) {
               return;
             } else {
-              console.log('sigo 3');
               const now = moment.tz(timeZone);
               const apertura = now.clone().set({
                 hour: parseInt(InfoCompany.hora_apertura.split(':')[0]),
