@@ -41,8 +41,8 @@ export class GrenApiController {
   async handleWebhook(@Req() request: Request, @Body() body: any) {
     try {
       if (process.env.SUBDOMAIN === 'app') return;
-      console.log('sip vengo', body?.stateInstance);
       if (body.stateInstance) {
+        console.log('entro 1', body);
         const greenApiStatus = body.stateInstance;
         if (greenApiStatus) {
           console.log('La API de Green está configurada');
@@ -126,6 +126,7 @@ export class GrenApiController {
               if (estaDentroDeHorario) {
                 let messageToSend;
 
+                console.log("messageData.typeMessage", messageData.typeMessage)
                 if (messageData.typeMessage === 'textMessage') {
                   messageToSend =
                     messageData.textMessageData?.textMessage ||
