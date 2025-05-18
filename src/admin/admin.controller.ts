@@ -23,8 +23,6 @@ export class AdminController {
     @Req() request: any,
   ) {
     const loggedUserId = request?.user?.userId;
-    page;
-    limit;
     return this.adminService.getEmpresas({
       query: query,
       page: page,
@@ -33,8 +31,9 @@ export class AdminController {
     });
   }
 
-  @Post(':id')
-  update(@Param('id') id: string) {
-    // return this.clienteService.update(+id, updateClienteDto);
+  @Post('deploy/:id')
+  update(@Req() request: any, @Param('id') id: string) {
+    const loggedUserId = request?.user?.userId;
+    return this.adminService.deploy(id, loggedUserId);
   }
 }

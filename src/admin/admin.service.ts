@@ -33,7 +33,7 @@ export class AdminService {
     const qb = this.empresaRepo
       .createQueryBuilder('empresa')
       .leftJoinAndSelect('empresa.payment', 'payment')
-      .orderBy('empresa.createdAt', 'DESC');;
+      .orderBy('empresa.createdAt', 'DESC');
 
     if (query) {
       const searchableFields = [
@@ -58,7 +58,6 @@ export class AdminService {
 
     const allEmpresas = await Promise.all(
       data.map(async (empresa) => {
-
         let greenApiConfigured = false;
         if (empresa.greenApiInstance && empresa.greenApiInstanceToken) {
           const res = await fetch(
@@ -79,7 +78,9 @@ export class AdminService {
           greenApiConfigured: greenApiConfigured,
           userConfigured: true,
           apiConfigured: empresa.apiConfigured,
-          isPaymentActive: empresa?.payment ? empresa?.payment?.isActive() : false,
+          isPaymentActive: empresa?.payment
+            ? empresa?.payment?.isActive()
+            : false,
         };
       }),
     );
@@ -91,5 +92,54 @@ export class AdminService {
       limit,
       totalPages: Math.ceil(total / limit),
     };
+  }
+
+  async deploy(empresaId: any, loggedUserId: number) {
+    const user = await this.userRepo.findOne({ where: { id: loggedUserId } });
+    if (!user?.isSuperAdmin) {
+      throw new BadRequestException('Invalid roles');
+    }
+    const empresa = await this.empresaRepo.findOne({ where: { id: empresaId  } });
+    if (!empresa) {
+      throw new BadRequestException('Empresa no encontrada');
+    }
+
+    const owner = 'maxioliverasilva13';
+    const repo = 'proyectoWhatsapp';
+    const workflow_id = 'deployManualCompany.yml';
+    const ref = 'qa';
+    const githubToken = process.env.TOKEN_CONNECT_GIT;
+
+    if (!githubToken) {
+      throw new BadRequestException('Token de GitHub no configurado');
+    }
+
+    const body = {
+      ref,
+      inputs: {
+        empresa_db_name: empresa?.db_name,
+      },
+    };
+
+    const url = `https://api.github.com/repos/${owner}/${repo}/actions/workflows/${workflow_id}/dispatches`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: `Bearer ${githubToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (response.status !== 204) {
+      const errorBody = await response.text();
+      throw new BadRequestException(
+        `Error disparando workflow: ${response.status} ${errorBody}`,
+      );
+    }
+
+    return { message: `Workflow disparado con db_name: ${empresa?.db_name}` };
   }
 }

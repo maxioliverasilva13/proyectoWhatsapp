@@ -72,6 +72,7 @@ function createEnvFileApp() {
       SUPABASE_KEY=${process.env.SUPABASE_KEY}
       SUPABASE_BUCKET=${process.env.SUPABASE_BUCKET}
       EMAIL_HOST=${process.env.EMAIL_HOST}
+      TOKEN_CONNECT_GIT=${process.env.TOKEN_CONNECT_GIT}
       EMAIL_PORT=${process.env.EMAIL_PORT}
       EMAIL_PASS=${process.env.EMAIL_PASS}
       REDIS_HOST=${process.env.REDIS_HOST}
