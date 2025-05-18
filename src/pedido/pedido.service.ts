@@ -621,7 +621,7 @@ export class PedidoService implements OnModuleDestroy {
 
       const pedidosFinal = pedidos.map((pedido) => {
         const infoLinesJson = JSON.parse(pedido.infoLinesJson || '{}');
-        const direcciones = infoLinesJson?.direccion || 'No hay direccion';
+        const direcciones = infoLinesJson?.direccion || infoLinesJson?.Direccion   || 'No hay direccion';
         let total = 0;
 
         pedido.pedidosprod.forEach((producto) => {
