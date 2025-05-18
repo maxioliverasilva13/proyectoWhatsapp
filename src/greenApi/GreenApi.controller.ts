@@ -126,9 +126,10 @@ export class GrenApiController {
               if (estaDentroDeHorario) {
                 let messageToSend;
 
-                console.log("messageData", messageData)
-                console.log("messageData.typeMessage", messageData.typeMessage)
-                if (messageData.typeMessage === 'textMessage') {
+                if (
+                  messageData.typeMessage === 'textMessage' ||
+                  messageData?.typeMessage === 'extendedTextMessage'
+                ) {
                   messageToSend =
                     messageData.textMessageData?.textMessage ||
                     messageData.extendedTextMessageData?.text;
