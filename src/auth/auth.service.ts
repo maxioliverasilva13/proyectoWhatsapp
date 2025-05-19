@@ -241,9 +241,8 @@ export class AuthService implements OnModuleDestroy {
       };
 
       const access_token = this.jwtService.sign(payload)
-
       await this.emailServiceResend.sendVerificationCodeEmail(user.correo, access_token)
-
+ 
       return {
         ok: true,
         message: 'Hemos enviado un correo para recuperar tu cuenta!',
@@ -269,7 +268,7 @@ export class AuthService implements OnModuleDestroy {
         throw new HttpException('Invalid user', 400);
       }
       const hashedPassword = await bcrypt.hash(newPassword, 10);
-      user.password = newPassword
+      user.password = hashedPassword
 
       await this.usuarioRepository.save(user)
 
