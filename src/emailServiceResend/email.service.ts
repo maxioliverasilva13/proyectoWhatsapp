@@ -6,8 +6,8 @@ export class EmailServiceResend {
     private readonly resend: Resend;
 
     constructor() {
-        if (process.env.EMAIL_SERVICE_API_KEY) {
-            this.resend = new Resend(process.env.EMAIL_SERVICE_API_KEY);
+        if (process.env.RESEND_KEY) {
+            this.resend = new Resend(process.env.RESEND_KEY);
         }
     }
 
