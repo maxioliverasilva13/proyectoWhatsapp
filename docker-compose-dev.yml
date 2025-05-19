@@ -25,6 +25,7 @@ services:
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       GOOGLE_CLIENT_EMAIL: ${GOOGLE_CLIENT_EMAIL}
       GOOGLE_PRIVATE_KEY: ${GOOGLE_PRIVATE_KEY}
+      RESEND_KEY: ${RESEND_KEY}
       ENV: ${ENV}
       SUBDOMAIN: app
     networks:

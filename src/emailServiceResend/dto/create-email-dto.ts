@@ -1,0 +1,1 @@
+export class CreateEmailDto {firstName : string; lastName : string; email: string; message: string}

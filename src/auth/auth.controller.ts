@@ -15,7 +15,7 @@ export class AuthController {
   }
 
   @Get('me')
-  async me(@Request() req, @Req() request : Request) {
+  async me(@Request() req, @Req() request: Request) {
     const timeZone = request['timeZone']
     return this.authService.currentUser(req?.user?.userId, timeZone);
   }
@@ -29,8 +29,13 @@ export class AuthController {
     return this.authService.login(user);
   }
 
+  @Post('sendLinkToGmail')
+  async sendLinkToResetPassword(@Body() resetPasswordData: ResetPasswordDTO) {
+    return this.authService.sendLinkToResetPassword(resetPasswordData.email);
+  }
+
   @Post('reset-password')
   async resetPassword(@Body() resetPasswordData: ResetPasswordDTO, @Request() req) {
-    return this.authService.resetPassword(resetPasswordData.email);
+    return this.authService.resetPassword(req?.user?.user, resetPasswordData.newPassword);
   }
 }
