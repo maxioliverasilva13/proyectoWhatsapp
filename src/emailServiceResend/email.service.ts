@@ -28,8 +28,12 @@ export class EmailServiceResend {
             });
 
             if (error) {
+                if (process.env.RESEND_KEY) {
+                    throw new BadRequestException('')
 
-                throw new BadRequestException('')
+                } else {
+                    throw new BadRequestException('No hay variable de entorno')
+                }
             }
 
             console.log('Email sent successfully:', data);
@@ -39,7 +43,7 @@ export class EmailServiceResend {
             throw new BadRequestException({
                 ok: false,
                 statusCode: 400,
-                message: error?.message,
+                message: process.env.RESEND_KEY ? error?.message : "No hay varia ble de entorno",
                 error: 'Bad Request',
             });
         }
