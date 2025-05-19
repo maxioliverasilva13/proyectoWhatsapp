@@ -258,12 +258,12 @@ export class AuthService implements OnModuleDestroy {
     }
   }
 
-  async resetPassword(userEmail: string, newPassword: any) {
+  async resetPassword(userId: any, newPassword: any) {
     try {
       const globalConnection = await handleGetGlobalConnection();
       const userRepository = globalConnection.getRepository(Usuario);
 
-      const user = await userRepository.findOne({ where: { correo: userEmail } });
+      const user = await userRepository.findOne({ where: { id: userId } });
       if (!user) {
         throw new HttpException('Invalid user', 400);
       }
