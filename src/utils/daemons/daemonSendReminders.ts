@@ -37,7 +37,7 @@ export const SendRemainders = async (deviceService: DeviceService) => {
 
     const hoursRemainder = currentEmpresa.remaindersHorsRemainder;
 
-    const localNow = moment().utcOffset(-3 * 60);
+    const localNow = moment().subtract(3, "hours");
     const localMax = localNow.clone().add(hoursRemainder, 'hours');
 
     const nowUtc = localNow.clone().utc();
