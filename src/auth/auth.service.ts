@@ -15,6 +15,7 @@ import { Empresa } from 'src/empresa/entities/empresa.entity';
 import { EmailService } from 'src/emailqueue/email.service';
 import * as moment from 'moment-timezone';
 import { Currency } from 'src/currencies/entities/currency.entity';
+import { EmailServiceResend } from 'src/emailServiceResend/email.service';
 
 @Injectable()
 export class AuthService implements OnModuleDestroy {
@@ -26,6 +27,8 @@ export class AuthService implements OnModuleDestroy {
       this.globalConnection = await handleGetGlobalConnection();
     }
     this.empresaRepository = this.globalConnection.getRepository(Empresa);
+    this.empresaRepository = this.globalConnection.getRepository(Empresa);
+
   }
 
   async onModuleDestroy() {
@@ -39,7 +42,8 @@ export class AuthService implements OnModuleDestroy {
     @InjectRepository(Usuario)
     private usuarioRepository: Repository<Usuario>,
     private readonly emailService: EmailService,
-  ) {}
+    private readonly emailServiceResend: EmailServiceResend
+  ) { }
 
   async validateUser(correo: string, password: string): Promise<any> {
     const user = await this.usuarioRepository.findOne({ where: { correo } });
@@ -218,17 +222,68 @@ export class AuthService implements OnModuleDestroy {
     }
   }
 
-  async resetPassword(userEmail: string) {
-    const globalConnection = await handleGetGlobalConnection();
-    const userRepository = globalConnection.getRepository(Usuario);
+  async sendLinkToResetPassword(userEmail: string) {
 
-    const user = await userRepository.findOne({ where: { correo: userEmail } });
-    if (!user) {
-      throw new HttpException('Invalid user', 400);
+    try {
+      const globalConnection = await handleGetGlobalConnection();
+      const userRepository = globalConnection.getRepository(Usuario);
+
+      const user = await userRepository.findOne({ where: { correo: userEmail } });
+      if (!user) {
+        throw new HttpException('Invalid user', 400);
+      }
+
+      const payload = {
+        userId: user?.id,
+        empresaId: user?.id_empresa,
+        correo: user.correo,
+        sub: user.id,
+      };
+
+      const access_token = this.jwtService.sign(payload)
+      await this.emailServiceResend.sendVerificationCodeEmail(user.correo, access_token)
+ 
+      return {
+        ok: true,
+        message: 'Hemos enviado un correo para recuperar tu cuenta!',
+      };
+
+    } catch (error) {
+      throw new BadRequestException({
+        ok: false,
+        statusCode: 400,
+        message: error?.message || 'Error inesperado',
+        error: 'Bad Request',
+      });
     }
-    return {
-      ok: true,
-      message: 'La password se restablecio correctamente, chequea el email',
-    };
+  }
+
+  async resetPassword(userId: any, newPassword: any) {
+    try {
+      const globalConnection = await handleGetGlobalConnection();
+      const userRepository = globalConnection.getRepository(Usuario);
+
+      const user = await userRepository.findOne({ where: { id: userId } });
+      if (!user) {
+        throw new HttpException('Invalid user', 400);
+      }
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      user.password = hashedPassword
+
+      await this.usuarioRepository.save(user)
+
+      return {
+        ok: true,
+        message: 'La password se restablecio correctamente',
+      };
+
+    } catch (error) {
+      throw new BadRequestException({
+        ok: false,
+        statusCode: 400,
+        message: error?.message || 'Error inesperado',
+        error: 'Bad Request',
+      });
+    }
   }
 }

@@ -68,6 +68,7 @@ ASSISTANT_ID=${process.env.ASSISTANT_ID}
 ENV=qa
 DOCKER_BUILDKIT=1
 SUBDOMAIN=${empresa.db_name}
+RESEND_KEY: ${process.env.RESEND_KEY}
 `;
 
   fs.writeFileSync(`.env.${empresa.db_name}`, envContent);

@@ -8,6 +8,7 @@ import { JwtStrategy } from './jwt.strategy';
 import { Usuario } from 'src/usuario/entities/usuario.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EmailModule } from 'src/emailqueue/email.module';
+import { EmailModuleResend } from 'src/emailServiceResend/email.module';
 
 @Module({
   imports: [
@@ -17,7 +18,8 @@ import { EmailModule } from 'src/emailqueue/email.module';
       secret: process.env.JWT_SECRET_KEY,
       signOptions: { expiresIn: '2h' },
     }),
-    EmailModule
+    EmailModule,
+    EmailModuleResend
   ],
   providers: [AuthService, JwtStrategy],
   controllers: [AuthController],

@@ -163,6 +163,7 @@ export class AppModule {
         { path: '/empresa', method: RequestMethod.ALL },
         { path: '/upload', method: RequestMethod.ALL },
         { path: '/upload/image', method: RequestMethod.ALL },
+        { path: "auth/sendLinkToGmail", method: RequestMethod.ALL }
       )
       .forRoutes('*');
   }
