@@ -37,19 +37,22 @@ export const SendRemainders = async (deviceService: DeviceService) => {
 
     const hoursRemainder = currentEmpresa.remaindersHorsRemainder;
 
-    const nowUtc = moment.utc().subtract(3, "hours");
-    const maxDateUtc = moment.utc().subtract(3, "hours").add(hoursRemainder, 'hours');
+    const nowUtc = moment.utc().subtract(3, 'hours');
+    const maxDateUtc = moment
+      .utc()
+      .subtract(3, 'hours')
+      .add(hoursRemainder, 'hours');
 
     console.log('nowUtc:', nowUtc.toISOString(), nowUtc.toDate());
     console.log('maxDateUtc:', maxDateUtc.toISOString(), maxDateUtc.toDate());
 
-    const pedidos = await pedidoRepo.find({
-      where: {
-        confirmado: true,
-        notified: false,
-        fecha: Between(nowUtc.toDate(), maxDateUtc.toDate()),
-      },
-    });
+    const pedidos = await pedidoRepo
+      .createQueryBuilder('pedido')
+      .where('pedido.confirmado = :confirmado', { confirmado: true })
+      .andWhere('pedido.notified = :notified', { notified: false })
+      .andWhere('pedido.fecha >= :desde', { desde: nowUtc.toDate() })
+      .andWhere('pedido.fecha <= :hasta', { hasta: maxDateUtc.toDate() })
+      .getMany();
 
     console.log('intentando notificar ', pedidos);
 
