@@ -14,7 +14,7 @@ import { Usuario } from 'src/usuario/entities/usuario.entity';
 export const SendRemainders = async (deviceService: DeviceService) => {
   const connection = await handleGetCurrentConnection();
   try {
-    console.log("intentando enviar recordatorios")
+    console.log('intentando enviar recordatorios');
     const globalConnection = await handleGetGlobalConnection();
 
     const pedidoRepo = connection.getRepository(Pedido);
@@ -26,7 +26,7 @@ export const SendRemainders = async (deviceService: DeviceService) => {
     const currentEmpresa = await empresaRepo.findOne({
       where: { db_name: process.env.SUBDOMAIN },
     });
-    console.log('currentEmpresa', currentEmpresa?.id)
+    console.log('currentEmpresa', currentEmpresa?.id);
     if (!currentEmpresa || !currentEmpresa.notificarReservaHoras) {
       return;
     }
@@ -37,16 +37,19 @@ export const SendRemainders = async (deviceService: DeviceService) => {
 
     const hoursRemainder = currentEmpresa.remaindersHorsRemainder;
 
-    // Buscar pedidos confirmados, con fecha dentro del rango y que no hayan sido notificados
+    const nowUtc = moment.utc().add(-3, 'hours');
+    const maxDateUtc = moment.utc().add(-3, 'hours').add(hoursRemainder, 'hours');
+    console.log(nowUtc);
+    console.log(maxDateUtc)
     const pedidos = await pedidoRepo.find({
       where: {
         confirmado: true,
         notified: false,
-        fecha: Between(new Date(), moment().add(hoursRemainder, 'hours').toDate()),
+        fecha: Between(nowUtc.toDate(), maxDateUtc.toDate()),
       },
     });
 
-    console.log("intentando notificar ", pedidos)
+    console.log('intentando notificar ', pedidos);
 
     if (pedidos.length === 0 || usuariosEmpresa?.length === 0) {
       return;
@@ -72,7 +75,11 @@ export const SendRemainders = async (deviceService: DeviceService) => {
             ?.join(', ');
         }
 
-        const message = generateMessage(citaHora, hoursRemainder, cliente?.nombre);
+        const message = generateMessage(
+          citaHora,
+          hoursRemainder,
+          cliente?.nombre,
+        );
 
         await Promise.all(
           usuariosEmpresa.map(async (user) => {
@@ -96,7 +103,6 @@ export const SendRemainders = async (deviceService: DeviceService) => {
     connection.destroy();
   }
 };
-
 
 function generateMessage(citaHora, hoursRemainder, clientName) {
   const cita = moment(citaHora);
