@@ -4,6 +4,8 @@ import { DemonDeleteOldsThreads } from "./utils/daemons/demonToThreads";
 import { OpenOrClose } from "./utils/demonOpenOrClose";
 import { SendRemainders } from "./utils/daemons/daemonSendReminders";
 import { DeviceService } from "./device/device.service";
+import { Queue } from 'bullmq';
+import { InjectQueue } from '@nestjs/bullmq';
 
 @Injectable()
 export class AppService {
@@ -23,7 +25,11 @@ export class AppService {
     }
   }
 
-  constructor(private readonly deviceService: DeviceService) {}
+  constructor(private readonly deviceService: DeviceService,
+    @InjectQueue(`GreenApiResponseMessagee-${process.env.SUBDOMAIN}`)
+    private readonly messageQueue: Queue
+
+  ) {}
 
   getHello(): string {
     return "Hello World!";
@@ -33,7 +39,7 @@ export class AppService {
   @Interval(60000)
   handleIntervalRemainders() {
     if (this.shouldExecuteIntervalRemainders) {
-      SendRemainders(this.deviceService);
+      SendRemainders(this.deviceService, this.messageQueue);
     }
   }
 

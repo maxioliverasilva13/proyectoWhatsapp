@@ -11,7 +11,10 @@ import { ProductoPedido } from 'src/productopedido/entities/productopedido.entit
 import { DeviceService } from 'src/device/device.service';
 import { Usuario } from 'src/usuario/entities/usuario.entity';
 
-export const SendRemainders = async (deviceService: DeviceService) => {
+export const SendRemainders = async (
+  deviceService: DeviceService,
+  messageQueue: any,
+) => {
   const connection = await handleGetCurrentConnection();
   try {
     console.log('intentando enviar recordatorios');
@@ -37,14 +40,14 @@ export const SendRemainders = async (deviceService: DeviceService) => {
 
     const hoursRemainder = currentEmpresa.remaindersHorsRemainder;
 
-    const localNow = moment().subtract(3, "hours");
+    const localNow = moment().subtract(3, 'hours');
     const localMax = localNow.clone().add(hoursRemainder, 'hours');
 
     const nowUtc = localNow.clone().utc();
     const maxDateUtc = localMax.clone().utc();
 
-    console.log("nowUtc", nowUtc, nowUtc.toDate());
-    console.log("maxDateUtc", maxDateUtc, maxDateUtc.toDate())
+    console.log('nowUtc', nowUtc, nowUtc.toDate());
+    console.log('maxDateUtc', maxDateUtc, maxDateUtc.toDate());
 
     const pedidos = await pedidoRepo
       .createQueryBuilder('pedido')
@@ -86,14 +89,16 @@ export const SendRemainders = async (deviceService: DeviceService) => {
           cliente?.nombre,
         );
 
-        await Promise.all(
-          usuariosEmpresa.map(async (user) => {
-            await deviceService.sendNotificationUser(
-              user?.id,
-              `Recordatorio`,
-              message,
-            );
-          }),
+        await messageQueue.add(
+          'send',
+          {
+            message: message,
+            chatId: pedido?.chatIdWhatsapp,
+          },
+          {
+            priority: 0,
+            attempts: 5,
+          },
         );
 
         pedido.notified = true;
