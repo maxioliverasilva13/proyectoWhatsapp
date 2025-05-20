@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { UpdateEmpresaDto } from 'src/empresa/dto/update-empresa.dto';
 import { Empresa } from 'src/empresa/entities/empresa.entity';
 import { Usuario } from 'src/usuario/entities/usuario.entity';
 import { Repository } from 'typeorm';
@@ -94,12 +95,57 @@ export class AdminService {
     };
   }
 
+  async update(id: any, updateEmpresaDto: any, loggedUserId: any) {
+    try {
+      const user = await this.userRepo.findOne({ where: { id: loggedUserId } });
+      if (!user?.isSuperAdmin) {
+        throw new BadRequestException('Invalid roles');
+      }
+      const empresa = await this.empresaRepo.findOne({
+        where: { id },
+        relations: ['tipoServicioId'],
+      });
+
+      if (!empresa) {
+        throw new BadRequestException('La empresa no existe');
+      }
+
+      Object.keys(updateEmpresaDto).forEach((key) => {
+        if (updateEmpresaDto[key] !== undefined) {
+          if (key in empresa) {
+            (empresa as any)[key] = updateEmpresaDto[key];
+          } else {
+            throw new BadRequestException(`El campo ${key} no es válido`);
+          }
+        }
+      });
+
+      await this.empresaRepo.save(empresa);
+
+      return {
+        ok: true,
+        statusCode: 200,
+        message: 'Empresa actualizada exitosamente',
+        data: empresa,
+      };
+    } catch (error) {
+      throw new BadRequestException({
+        ok: false,
+        statusCode: 400,
+        message: error?.message,
+        error: 'Bad Request',
+      });
+    }
+  }
+
   async deploy(empresaId: any, loggedUserId: number) {
     const user = await this.userRepo.findOne({ where: { id: loggedUserId } });
     if (!user?.isSuperAdmin) {
       throw new BadRequestException('Invalid roles');
     }
-    const empresa = await this.empresaRepo.findOne({ where: { id: empresaId  } });
+    const empresa = await this.empresaRepo.findOne({
+      where: { id: empresaId },
+    });
     if (!empresa) {
       throw new BadRequestException('Empresa no encontrada');
     }
@@ -140,6 +186,9 @@ export class AdminService {
       );
     }
 
-    return { ok: true, message: `Workflow disparado con db_name: ${empresa?.db_name}` };
+    return {
+      ok: true,
+      message: `Workflow disparado con db_name: ${empresa?.db_name}`,
+    };
   }
 }

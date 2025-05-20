@@ -41,8 +41,8 @@ export const askAssistant = async (question, instrucciones) => {
   }
 };
 
-export async function createThread(empresaType, empresaId = '', userId) {
-  const formatedText = `EmpresaId: ${empresaId} \n EmpresaType: ${empresaType} \n UserId: ${userId} \n
+export async function createThread(empresaType, empresaId = '', userId, senderName) {
+  const formatedText = `EmpresaId: ${empresaId} \n EmpresaType: ${empresaType} \n UserId: ${userId} \n Nombre de usuario: ${senderName} \n
     CURRENT_TIME:${getCurrentDate()} \n`;
 
   const response = await fetch(`https://api.openai.com/v1/threads`, {

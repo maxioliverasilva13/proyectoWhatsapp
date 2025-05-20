@@ -67,7 +67,7 @@ export class GreenApiService {
 
     let currentThreadId = threadId;
     if (!threadId) {
-      currentThreadId = await createThread(empresaType, empresaId, clienteId);
+      currentThreadId = await createThread(empresaType, empresaId, clienteId, senderName);
 
       const resp = await this.chatGptThreadsService.createThreads({
         numberPhone: numberSender,

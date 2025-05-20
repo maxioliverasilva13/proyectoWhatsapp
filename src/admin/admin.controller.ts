@@ -32,9 +32,18 @@ export class AdminController {
   }
 
   @Post('deploy/:id')
-  update(@Req() request: any, @Param('id') id: string) {
+  deployEmpresa(@Req() request: any, @Param('id') id: string) {
     const loggedUserId = request?.user?.userId;
     return this.adminService.deploy(id, loggedUserId);
   }
-  
+
+  @Patch('/empresa/:id')
+  updateEmpresa(
+    @Req() request: any,
+    @Param('id') empresaId: string,
+    @Body() data,
+  ) {
+    const loggedUserId = request?.user?.userId;
+    return this.adminService.update(empresaId, data, loggedUserId);
+  }
 }
