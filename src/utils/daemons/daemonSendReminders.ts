@@ -37,11 +37,11 @@ export const SendRemainders = async (deviceService: DeviceService) => {
 
     const hoursRemainder = currentEmpresa.remaindersHorsRemainder;
 
-    const nowUtc = moment.utc(); // ahora en UTC real
-    const maxDateUtc = moment.utc().add(hoursRemainder, 'hours'); // en UTC también
+    const localNow = moment().utcOffset(-3 * 60);
+    const localMax = localNow.clone().add(hoursRemainder, 'hours');
 
-    console.log('nowUtc:', nowUtc.toISOString());
-    console.log('maxDateUtc:', maxDateUtc.toISOString());
+    const nowUtc = localNow.clone().utc();
+    const maxDateUtc = localMax.clone().utc();
 
     const pedidos = await pedidoRepo
       .createQueryBuilder('pedido')
