@@ -43,6 +43,9 @@ export const SendRemainders = async (deviceService: DeviceService) => {
     const nowUtc = localNow.clone().utc();
     const maxDateUtc = localMax.clone().utc();
 
+    console.log("nowUtc", nowUtc, nowUtc.toDate());
+    console.log("maxDateUtc", maxDateUtc, maxDateUtc.toDate())
+
     const pedidos = await pedidoRepo
       .createQueryBuilder('pedido')
       .where('pedido.confirmado = :confirmado', { confirmado: true })
