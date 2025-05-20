@@ -27,14 +27,14 @@ export class EmailServiceResend {
       Hemos recibido una solicitud para restablecer la contraseña de tu cuenta. Haz clic en el botón de abajo para continuar:
     </p>
 
-    <a
-      href="miapp://reset-password?token=${token}"
-      style="display: inline-block; background-color: #128c7e; color: #fff;
-            text-decoration: none; font-size: 16px; padding: 12px 25px; 
-            border-radius: 5px; font-weight: bold;"
-    >
-      Restablecer contraseña
-    </a>
+<a
+  href="miapp:///(auth)/reset-password?token=${token}"
+  style="display: inline-block; background-color: #128c7e; color: #fff;
+        text-decoration: none; font-size: 16px; padding: 12px 25px; 
+        border-radius: 5px; font-weight: bold;"
+>
+  Restablecer contraseña
+</a>
 
     <p style="color: #999999; font-size: 12px; margin-top: 40px;">
       Si no solicitaste este cambio, puedes ignorar este correo.
