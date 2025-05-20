@@ -40,8 +40,8 @@ export const SendRemainders = async (deviceService: DeviceService) => {
     const nowUtc = moment.utc();
     const maxDateUtc = moment.utc().add(hoursRemainder, 'hours');
 
-    console.log('nowUtc:', nowUtc.toISOString());
-    console.log('maxDateUtc:', maxDateUtc.toISOString());
+    console.log('nowUtc:', nowUtc.toISOString(), nowUtc.toDate());
+    console.log('maxDateUtc:', maxDateUtc.toISOString(), maxDateUtc.toDate());
 
     const pedidos = await pedidoRepo.find({
       where: {
