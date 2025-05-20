@@ -18,6 +18,7 @@ export class AppService {
       this.shouldExecuteInterval = true;
     } else {
       this.shouldExecuteIntervalRemainders = true;
+      console.log("si 1");
       this.shouldExecuteIntervalDeleteThreads = true;
     }
   }
@@ -29,7 +30,7 @@ export class AppService {
   }
 
   // 1 hour
-  @Interval(95000)
+  @Interval(60000)
   handleIntervalRemainders() {
     if (this.shouldExecuteIntervalRemainders) {
       SendRemainders(this.deviceService);
