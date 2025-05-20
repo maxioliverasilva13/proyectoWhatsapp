@@ -20,7 +20,6 @@ export class EmailServiceResend {
         html: `
 <div style="background-color: #f4f4f4; padding: 40px 20px; font-family: Arial, sans-serif; text-align: center;">
   <div style="max-width: 500px; margin: 0 auto; background-color: #ffffff; border-radius: 10px; padding: 30px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);">
-    F
     <h2 style="color: #111111; margin-bottom: 20px;">Restablecer tu contraseña</h2>
     
     <p style="color: #333333; font-size: 16px; margin-bottom: 30px;">
