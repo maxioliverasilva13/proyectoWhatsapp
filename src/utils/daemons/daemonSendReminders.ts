@@ -35,25 +35,33 @@ export const SendRemainders = async (deviceService: DeviceService) => {
 
     const hoursRemainder = currentEmpresa.remaindersHorsRemainder;
 
-    const pedidos = await connection.query(`SELECT * FROM pedido
-        WHERE confirmado = true
-        AND fecha >= CURRENT_TIMESTAMP 
-        AND fecha <= CURRENT_TIMESTAMP + INTERVAL '${hoursRemainder} hours';`);
+    // Buscar pedidos confirmados, con fecha dentro del rango y que no hayan sido notificados
+    const pedidos = await pedidoRepo.find({
+      where: {
+        confirmado: true,
+        notified: false,
+        fecha: Between(new Date(), moment().add(hoursRemainder, 'hours').toDate()),
+      },
+    });
+
+    console.log("intentando notificar ", pedidos)
 
     if (pedidos.length === 0 || usuariosEmpresa?.length === 0) {
       return;
     }
 
-    for (const pedido of pedidos as Pedido[]) {
+    for (const pedido of pedidos) {
       const cliente = await clienteRepo.findOne({
         where: { id: pedido?.cliente_id },
       });
-      const citaHora = moment()
-        .add(hoursRemainder, 'hours')
-        .format('YYYY-MM-DD HH:mm');
+
+      const citaHora = moment(pedido.fecha).format('YYYY-MM-DD HH:mm');
+
       const products = await prodPedido.find({
         where: { pedidoId: pedido.id },
+        relations: ['producto'],
       });
+
       if (cliente) {
         let services = null;
         if (products?.length > 0) {
@@ -61,9 +69,11 @@ export const SendRemainders = async (deviceService: DeviceService) => {
             ?.map((prod) => prod?.producto?.nombre)
             ?.join(', ');
         }
-        const message = generateMessage(citaHora, hoursRemainder);
+
+        const message = generateMessage(citaHora, hoursRemainder, cliente?.nombre);
+
         await Promise.all(
-          usuariosEmpresa?.map(async (user) => {
+          usuariosEmpresa.map(async (user) => {
             await deviceService.sendNotificationUser(
               user?.id,
               `Recordatorio`,
@@ -71,6 +81,9 @@ export const SendRemainders = async (deviceService: DeviceService) => {
             );
           }),
         );
+
+        pedido.notified = true;
+        await pedidoRepo.save(pedido);
       } else {
         console.log('No client found');
       }
@@ -82,13 +95,14 @@ export const SendRemainders = async (deviceService: DeviceService) => {
   }
 };
 
-function generateMessage(citaHora, hoursRemainder) {
+
+function generateMessage(citaHora, hoursRemainder, clientName) {
   const cita = moment(citaHora);
   if (hoursRemainder < 24) {
-    return `Hola, no olvides tu cita para hoy a las ${cita.format('HH:mm')}`;
+    return `Hola ${clientName}, no olvides tu cita para hoy a las ${cita.format('HH:mm')}`;
   } else if (hoursRemainder < 48) {
-    return `Hola, no olvides tu cita para mañana a las ${cita.format('HH:mm')}`;
+    return `Hola ${clientName}, no olvides tu cita para mañana a las ${cita.format('HH:mm')}`;
   } else {
-    return `Hola, no olvides tu cita para el ${cita.format('dddd, MMMM Do YYYY [a las] HH:mm')}`;
+    return `Hola ${clientName}, no olvides tu cita para el ${cita.format('dddd, MMMM Do YYYY [a las] HH:mm')}`;
   }
 }

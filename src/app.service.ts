@@ -29,7 +29,7 @@ export class AppService {
   }
 
   // 1 hour
-  @Interval(3600000)
+  @Interval(95000)
   handleIntervalRemainders() {
     if (this.shouldExecuteIntervalRemainders) {
       SendRemainders(this.deviceService);
