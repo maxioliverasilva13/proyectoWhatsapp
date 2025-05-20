@@ -29,7 +29,6 @@ export const SendRemainders = async (
     const currentEmpresa = await empresaRepo.findOne({
       where: { db_name: process.env.SUBDOMAIN },
     });
-    console.log('currentEmpresa', currentEmpresa?.id);
     if (!currentEmpresa || !currentEmpresa.notificarReservaHoras) {
       return;
     }
@@ -46,12 +45,10 @@ export const SendRemainders = async (
     const nowUtc = localNow.clone().utc();
     const maxDateUtc = localMax.clone().utc();
 
-    console.log('nowUtc', nowUtc, nowUtc.toDate());
-    console.log('maxDateUtc', maxDateUtc, maxDateUtc.toDate());
-
     const pedidos = await pedidoRepo
       .createQueryBuilder('pedido')
       .where('pedido.confirmado = :confirmado', { confirmado: true })
+      .where('pedido.withIA = :withIA', { withIA: true })
       .andWhere('pedido.notified = :notified', { notified: false })
       .andWhere('pedido.fecha >= :desde', { desde: nowUtc.toDate() })
       .andWhere('pedido.fecha <= :hasta', { hasta: maxDateUtc.toDate() })
@@ -117,10 +114,10 @@ export const SendRemainders = async (
 function generateMessage(citaHora, hoursRemainder, clientName) {
   const cita = moment(citaHora);
   if (hoursRemainder < 24) {
-    return `Hola ${clientName}, no olvides tu cita para hoy a las ${cita.format('HH:mm')}`;
+    return `Hola ${clientName}, no olvides tu reserva para hoy a las ${cita.format('HH:mm')}`;
   } else if (hoursRemainder < 48) {
-    return `Hola ${clientName}, no olvides tu cita para mañana a las ${cita.format('HH:mm')}`;
+    return `Hola ${clientName}, no olvides tu reserva para mañana a las ${cita.format('HH:mm')}`;
   } else {
-    return `Hola ${clientName}, no olvides tu cita para el ${cita.format('dddd, MMMM Do YYYY [a las] HH:mm')}`;
+    return `Hola ${clientName}, no olvides tu reserva para el ${cita.format('dddd, MMMM Do YYYY [a las] HH:mm')}`;
   }
 }
