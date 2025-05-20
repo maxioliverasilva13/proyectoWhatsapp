@@ -14,6 +14,7 @@ import { Usuario } from 'src/usuario/entities/usuario.entity';
 export const SendRemainders = async (deviceService: DeviceService) => {
   const connection = await handleGetCurrentConnection();
   try {
+    console.log("intentando enviar recordatorios")
     const globalConnection = await handleGetGlobalConnection();
 
     const pedidoRepo = connection.getRepository(Pedido);
@@ -25,6 +26,7 @@ export const SendRemainders = async (deviceService: DeviceService) => {
     const currentEmpresa = await empresaRepo.findOne({
       where: { db_name: process.env.SUBDOMAIN },
     });
+    console.log('currentEmpresa', currentEmpresa?.id)
     if (!currentEmpresa || !currentEmpresa.notificarReservaHoras) {
       return;
     }
