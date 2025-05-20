@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, Request, UnauthorizedException } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Redirect, Req, Request, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDTO } from './dto/login.dto';
 import { RegisterDTO } from './dto/register.dto';
@@ -37,5 +37,13 @@ export class AuthController {
   @Post('reset-password')
   async resetPassword(@Body() resetPasswordData: ResetPasswordDTO, @Request() req) {
     return this.authService.resetPassword(req?.user?.user, resetPasswordData.newPassword);
+  }
+
+  @Get('open-reset-link')
+  @Redirect()
+  openResetLink(@Query('token') token: string) {
+    return {
+      url: `miapp:///(auth)/reset-password?token=${token}`,
+    };
   }
 }

@@ -28,7 +28,7 @@ export class EmailServiceResend {
     </p>
 
 <a
-  href="miapp:///(auth)/reset-password?token=${token}"
+  href="https://app.whatsproy.com/auth/open-reset-link?token=${token}
   style="display: inline-block; background-color: #128c7e; color: #fff;
         text-decoration: none; font-size: 16px; padding: 12px 25px; 
         border-radius: 5px; font-weight: bold;"
