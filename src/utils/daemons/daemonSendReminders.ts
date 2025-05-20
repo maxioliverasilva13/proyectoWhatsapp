@@ -92,7 +92,7 @@ export const SendRemainders = async (
         await messageQueue.add(
           'send',
           {
-            message: message,
+            message: { message },
             chatId: pedido?.chatIdWhatsapp,
           },
           {
