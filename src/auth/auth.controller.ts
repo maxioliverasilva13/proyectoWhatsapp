@@ -36,7 +36,7 @@ export class AuthController {
 
   @Post('reset-password')
   async resetPassword(@Body() resetPasswordData: ResetPasswordDTO, @Request() req) {
-    return this.authService.resetPassword(req?.user?.user, resetPasswordData.newPassword);
+    return this.authService.resetPassword(req?.user?.userId, resetPasswordData.newPassword);
   }
 
   @Get('open-reset-link')
