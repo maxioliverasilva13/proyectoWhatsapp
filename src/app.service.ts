@@ -35,8 +35,7 @@ export class AppService {
     return "Hello World!";
   }
 
-  // 1 hour
-  @Interval(60000)
+  @Interval(900000)
   handleIntervalRemainders() {
     if (this.shouldExecuteIntervalRemainders) {
       SendRemainders(this.deviceService, this.messageQueue);
