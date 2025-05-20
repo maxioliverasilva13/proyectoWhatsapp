@@ -159,10 +159,11 @@ export class AuthService implements OnModuleDestroy {
           )}`;
 
           if (empresa.greenApiInstance && empresa.greenApiInstanceToken) {
-            const res = await fetch(
+           
+            try {
+               const res = await fetch(
               `https://api.green-api.com/waInstance${empresa.greenApiInstance}/getStateInstance/${empresa.greenApiInstanceToken}`,
             );
-            try {
               const resFormated = await res.json();
 
               greenApiConfigured = resFormated.stateInstance === 'authorized';
