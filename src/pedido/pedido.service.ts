@@ -65,7 +65,7 @@ export class PedidoService implements OnModuleDestroy {
     private readonly productoPedidoRepository: Repository<ProductoPedido>,
     @InjectQueue(`sendMessageChangeStatusOrder-${process.env.SUBDOMAIN}`)
     private readonly messageQueue: Queue,
-  ) {}
+  ) { }
 
   async onModuleInit() {
     if (!this.globalConnection) {
@@ -372,10 +372,10 @@ export class PedidoService implements OnModuleDestroy {
         const formatToSendFrontend = {
           clientName: createPedidoDto.clientName,
           direccion:
-            createPedidoDto?.infoLinesJson?.direccion || 'No hay direccion',
+            createPedidoDto?.infoLinesJson?.direccion || createPedidoDto?.infoLinesJson?.Direccion || createPedidoDto?.infoLinesJson?.address  || 'No hay direccion',
           numberSender: createPedidoDto.numberSender,
           total,
-          orderId: savedPedido.id,
+          id: savedPedido.id,
           fecha: savedPedido.fecha,
           status: savedPedido.confirmado,
         };
@@ -621,7 +621,7 @@ export class PedidoService implements OnModuleDestroy {
 
       const pedidosFinal = pedidos.map((pedido) => {
         const infoLinesJson = JSON.parse(pedido.infoLinesJson || '{}');
-        const direcciones = infoLinesJson?.direccion || infoLinesJson?.Direccion   || 'No hay direccion';
+        const direcciones = infoLinesJson?.direccion || infoLinesJson?.Direccion || 'No hay direccion';
         let total = 0;
 
         pedido.pedidosprod.forEach((producto) => {
