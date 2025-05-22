@@ -501,9 +501,9 @@ export class PedidoService implements OnModuleDestroy {
         statusCode: 200,
         data: {
           client: {
-            name: getClient.nombre,
-            phone: getClient.telefono,
-            id: getClient.id,
+            name: getClient.nombre ?? "No name",
+            phone: getClient.telefono ?? "No phone",
+            id: getClient.id ?? "No id",
           },
           products: pedidosProdFormated,
           chatId: pedidoExist.chat,
