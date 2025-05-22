@@ -117,16 +117,16 @@ export class ProductoService implements OnModuleDestroy {
 
   async findAllWithQuery(data: GetProductsDTO): Promise<Producto[]> {
     const whereCondition: any = { disponible: true };
-
-    if (data.query) {
-      whereCondition.nombre = ILike(`%${data.query}%`);
+  
+    if (data.query?.trim()) {
+      whereCondition.nombre = ILike(`%${data.query.trim()}%`);
     }
-
+  
     const products = await this.productoRepository.find({
       where: whereCondition,
       relations: ['category'],
     });
-
+  
     return products;
   }
 
