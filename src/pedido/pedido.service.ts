@@ -385,14 +385,16 @@ export class PedidoService implements OnModuleDestroy {
         return formatToSendFrontend;
       };
 
+      let responseFormat;
+
       if (tipoServicio.tipo === 'RESERVA') {
         await Promise.all(
-          createPedidoDto.products.map((product) =>
+          responseFormat = createPedidoDto.products.map((product) =>
             crearNuevoPedido([product]),
           ),
         );
       } else {
-        await crearNuevoPedido(createPedidoDto.products);
+        responseFormat = await crearNuevoPedido(createPedidoDto.products);
       }
 
       return {
@@ -402,6 +404,7 @@ export class PedidoService implements OnModuleDestroy {
         messageToUser: createPedidoDto?.messageToUser
           ? createPedidoDto?.messageToUser
           : messageFinal + '\n\nTotal:' + globalTotal,
+        formatToSendFrontend:responseFormat
       };
     } catch (error) {
       console.log('error', error);
