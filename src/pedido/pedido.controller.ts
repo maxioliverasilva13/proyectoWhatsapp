@@ -140,7 +140,8 @@ export class PedidoController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.pedidoService.remove(+id);
+  remove(@Param('id') id: string, @Body() body: any) {
+    const text = body?.reason;
+    return this.pedidoService.remove(+id, text);
   }
 }

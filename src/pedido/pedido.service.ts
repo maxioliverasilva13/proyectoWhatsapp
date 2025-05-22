@@ -35,6 +35,7 @@ import { Category } from 'src/category/entities/category.entity';
 import { Queue } from 'bullmq';
 import { InjectQueue } from '@nestjs/bullmq';
 import { TIPO_SERVICIO_DELIVERY_ID } from 'src/database/seeders/app/tipopedido.seed';
+import { TipoPedido } from 'src/enums/tipopedido';
 
 const LOCALE_TIMEZONE = 'America/Montevideo';
 @Injectable()
@@ -65,7 +66,7 @@ export class PedidoService implements OnModuleDestroy {
     private readonly productoPedidoRepository: Repository<ProductoPedido>,
     @InjectQueue(`sendMessageChangeStatusOrder-${process.env.SUBDOMAIN}`)
     private readonly messageQueue: Queue,
-  ) { }
+  ) {}
 
   async onModuleInit() {
     if (!this.globalConnection) {
@@ -135,7 +136,7 @@ export class PedidoService implements OnModuleDestroy {
     };
   }
 
-  async cancel(pedidoId: any) {
+  async cancel(pedidoId: any, fromIA: boolean = false) {
     const pedido = await this.pedidoRepository.findOne({
       where: { id: pedidoId },
     });
@@ -154,7 +155,7 @@ export class PedidoService implements OnModuleDestroy {
       const client = await this.clienteRepository.findOne({
         where: { id: clientId },
       });
-      if (client) {
+      if (client && !fromIA) {
         await this.messageQueue.add(
           'send',
           {
@@ -202,24 +203,42 @@ export class PedidoService implements OnModuleDestroy {
   }
 
   async getMyOrders(client_id: any) {
-    if (client_id) {
-      const allPedidos = (
-        await this.pedidoRepository.find({
-          where: { cliente_id: client_id, available: true, finalizado: false },
-          relations: [
-            'pedidosprod',
-            'pedidosprod.producto',
-            'estado',
-            'cambioEstados',
-          ],
-        })
-      ).map((pedido) => {
-        return pedido;
-      });
-      return JSON.stringify(allPedidos);
-    } else {
+    if (!client_id) {
       return 'No hay pedidos recientes';
     }
+
+    const empresa = await this.empresaRepository.findOne({
+      where: { db_name: process.env.SUBDOMAIN },
+      relations: ['tipoServicioId'],
+    });
+
+    if (!empresa) {
+      throw new BadRequestException('La empresa indicada no existe');
+    }
+
+    const isDelivery = empresa.tipoServicioId.id === TIPO_SERVICIO_DELIVERY_ID;
+
+    const now = moment.tz(empresa.timeZone ?? 'America/Montevideo');
+    const filterDate = isDelivery
+      ? now.clone().subtract(1, 'day').startOf('day')
+      : now.clone().startOf('day');
+
+    const allPedidos = await this.pedidoRepository.find({
+      where: {
+        cliente_id: client_id,
+        available: true,
+        finalizado: false,
+        createdAt: MoreThan(filterDate.toDate()),
+      },
+      relations: [
+        'pedidosprod',
+        'pedidosprod.producto',
+        'estado',
+        'cambioEstados',
+      ],
+    });
+
+    return JSON.stringify(allPedidos);
   }
 
   async create(createPedidoDto: CreatePedidoDto) {
@@ -238,7 +257,7 @@ export class PedidoService implements OnModuleDestroy {
           hoy: moment().startOf('day').toDate(),
         })
         .getMany();
-      console.log("currentOrders", currentOrders)
+      console.log('currentOrders', currentOrders);
       if (currentOrders?.length > 3) {
         throw new BadRequestException(
           'No se pueden tener mas de 3 ordenes activas.',
@@ -372,7 +391,10 @@ export class PedidoService implements OnModuleDestroy {
         const formatToSendFrontend = {
           clientName: createPedidoDto.clientName,
           direccion:
-            createPedidoDto?.infoLinesJson?.direccion || createPedidoDto?.infoLinesJson?.Direccion || createPedidoDto?.infoLinesJson?.address  || 'No hay direccion',
+            createPedidoDto?.infoLinesJson?.direccion ||
+            createPedidoDto?.infoLinesJson?.Direccion ||
+            createPedidoDto?.infoLinesJson?.address ||
+            'No hay direccion',
           numberSender: createPedidoDto.numberSender,
           total,
           id: savedPedido.id,
@@ -389,9 +411,9 @@ export class PedidoService implements OnModuleDestroy {
 
       if (tipoServicio.tipo === 'RESERVA') {
         await Promise.all(
-          responseFormat = createPedidoDto.products.map((product) =>
+          (responseFormat = createPedidoDto.products.map((product) =>
             crearNuevoPedido([product]),
-          ),
+          )),
         );
       } else {
         responseFormat = await crearNuevoPedido(createPedidoDto.products);
@@ -404,7 +426,7 @@ export class PedidoService implements OnModuleDestroy {
         messageToUser: createPedidoDto?.messageToUser
           ? createPedidoDto?.messageToUser
           : messageFinal + '\n\nTotal:' + globalTotal,
-        formatToSendFrontend:responseFormat
+        formatToSendFrontend: responseFormat,
       };
     } catch (error) {
       console.log('error', error);
@@ -504,9 +526,9 @@ export class PedidoService implements OnModuleDestroy {
         statusCode: 200,
         data: {
           client: {
-            name: getClient.nombre ?? "No name",
-            phone: getClient.telefono ?? "No phone",
-            id: getClient.id ?? "No id",
+            name: getClient.nombre ?? 'No name',
+            phone: getClient.telefono ?? 'No phone',
+            id: getClient.id ?? 'No id',
           },
           products: pedidosProdFormated,
           chatId: pedidoExist.chat,
@@ -624,7 +646,10 @@ export class PedidoService implements OnModuleDestroy {
 
       const pedidosFinal = pedidos.map((pedido) => {
         const infoLinesJson = JSON.parse(pedido.infoLinesJson || '{}');
-        const direcciones = infoLinesJson?.direccion || infoLinesJson?.Direccion || 'No hay direccion';
+        const direcciones =
+          infoLinesJson?.direccion ||
+          infoLinesJson?.Direccion ||
+          'No hay direccion';
         let total = 0;
 
         pedido.pedidosprod.forEach((producto) => {
@@ -1042,7 +1067,7 @@ export class PedidoService implements OnModuleDestroy {
     return pedido;
   }
 
-  async remove(id: number) {
+  async remove(id: number, text?: string) {
     try {
       const pedidoExist = await this.pedidoRepository.findOne({
         where: { id: id },
@@ -1050,6 +1075,27 @@ export class PedidoService implements OnModuleDestroy {
       });
 
       pedidoExist.available = false;
+
+            const client = await this.clienteRepository.findOne({
+        where: { id: pedidoExist.cliente_id },
+      });
+      if (client) {
+        let message = `Lamentamos informarte que tu ${pedidoExist?.tipo_servicio_id === TIPO_SERVICIO_DELIVERY_ID ? 'orden' : 'reserva'} número #${pedidoExist?.id} ha sido cancelada por la empresa. Para más información, por favor contáctanos.\n`;
+        if (text) {
+          message += text;
+        }
+        await this.messageQueue.add(
+          'send',
+          {
+            message: message,
+            chatId: pedidoExist?.chatIdWhatsapp,
+          },
+          {
+            priority: 0,
+            attempts: 5,
+          },
+        );
+      }
 
       await this.pedidoRepository.save(pedidoExist);
 
