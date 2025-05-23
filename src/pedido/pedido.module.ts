@@ -17,6 +17,8 @@ import { Mensaje } from 'src/mensaje/entities/mensaje.entity';
 import { Cliente } from 'src/cliente/entities/cliente.entity';
 import { Category } from 'src/category/entities/category.entity';
 import { BullModule } from '@nestjs/bullmq';
+import { DeviceModule } from 'src/device/device.module';
+import { Reclamo } from './entities/reclamo.entity';
 
 @Module({
   imports: [
@@ -32,8 +34,10 @@ import { BullModule } from '@nestjs/bullmq';
       Cambioestadopedido,
       Mensaje,
       Cliente,
+      Reclamo
     ]),
     ProductopedidoModule,
+    DeviceModule,
     ChatModule,
     MensajeModule,
     WebSocketModule,

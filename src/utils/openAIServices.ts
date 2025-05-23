@@ -181,6 +181,10 @@ export async function sendMessageToThread(
             console.log('editOrder');
             const resp = await pedidoService.update(args.orderId, args.order);
             toolResult = resp;
+          } else if (name === 'createReclamo') {
+            console.log('createReclamo');
+            const resp = await pedidoService.createReclamo(args.pedidoId, args.reclamoText);
+            toolResult = resp.ok;
           } else if (name === 'cancelOrder') {
             console.log('cancelOrder');
             const resp = await pedidoService.cancel(args.orderId, true);

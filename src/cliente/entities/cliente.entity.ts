@@ -1,5 +1,6 @@
+import { Reclamo } from "src/pedido/entities/reclamo.entity";
 import { BaseEntity } from "src/utils/base.entity";
-import { PrimaryGeneratedColumn, Column, Entity } from "typeorm";
+import { PrimaryGeneratedColumn, Column, Entity, OneToMany } from "typeorm";
 
 @Entity('cliente')
 export class Cliente extends BaseEntity {
@@ -15,5 +16,8 @@ export class Cliente extends BaseEntity {
 
   @Column()
   telefono: string;
+
+  @OneToMany(() => Reclamo, (rec) => rec.client)
+  reclamos: Reclamo[];
 
 }

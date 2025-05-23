@@ -20,6 +20,7 @@ import { Currency } from "src/currencies/entities/currency.entity";
 import { Category } from "src/category/entities/category.entity";
 import { Device } from "src/device/device.entity";
 import { Payment } from "src/payments/payment.entity";
+import { Reclamo } from "src/pedido/entities/reclamo.entity";
 
 export const ENTITIES_TO_MAP_GLOBAL_DB = [
   Plan,
@@ -42,6 +43,7 @@ export const ENTITIES_TO_MAP_EMPRESA_DB = [
   Chat,
   ProductoPedido,
   Estado,
+  Reclamo,
   Mensaje,
   ChatGptThreads,
   Infoline,

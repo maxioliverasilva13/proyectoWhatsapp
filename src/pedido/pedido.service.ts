@@ -35,9 +35,8 @@ import { Category } from 'src/category/entities/category.entity';
 import { Queue } from 'bullmq';
 import { InjectQueue } from '@nestjs/bullmq';
 import { TIPO_SERVICIO_DELIVERY_ID } from 'src/database/seeders/app/tipopedido.seed';
-import { TipoPedido } from 'src/enums/tipopedido';
-
-const LOCALE_TIMEZONE = 'America/Montevideo';
+import { DeviceService } from 'src/device/device.service';
+import { Reclamo } from './entities/reclamo.entity';
 @Injectable()
 export class PedidoService implements OnModuleDestroy {
   private tipoServicioRepository: Repository<Tiposervicio>;
@@ -54,6 +53,8 @@ export class PedidoService implements OnModuleDestroy {
     private cambioEstadoRepository: Repository<Cambioestadopedido>,
     @InjectRepository(Chat)
     private chatRepository: Repository<Chat>,
+    @InjectRepository(Reclamo)
+    private reclamoRepo: Repository<Reclamo>,
     @InjectRepository(Mensaje)
     private mensajeRepository: Repository<Mensaje>,
     private readonly productoPedidoService: ProductopedidoService,
@@ -66,6 +67,7 @@ export class PedidoService implements OnModuleDestroy {
     private readonly productoPedidoRepository: Repository<ProductoPedido>,
     @InjectQueue(`sendMessageChangeStatusOrder-${process.env.SUBDOMAIN}`)
     private readonly messageQueue: Queue,
+    private readonly deviceService: DeviceService,
   ) {}
 
   async onModuleInit() {
@@ -235,10 +237,33 @@ export class PedidoService implements OnModuleDestroy {
         'pedidosprod.producto',
         'estado',
         'cambioEstados',
+        'reclamo',
       ],
     });
 
-    return JSON.stringify(allPedidos);
+    return JSON.stringify(
+      allPedidos.map((pedido) => {
+        return {
+          ...pedido,
+          estado: pedido?.estado?.nombre,
+          estadoTexto: pedido?.estado?.mensaje,
+          pedidosprod: pedido.pedidosprod.map((pedidoProd) => {
+            return {
+              ...pedidoProd,
+              pedido: undefined,
+              producto: {
+                id: pedidoProd.producto?.id,
+                nombre: pedidoProd?.producto?.nombre,
+                precio: pedidoProd?.producto?.precio,
+                descripcion: pedidoProd?.producto?.descripcion,
+                currency_id: pedidoProd?.producto?.currency_id,
+              },
+            };
+          }),
+          reclamo: pedido?.reclamo?.texto ?? undefined,
+        };
+      }),
+    );
   }
 
   async create(createPedidoDto: CreatePedidoDto) {
@@ -493,6 +518,7 @@ export class PedidoService implements OnModuleDestroy {
           'estado',
           'cambioEstados.pedido',
           'cambioEstados.estado',
+          'reclamo',
         ],
       });
       if (!pedidoExist) {
@@ -530,6 +556,7 @@ export class PedidoService implements OnModuleDestroy {
             phone: getClient.telefono ?? 'No phone',
             id: getClient.id ?? 'No id',
           },
+          reclamo: pedidoExist?.reclamo?.texto ?? undefined,
           products: pedidosProdFormated,
           chatId: pedidoExist.chat,
           date: pedidoExist.fecha,
@@ -1067,6 +1094,64 @@ export class PedidoService implements OnModuleDestroy {
     return pedido;
   }
 
+  async createReclamo(pedidoId: number, text: string) {
+    try {
+      const pedido = await this.pedidoRepository.findOne({
+        where: { id: pedidoId },
+        relations: ['reclamo', 'chat'],
+      });
+
+      if (!pedido) {
+        throw new BadRequestException('El pedido no existe');
+      }
+
+      const client = await this.clienteRepository.findOne({
+        where: { id: pedido.cliente_id },
+        relations: ['reclamos'],
+      });
+
+      if (!client) {
+        throw new BadRequestException('El cliente no existe');
+      }
+
+      let reclamo = pedido.reclamo;
+
+      if (reclamo) {
+        reclamo.texto = text;
+      } else {
+        reclamo = this.reclamoRepo.create({
+          client,
+          pedido,
+          texto: text,
+        });
+      }
+
+      await this.reclamoRepo.save(reclamo);
+
+      const messagePushTitle = 'Nuevo reclamo recibido';
+      const messagePush = `El cliente #${client.nombre} realizó un reclamo sobre el pedido #${pedido.id}`;
+
+      await this.deviceService.sendNotificationEmpresa(
+        pedido.id,
+        messagePushTitle,
+        messagePush,
+      );
+
+      return {
+        ok: true,
+        message: 'Reclamo procesado correctamente',
+        statusCode: 200,
+      };
+    } catch (error) {
+      throw new BadRequestException({
+        ok: false,
+        statusCode: 400,
+        message: error?.message || 'Error al procesar el reclamo',
+        error: 'Bad Request',
+      });
+    }
+  }
+
   async remove(id: number, text?: string) {
     try {
       const pedidoExist = await this.pedidoRepository.findOne({
@@ -1076,7 +1161,7 @@ export class PedidoService implements OnModuleDestroy {
 
       pedidoExist.available = false;
 
-            const client = await this.clienteRepository.findOne({
+      const client = await this.clienteRepository.findOne({
         where: { id: pedidoExist.cliente_id },
       });
       if (client) {

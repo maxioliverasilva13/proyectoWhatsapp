@@ -12,6 +12,7 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { Reclamo } from './reclamo.entity';
 
 @Entity('pedido')
 export class Pedido extends BaseEntity {
@@ -23,6 +24,9 @@ export class Pedido extends BaseEntity {
 
   @Column({ default: false })
   withIA: boolean;
+
+  @OneToOne(() => Reclamo, (reclamo) => reclamo.pedido)
+  reclamo: Reclamo;
 
   @OneToMany(() => Cambioestadopedido, (cmbe) => cmbe.pedido)
   cambioEstados: Cambioestadopedido[];
