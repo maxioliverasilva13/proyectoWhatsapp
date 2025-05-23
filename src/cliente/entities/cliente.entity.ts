@@ -17,7 +17,7 @@ export class Cliente extends BaseEntity {
   @Column()
   telefono: string;
 
-  @OneToMany(() => Reclamo, (rec) => rec.client)
+  @OneToMany(() => Reclamo, (reclamo) => reclamo.client)
   reclamos: Reclamo[];
 
 }

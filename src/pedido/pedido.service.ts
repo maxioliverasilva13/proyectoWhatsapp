@@ -43,6 +43,7 @@ export class PedidoService implements OnModuleDestroy {
   private clienteRepository: Repository<Cliente>;
   private empresaRepository: Repository<Empresa>;
   private globalConnection: DataSource;
+  private reclamoRepo: Repository<Reclamo>
 
   constructor(
     @InjectRepository(Pedido)
@@ -53,10 +54,7 @@ export class PedidoService implements OnModuleDestroy {
     private cambioEstadoRepository: Repository<Cambioestadopedido>,
     @InjectRepository(Chat)
     private chatRepository: Repository<Chat>,
-    @InjectRepository(Reclamo)
-    private reclamoRepo: Repository<Reclamo>,
     @InjectRepository(Mensaje)
-    private mensajeRepository: Repository<Mensaje>,
     private readonly productoPedidoService: ProductopedidoService,
     @InjectRepository(Producto)
     private readonly productoRespitory: Repository<Producto>,
@@ -78,6 +76,7 @@ export class PedidoService implements OnModuleDestroy {
       this.globalConnection.getRepository(Tiposervicio);
     this.clienteRepository = this.globalConnection.getRepository(Cliente);
     this.empresaRepository = this.globalConnection.getRepository(Empresa);
+    this.reclamoRepo = this.globalConnection.getRepository(Reclamo);
   }
 
   async getStatistics(filterType: any) {
@@ -241,8 +240,12 @@ export class PedidoService implements OnModuleDestroy {
       ],
     });
 
-    return JSON.stringify(
-      allPedidos.map((pedido) => {
+    const pedidos = await Promise.all(
+      allPedidos.map(async (pedido) => {
+        const currentReclamo = await this.reclamoRepo.findOne({
+          where: { id: Number(pedido?.reclamo) as any },
+        });
+
         return {
           ...pedido,
           estado: pedido?.estado?.nombre,
@@ -260,10 +263,12 @@ export class PedidoService implements OnModuleDestroy {
               },
             };
           }),
-          reclamo: pedido?.reclamo?.texto ?? undefined,
+          reclamo: currentReclamo?.texto ?? undefined,
         };
       }),
     );
+
+    return JSON.stringify(pedidos);
   }
 
   async create(createPedidoDto: CreatePedidoDto) {
@@ -518,7 +523,6 @@ export class PedidoService implements OnModuleDestroy {
           'estado',
           'cambioEstados.pedido',
           'cambioEstados.estado',
-          'reclamo',
         ],
       });
       if (!pedidoExist) {
@@ -526,6 +530,10 @@ export class PedidoService implements OnModuleDestroy {
       }
       const getClient = await this.clienteRepository.findOne({
         where: { id: pedidoExist.cliente_id },
+      });
+
+      const currentReclamo = await this.reclamoRepo.findOne({
+        where: { id: Number(pedidoExist?.reclamo) as any },
       });
 
       let total = 0;
@@ -552,11 +560,11 @@ export class PedidoService implements OnModuleDestroy {
         statusCode: 200,
         data: {
           client: {
-            name: getClient.nombre ?? 'No name',
-            phone: getClient.telefono ?? 'No phone',
-            id: getClient.id ?? 'No id',
+            name: getClient?.nombre ?? 'No name',
+            phone: getClient?.telefono ?? 'No phone',
+            id: getClient?.id ?? 'No id',
           },
-          reclamo: pedidoExist?.reclamo?.texto ?? undefined,
+          reclamo: currentReclamo?.texto ?? undefined,
           products: pedidosProdFormated,
           chatId: pedidoExist.chat,
           date: pedidoExist.fecha,
@@ -671,34 +679,40 @@ export class PedidoService implements OnModuleDestroy {
         clientes.map((cliente) => [cliente.id, cliente]),
       );
 
-      const pedidosFinal = pedidos.map((pedido) => {
-        const infoLinesJson = JSON.parse(pedido.infoLinesJson || '{}');
-        const direcciones =
-          infoLinesJson?.direccion ||
-          infoLinesJson?.Direccion ||
-          'No hay direccion';
-        let total = 0;
+      const pedidosFinal = await Promise.all(
+        pedidos.map(async (pedido) => {
+          const currentReclamo = await this.reclamoRepo.findOne({
+            where: { id: Number(pedido?.reclamo) as any },
+          });
+          const infoLinesJson = JSON.parse(pedido.infoLinesJson || '{}');
+          const direcciones =
+            infoLinesJson?.direccion ||
+            infoLinesJson?.Direccion ||
+            'No hay direccion';
+          let total = 0;
 
-        pedido.pedidosprod.forEach((producto) => {
-          total += producto.producto.precio * producto.cantidad;
-        });
+          pedido.pedidosprod.forEach((producto) => {
+            total += producto.producto.precio * producto.cantidad;
+          });
 
-        const clienteData = clienteMap.get(pedido.cliente_id);
+          const clienteData = clienteMap.get(pedido.cliente_id);
 
-        return {
-          clientName: clienteData?.nombre || 'Desconocido',
-          direccion: direcciones,
-          numberSender: clienteData?.telefono || 'N/A',
-          total,
-          estado: pedido?.estado,
-          confirmado: pedido?.confirmado,
-          detalle: pedido.detalle_pedido,
-          orderId: pedido.id,
-          date: pedido.fecha,
-          status: pedido.confirmado,
-          createdAt: pedido?.createdAt,
-        };
-      });
+          return {
+            clientName: clienteData?.nombre || 'Desconocido',
+            direccion: direcciones,
+            numberSender: clienteData?.telefono || 'N/A',
+            total,
+            reclamo: currentReclamo?.texto ?? undefined,
+            estado: pedido?.estado,
+            confirmado: pedido?.confirmado,
+            detalle: pedido.detalle_pedido,
+            orderId: pedido.id,
+            date: pedido.fecha,
+            status: pedido.confirmado,
+            createdAt: pedido?.createdAt,
+          };
+        }),
+      );
 
       return {
         ok: true,
@@ -1098,7 +1112,7 @@ export class PedidoService implements OnModuleDestroy {
     try {
       const pedido = await this.pedidoRepository.findOne({
         where: { id: pedidoId },
-        relations: ['reclamo', 'chat'],
+        relations: ['chat'],
       });
 
       if (!pedido) {
@@ -1114,19 +1128,24 @@ export class PedidoService implements OnModuleDestroy {
         throw new BadRequestException('El cliente no existe');
       }
 
-      let reclamo = pedido.reclamo;
+      let reclam = pedido.reclamo;
+
+      let reclamo = await this.reclamoRepo.findOne({
+        where: { id: reclam as any },
+      });
 
       if (reclamo) {
         reclamo.texto = text;
       } else {
         reclamo = this.reclamoRepo.create({
           client,
-          pedido,
           texto: text,
         });
       }
 
-      await this.reclamoRepo.save(reclamo);
+      const newReclamo = await this.reclamoRepo.save(reclamo);
+      pedido.reclamo = `${newReclamo?.id}`;
+      await this.pedidoRepository.save(pedido)
 
       const messagePushTitle = 'Nuevo reclamo recibido';
       const messagePush = `El cliente #${client.nombre} realizó un reclamo sobre el pedido #${pedido.id}`;

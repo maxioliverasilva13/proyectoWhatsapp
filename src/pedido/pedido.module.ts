@@ -34,7 +34,6 @@ import { Reclamo } from './entities/reclamo.entity';
       Cambioestadopedido,
       Mensaje,
       Cliente,
-      Reclamo
     ]),
     ProductopedidoModule,
     DeviceModule,
