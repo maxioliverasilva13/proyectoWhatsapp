@@ -13,12 +13,16 @@ export class ProductopedidoService {
     
     async create(productoPedidoDto : ProductoPedidoDto) {
         try {
+            console.log('entro');
+            
             const pedido = new ProductoPedido;
             pedido.pedidoId = productoPedidoDto.pedidoId;
             pedido.productoId = productoPedidoDto.productoId;
             pedido.cantidad = productoPedidoDto.cantidad;
             pedido.detalle = productoPedidoDto.detalle;
 
+            console.log('lo cree', pedido);
+            
             await this.productoPedido.save(pedido)
 
             return {
@@ -27,6 +31,7 @@ export class ProductopedidoService {
                 message:"producto agregado al pedido",
             }
         } catch (error) {
+            console.log('hubo un error', error);
             throw new BadRequestException({
                 ok: false,
                 statusCode: 400,

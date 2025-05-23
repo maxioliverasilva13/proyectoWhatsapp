@@ -66,7 +66,7 @@ export class PedidoService implements OnModuleDestroy {
     @InjectQueue(`sendMessageChangeStatusOrder-${process.env.SUBDOMAIN}`)
     private readonly messageQueue: Queue,
     private readonly deviceService: DeviceService,
-  ) {}
+  ) { }
 
   async onModuleInit() {
     if (!this.globalConnection) {
@@ -332,6 +332,8 @@ export class PedidoService implements OnModuleDestroy {
       let globalTotal = 0;
 
       const crearNuevoPedido = async (products) => {
+        console.log('recibo', products);
+
         let total = 0;
         const infoLineToJson = createPedidoDto.infoLinesJson;
 
@@ -378,10 +380,9 @@ export class PedidoService implements OnModuleDestroy {
         try {
           await Promise.all(
             products.map(async (product) => {
-              let producto = '';
 
               const productExist = existingProducts.find(
-                (p) => p.id == product.productoId,
+                (p) => p.id == parseInt(product.productoId),
               );
               if (!productExist) {
                 throw new Error(
@@ -389,28 +390,18 @@ export class PedidoService implements OnModuleDestroy {
                 );
               }
 
-              producto +=
-                '\n--Nombre: ' + (productExist.nombre ?? 'No hay nombre');
-              producto += '\n--Precio: ' + (productExist.precio ?? 0);
-              producto += '\n--Cantidad: ' + product.cantidad;
-              producto +=
-                '\n--Detalle: ' + (product.detalle ?? 'No hay detalle');
-              Object.keys(createPedidoDto.infoLinesJson).forEach((key) => {
-                const value = createPedidoDto.infoLinesJson[key];
-                producto += `\n--${key}: ${value}`;
-              });
-
               total += productExist.precio * product.cantidad;
-              producto += '\nTotal: ' + total;
-
-              await this.productoPedidoService.create({
+              console.log('lo voy a crear jeje');
+              
+              const newProdPedido = await this.productoPedidoRepository.create({
                 cantidad: product.cantidad,
-                productoId: product.productoId,
+                productoId: parseInt(product.productoId),
                 pedidoId: savedPedido.id,
-                detalle: product.detalle,
+                detalle: product.detalle ?? "No detalle",
               });
 
-              messageFinal += '\n' + producto + '\n';
+              await this.productoPedidoRepository.save(newProdPedido)
+              
             }),
           );
         } catch (error) {
@@ -429,6 +420,7 @@ export class PedidoService implements OnModuleDestroy {
           id: savedPedido.id,
           fecha: savedPedido.fecha,
           status: savedPedido.confirmado,
+          createdAt: savedPedido.createdAt
         };
 
         globalTotal += total;
