@@ -333,7 +333,7 @@ export class PedidoService implements OnModuleDestroy {
 
       const crearNuevoPedido = async (products) => {
         let total = 0;
-        const infoLineToJson = JSON.stringify(createPedidoDto.infoLinesJson);
+        const infoLineToJson = createPedidoDto.infoLinesJson;
 
         const newPedido = new Pedido();
         newPedido.confirmado = createPedidoDto.confirmado || false;
