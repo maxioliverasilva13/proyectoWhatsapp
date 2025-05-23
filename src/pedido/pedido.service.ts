@@ -236,7 +236,6 @@ export class PedidoService implements OnModuleDestroy {
         'pedidosprod.producto',
         'estado',
         'cambioEstados',
-        'reclamo',
       ],
     });
 

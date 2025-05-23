@@ -99,6 +99,11 @@ export class PedidoController {
   getDetailsOfOrder(@Param('id') id: number) {
     return this.pedidoService.getDetailsOfOrder(id);
   }
+  
+    @Get('/myOrders/:clientId')
+  getMyOrders(@Param('clientId') id: number) {
+    return this.pedidoService.getMyOrders(id);
+  }
 
   @Get('/stats/ordersDay/:date')
   getOrdersDay(@Param('date') fecha: string, @Req() request: Request) {
