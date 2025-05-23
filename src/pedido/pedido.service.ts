@@ -370,7 +370,7 @@ export class PedidoService implements OnModuleDestroy {
 
         await this.cambioEstadoRepository.save(newStatusOrder);
 
-        const productIds = products.map((product) => product.productoId);
+        const productIds = products.map((product) => parseInt(product.productoId));
         const existingProducts = await this.productoRespitory.find({
           where: { id: In(productIds) },
         });
@@ -439,11 +439,12 @@ export class PedidoService implements OnModuleDestroy {
       let responseFormat;
 
       if (tipoServicio.tipo === 'RESERVA') {
-        await Promise.all(
-          (responseFormat = createPedidoDto.products.map((product) =>
-            crearNuevoPedido([product]),
-          )),
-        );
+        responseFormat = await crearNuevoPedido(createPedidoDto.products);
+        // await Promise.all(
+        //   (responseFormat = createPedidoDto.products.map((product) =>
+        //     crearNuevoPedido([product]),
+        //   )),
+        // );
       } else {
         responseFormat = await crearNuevoPedido(createPedidoDto.products);
       }
