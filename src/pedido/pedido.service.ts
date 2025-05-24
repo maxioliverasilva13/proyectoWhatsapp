@@ -1171,8 +1171,13 @@ export class PedidoService implements OnModuleDestroy {
       const messagePushTitle = 'Nuevo reclamo recibido';
       const messagePush = `El cliente #${client.nombre} realizó un reclamo sobre el pedido #${pedido.id}`;
 
+      const empresa = await this.empresaRepository.findOne({
+        where: { db_name: process.env.SUBDOMAIN },
+      });
+
+
       await this.deviceService.sendNotificationEmpresa(
-        pedido.id,
+        empresa.id,
         messagePushTitle,
         messagePush,
       );
