@@ -263,7 +263,7 @@ export class PedidoService implements OnModuleDestroy {
               },
             };
           }),
-          reclamo: currentReclamo?.texto ?? undefined,
+          reclamo: currentReclamo ?? undefined,
         };
       }),
     );
@@ -609,7 +609,7 @@ export class PedidoService implements OnModuleDestroy {
             phone: getClient?.telefono ?? 'No phone',
             id: getClient?.id ?? 'No id',
           },
-          reclamo: currentReclamo?.texto ?? undefined,
+          reclamo: currentReclamo ?? undefined,
           products: pedidosProdFormated,
           chatId: pedidoExist.chat,
           date: pedidoExist.fecha,
@@ -1358,7 +1358,7 @@ export class PedidoService implements OnModuleDestroy {
       direccion: direcciones,
       numberSender: clienteData?.telefono || 'N/A',
       total,
-      reclamo: currentReclamo?.texto ?? undefined,
+      reclamo: currentReclamo ?? undefined,
       estado: pedido?.estado,
       confirmado: pedido?.confirmado,
       detalle: pedido.detalle_pedido,
