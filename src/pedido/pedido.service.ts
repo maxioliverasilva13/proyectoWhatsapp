@@ -743,6 +743,7 @@ export class PedidoService implements OnModuleDestroy {
         totalItems,
       };
     } catch (error) {
+      console.log("aca xd", error)
       throw new BadRequestException({
         ok: false,
         statusCode: 400,
@@ -1172,7 +1173,7 @@ export class PedidoService implements OnModuleDestroy {
       pedido.reclamo = `${newReclamo?.id}`;
       await this.pedidoRepository.save(pedido)
 
-      const messagePushTitle = 'Nuevo reclamo recibido';
+      const messagePushTitle = 'Nuevo reclamo recibido⚠️';
       const messagePush = `El cliente #${client.nombre} realizó un reclamo sobre el pedido #${pedido.id}`;
 
       const empresa = await this.empresaRepository.findOne({
