@@ -713,9 +713,7 @@ export class PedidoService implements OnModuleDestroy {
 
       const totalItems = await query.getCount();
 
-      query
-        .orderBy('pedido.reclamo != \'\'', 'DESC')
-        .addOrderBy('pedido.createdAt', 'DESC')
+      query.orderBy('pedido.createdAt', 'DESC')
         .take(limit)
         .skip(offset);
 
