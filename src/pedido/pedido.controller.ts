@@ -22,7 +22,7 @@ enum OrderStatus {
 
 @Controller('pedido')
 export class PedidoController {
-  constructor(private readonly pedidoService: PedidoService) {}
+  constructor(private readonly pedidoService: PedidoService) { }
 
   @Post()
   create(@Body() createPedidoDto: CreatePedidoDto) {
@@ -44,8 +44,8 @@ export class PedidoController {
   @Get('/:orderStatus')
   findAllFinish(
     @Param('orderStatus', new ParseEnumPipe(OrderStatus)) orderStatus: OrderStatus,
-    @Query('offset') offset : number,
-    @Query('limit') limit : number,
+    @Query('offset') offset: number,
+    @Query('limit') limit: number,
   ) {
     return this.pedidoService.findOrders(orderStatus, offset, limit);
   }
@@ -99,8 +99,8 @@ export class PedidoController {
   getDetailsOfOrder(@Param('id') id: number) {
     return this.pedidoService.getDetailsOfOrder(id);
   }
-  
-    @Get('/myOrders/:clientId')
+
+  @Get('/myOrders/:clientId')
   getMyOrders(@Param('clientId') id: number) {
     return this.pedidoService.getMyOrders(id);
   }
@@ -132,6 +132,13 @@ export class PedidoController {
   @Get('/stats/lastTime')
   getOrdersOfTimePeriod() {
     return this.pedidoService.getOrdersOfTimePeriods();
+  }
+
+  @Get('/filter/searchWIthQuery')
+  searchOrdersWithQuery(
+    @Query('query') query : string
+  ) {
+    return this.pedidoService.filtertOrdersWithQuery(query);
   }
 
   @Get(':id')

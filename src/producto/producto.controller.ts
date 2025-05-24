@@ -6,10 +6,10 @@ import { UpdateProductoDto } from './dto/update-producto.dto';
 
 @Controller('producto')
 export class ProductoController {
-  constructor(private readonly productoService: ProductoService) {}
+  constructor(private readonly productoService: ProductoService) { }
 
   @Get()
-  findAll(@Req() request : Request) {
+  findAll(@Req() request: Request) {
     return this.productoService.findAll();
   }
 
@@ -21,7 +21,7 @@ export class ProductoController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id : number) {
+  findOne(@Param('id') id: number) {
     return this.productoService.findOne(id);
   }
 
@@ -41,12 +41,12 @@ export class ProductoController {
   }
 
   @Put(':id')
-  async updateProducto(@Param('id') id : number,@Body() UpdateProductoDto: UpdateProductoDto) {
+  async updateProducto(@Param('id') id: number, @Body() UpdateProductoDto: UpdateProductoDto) {
     return this.productoService.updateProducto(id, UpdateProductoDto)
-  } 
+  }
 
   @Delete(':id')
-  async deleteProducto(@Param('id') id : number ) {
+  async deleteProducto(@Param('id') id: number) {
     return this.productoService.deleteProducto(id)
-  } 
+  }
 }

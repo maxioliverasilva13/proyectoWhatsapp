@@ -37,6 +37,7 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { TIPO_SERVICIO_DELIVERY_ID } from 'src/database/seeders/app/tipopedido.seed';
 import { DeviceService } from 'src/device/device.service';
 import { Reclamo } from './entities/reclamo.entity';
+
 @Injectable()
 export class PedidoService implements OnModuleDestroy {
   private tipoServicioRepository: Repository<Tiposervicio>;
@@ -270,6 +271,49 @@ export class PedidoService implements OnModuleDestroy {
     return JSON.stringify(pedidos);
   }
 
+  async filtertOrdersWithQuery(query: string) {
+    try {
+      if (!query?.trim()) {
+        return {
+          ok: true,
+          data: []
+        };
+      }
+      
+      const allOrders = await this.pedidoRepository.find({relations:['pedidosprod', 'pedidosprod.producto', 'estado']})
+
+      const clienteIds = allOrders.map((pedido) => pedido.cliente_id);
+      const clientes = await this.clienteRepository.findByIds(clienteIds);
+
+      const clienteMap = new Map(
+        clientes.map((cliente) => [cliente.id, cliente]),
+      );
+
+      const results = []
+
+      await Promise.all(
+        allOrders.map(async(order) => {
+          const infoLineFormatedJson = JSON.parse(order.infoLinesJson)
+  
+          if (infoLineFormatedJson.Direccion.toLocaleLowerCase().includes(query.toLocaleLowerCase())) {
+            const orderFormatedd = await this.getPedido(order, clienteMap)
+            results.push(orderFormatedd)
+          } else {
+            return;
+          }
+        })
+      )
+
+      return {
+        ok: true,
+        data: results
+      }
+
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   async create(createPedidoDto: CreatePedidoDto) {
     console.log('voy a crear pedido con', createPedidoDto);
 
@@ -392,7 +436,7 @@ export class PedidoService implements OnModuleDestroy {
 
               total += productExist.precio * product.cantidad;
               console.log('lo voy a crear jeje');
-              
+
               const newProdPedido = await this.productoPedidoRepository.create({
                 cantidad: product.cantidad,
                 productoId: parseInt(product.productoId),
@@ -401,7 +445,7 @@ export class PedidoService implements OnModuleDestroy {
               });
 
               await this.productoPedidoRepository.save(newProdPedido)
-              
+
             }),
           );
         } catch (error) {
@@ -673,36 +717,9 @@ export class PedidoService implements OnModuleDestroy {
 
       const pedidosFinal = await Promise.all(
         pedidos.map(async (pedido) => {
-          const currentReclamo = await this.reclamoRepo.findOne({
-            where: { id: Number(pedido?.reclamo) as any },
-          });
-          const infoLinesJson = JSON.parse(pedido.infoLinesJson || '{}');
-          const direcciones =
-            infoLinesJson?.direccion ||
-            infoLinesJson?.Direccion ||
-            'No hay direccion';
-          let total = 0;
+          const formatDataPedido = await this.getPedido(pedido, clienteMap)
 
-          pedido.pedidosprod.forEach((producto) => {
-            total += producto.producto.precio * producto.cantidad;
-          });
-
-          const clienteData = clienteMap.get(pedido.cliente_id);
-
-          return {
-            clientName: clienteData?.nombre || 'Desconocido',
-            direccion: direcciones,
-            numberSender: clienteData?.telefono || 'N/A',
-            total,
-            reclamo: currentReclamo?.texto ?? undefined,
-            estado: pedido?.estado,
-            confirmado: pedido?.confirmado,
-            detalle: pedido.detalle_pedido,
-            orderId: pedido.id,
-            date: pedido.fecha,
-            status: pedido.confirmado,
-            createdAt: pedido?.createdAt,
-          };
+          return formatDataPedido
         }),
       );
 
@@ -1305,6 +1322,40 @@ export class PedidoService implements OnModuleDestroy {
       });
     }
   }
+
+  async getPedido(pedido: Pedido, clienteMap: any) {
+    const currentReclamo = await this.reclamoRepo.findOne({
+      where: { id: Number(pedido?.reclamo) as any },
+    });
+    const infoLinesJson = JSON.parse(pedido.infoLinesJson || '{}');
+    const direcciones =
+      infoLinesJson?.direccion ||
+      infoLinesJson?.Direccion ||
+      'No hay direccion';
+    let total = 0;
+
+    pedido.pedidosprod.forEach((producto) => {
+      total += producto.producto.precio * producto.cantidad;
+    });
+
+    const clienteData = clienteMap.get(pedido.cliente_id);
+
+    return {
+      clientName: clienteData?.nombre || 'Desconocido',
+      direccion: direcciones,
+      numberSender: clienteData?.telefono || 'N/A',
+      total,
+      reclamo: currentReclamo?.texto ?? undefined,
+      estado: pedido?.estado,
+      confirmado: pedido?.confirmado,
+      detalle: pedido.detalle_pedido,
+      orderId: pedido.id,
+      date: pedido.fecha,
+      status: pedido.confirmado,
+      createdAt: pedido?.createdAt,
+    };
+  }
+
 
   async getOrdersOfTimePeriods() {
     try {
