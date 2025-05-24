@@ -136,9 +136,10 @@ export class PedidoController {
 
   @Get('/filter/searchWIthQuery')
   searchOrdersWithQuery(
-    @Query('query') query : string
+    @Query('query') query : string,
+    @Query('keyInfoline') keyInfoline : string
   ) {
-    return this.pedidoService.filtertOrdersWithQuery(query);
+    return this.pedidoService.filtertOrdersWithQuery(query, keyInfoline);
   }
 
   @Get(':id')

@@ -271,7 +271,7 @@ export class PedidoService implements OnModuleDestroy {
     return JSON.stringify(pedidos);
   }
 
-  async filtertOrdersWithQuery(query: string) {
+  async filtertOrdersWithQuery(query: string, keyInfoline) {
     try {
       if (!query?.trim()) {
         return {
@@ -279,8 +279,8 @@ export class PedidoService implements OnModuleDestroy {
           data: []
         };
       }
-      
-      const allOrders = await this.pedidoRepository.find({relations:['pedidosprod', 'pedidosprod.producto', 'estado']})
+
+      const allOrders = await this.pedidoRepository.find({ relations: ['pedidosprod', 'pedidosprod.producto', 'estado'] })
 
       const clienteIds = allOrders.map((pedido) => pedido.cliente_id);
       const clientes = await this.clienteRepository.findByIds(clienteIds);
@@ -292,10 +292,10 @@ export class PedidoService implements OnModuleDestroy {
       const results = []
 
       await Promise.all(
-        allOrders.map(async(order) => {
+        allOrders.map(async (order) => {
           const infoLineFormatedJson = JSON.parse(order.infoLinesJson)
-  
-          if (infoLineFormatedJson.Direccion.toLocaleLowerCase().includes(query.toLocaleLowerCase())) {
+
+          if (infoLineFormatedJson[keyInfoline].toLocaleLowerCase().includes(query.toLocaleLowerCase())) {
             const orderFormatedd = await this.getPedido(order, clienteMap)
             results.push(orderFormatedd)
           } else {
