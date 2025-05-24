@@ -294,12 +294,16 @@ export class PedidoService implements OnModuleDestroy {
       await Promise.all(
         allOrders.map(async (order) => {
           const infoLineFormatedJson = JSON.parse(order.infoLinesJson)
+          const key = keyInfoline?.trim();
+          const value = infoLineFormatedJson[key];
 
-          if ((infoLineFormatedJson[keyInfoline] ?? '').toLowerCase().includes(query.toLowerCase())) {
-            const orderFormatedd = await this.getPedido(order, clienteMap)
-            results.push(orderFormatedd)
-          } else {
-            return;
+          console.log('el value es', value);
+          
+
+
+          if (typeof value === 'string' && value.toLowerCase().includes(query.toLowerCase())) {
+            const orderFormatedd = await this.getPedido(order, clienteMap);
+            results.push(orderFormatedd);
           }
         })
       )
