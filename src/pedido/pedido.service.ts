@@ -1127,6 +1127,7 @@ export class PedidoService implements OnModuleDestroy {
   }
 
   async createReclamo(pedidoId: number, text: string) {
+    console.log("me llega", pedidoId ,text)
     try {
       const pedido = await this.pedidoRepository.findOne({
         where: { id: pedidoId },
@@ -1180,6 +1181,7 @@ export class PedidoService implements OnModuleDestroy {
         statusCode: 200,
       };
     } catch (error) {
+      console.log("error", error)
       throw new BadRequestException({
         ok: false,
         statusCode: 400,
