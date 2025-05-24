@@ -295,7 +295,7 @@ export class PedidoService implements OnModuleDestroy {
         allOrders.map(async (order) => {
           const infoLineFormatedJson = JSON.parse(order.infoLinesJson)
 
-          if (infoLineFormatedJson[keyInfoline].toLocaleLowerCase().includes(query.toLocaleLowerCase())) {
+          if ((infoLineFormatedJson[keyInfoline] ?? '').toLowerCase().includes(query.toLowerCase())) {
             const orderFormatedd = await this.getPedido(order, clienteMap)
             results.push(orderFormatedd)
           } else {
