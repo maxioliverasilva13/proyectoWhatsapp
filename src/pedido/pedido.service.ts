@@ -310,7 +310,12 @@ export class PedidoService implements OnModuleDestroy {
       }
 
     } catch (error) {
-      console.log(error);
+      throw new BadRequestException({
+        ok: false,
+        statusCode: 400,
+        message: error?.message || 'Error al crear el pedido',
+        error: 'Bad Request',
+      });
     }
   }
 
