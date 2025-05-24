@@ -298,7 +298,7 @@ export class PedidoService implements OnModuleDestroy {
           const value = infoLineFormatedJson[key];
 
           console.log('el value es', value);
-          
+
 
 
           if (typeof value === 'string' && value.toLowerCase().includes(query.toLowerCase())) {
@@ -1127,7 +1127,7 @@ export class PedidoService implements OnModuleDestroy {
   }
 
   async createReclamo(pedidoId: number, text: string) {
-    console.log("me llega", pedidoId ,text)
+    console.log("me llega", pedidoId, text)
     try {
       const pedido = await this.pedidoRepository.findOne({
         where: { id: pedidoId },
@@ -1147,11 +1147,13 @@ export class PedidoService implements OnModuleDestroy {
         throw new BadRequestException('El cliente no existe');
       }
 
-      let reclam = pedido.reclamo;
+      let reclamo: any = null;
 
-      let reclamo = await this.reclamoRepo.findOne({
-        where: { id: reclam as any },
-      });
+      if (pedido.reclamo && !isNaN(Number(pedido.reclamo))) {
+        reclamo = await this.reclamoRepo.findOne({
+          where: { id: Number(pedido.reclamo) },
+        }) as any;
+      }
 
       if (reclamo) {
         reclamo.texto = text;
