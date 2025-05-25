@@ -288,6 +288,14 @@ export class PedidoService implements OnModuleDestroy {
       const clienteMap = new Map(
         clientes.map((cliente) => [cliente.id, cliente]),
       );
+      const reclamoIds = [...new Set(
+        allOrders
+          .map((p) => Number(p.reclamo))
+          .filter((id) => !isNaN(id))
+      )];
+      const reclamos = await this.reclamoRepo.findBy({ id: In(reclamoIds) });
+
+      const reclamoMap = new Map(reclamos.map(r => [r.id, r]));
 
       const results = []
 
@@ -302,7 +310,7 @@ export class PedidoService implements OnModuleDestroy {
 
 
           if (typeof value === 'string' && value.toLowerCase().includes(query.toLowerCase())) {
-            const orderFormatedd = await this.getPedido(order, clienteMap);
+            const orderFormatedd = await this.getPedido(order, clienteMap, reclamoMap);
             results.push(orderFormatedd);
           }
         })
@@ -676,6 +684,44 @@ export class PedidoService implements OnModuleDestroy {
     }
   }
 
+  async getPedido(
+    pedido: Pedido,
+    clienteMap: Map<number, any>,
+    reclamoMap: Map<number, any>,
+  ) {
+    const currentReclamo = pedido.reclamo
+      ? reclamoMap.get(Number(pedido.reclamo))
+      : undefined;
+
+    const infoLinesJson = JSON.parse(pedido.infoLinesJson || '{}');
+    const direcciones =
+      infoLinesJson?.direccion ||
+      infoLinesJson?.Direccion ||
+      'No hay direccion';
+
+    let total = 0;
+    pedido.pedidosprod.forEach((producto) => {
+      total += producto.producto.precio * producto.cantidad;
+    });
+
+    const clienteData = clienteMap.get(pedido.cliente_id);
+
+    return {
+      clientName: clienteData?.nombre || 'Desconocido',
+      direccion: direcciones,
+      numberSender: clienteData?.telefono || 'N/A',
+      total,
+      reclamo: currentReclamo ?? undefined,
+      estado: pedido?.estado,
+      confirmado: pedido?.confirmado,
+      detalle: pedido.detalle_pedido,
+      orderId: pedido.id,
+      date: pedido.fecha,
+      status: pedido.confirmado,
+      createdAt: pedido?.createdAt,
+    };
+  }
+
   async findOrders(
     filter: 'active' | 'pending' | 'finished',
     offset: number,
@@ -713,28 +759,32 @@ export class PedidoService implements OnModuleDestroy {
 
       const totalItems = await query.getCount();
 
- query
-  .addSelect("CASE WHEN pedido.reclamo != '' THEN 0 ELSE 1 END", 'custom_order')
-  .orderBy('custom_order', 'ASC')
-  .addOrderBy('pedido.createdAt', 'DESC')
-  .take(limit)
-  .skip(offset);
-  
+      query
+        .addSelect("CASE WHEN pedido.reclamo != '' THEN 0 ELSE 1 END", 'custom_order')
+        .orderBy('custom_order', 'ASC')
+        .addOrderBy('pedido.createdAt', 'DESC')
+        .take(limit)
+        .skip(offset);
+
       const pedidos = await query.getMany();
 
-      const clienteIds = pedidos.map((pedido) => pedido.cliente_id);
-      const clientes = await this.clienteRepository.findByIds(clienteIds);
+      const clienteIds = [...new Set(pedidos.map(p => p.cliente_id))];
+      const reclamoIds = [...new Set(
+        pedidos
+          .map((p) => Number(p.reclamo))
+          .filter((id) => !isNaN(id))
+      )];
 
-      const clienteMap = new Map(
-        clientes.map((cliente) => [cliente.id, cliente]),
-      );
+      const clientes = await this.clienteRepository.findByIds(clienteIds);
+      const reclamos = await this.reclamoRepo.findBy({ id: In(reclamoIds) });
+
+      const clienteMap = new Map(clientes.map(c => [c.id, c]));
+      const reclamoMap = new Map(reclamos.map(r => [r.id, r]));
 
       const pedidosFinal = await Promise.all(
-        pedidos.map(async (pedido) => {
-          const formatDataPedido = await this.getPedido(pedido, clienteMap)
-
-          return formatDataPedido
-        }),
+        pedidos.map((pedido) =>
+          this.getPedido(pedido, clienteMap, reclamoMap)
+        ),
       );
 
       return {
@@ -744,7 +794,7 @@ export class PedidoService implements OnModuleDestroy {
         totalItems,
       };
     } catch (error) {
-      console.log("aca xd", error)
+      console.log("aca xd", error);
       throw new BadRequestException({
         ok: false,
         statusCode: 400,
@@ -1345,39 +1395,6 @@ export class PedidoService implements OnModuleDestroy {
         error: 'Bad Request',
       });
     }
-  }
-
-  async getPedido(pedido: Pedido, clienteMap: any) {
-    const currentReclamo = await this.reclamoRepo.findOne({
-      where: { id: Number(pedido?.reclamo) as any },
-    });
-    const infoLinesJson = JSON.parse(pedido.infoLinesJson || '{}');
-    const direcciones =
-      infoLinesJson?.direccion ||
-      infoLinesJson?.Direccion ||
-      'No hay direccion';
-    let total = 0;
-
-    pedido.pedidosprod.forEach((producto) => {
-      total += producto.producto.precio * producto.cantidad;
-    });
-
-    const clienteData = clienteMap.get(pedido.cliente_id);
-
-    return {
-      clientName: clienteData?.nombre || 'Desconocido',
-      direccion: direcciones,
-      numberSender: clienteData?.telefono || 'N/A',
-      total,
-      reclamo: currentReclamo ?? undefined,
-      estado: pedido?.estado,
-      confirmado: pedido?.confirmado,
-      detalle: pedido.detalle_pedido,
-      orderId: pedido.id,
-      date: pedido.fecha,
-      status: pedido.confirmado,
-      createdAt: pedido?.createdAt,
-    };
   }
 
 
