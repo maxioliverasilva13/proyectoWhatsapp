@@ -301,19 +301,25 @@ export class PedidoService implements OnModuleDestroy {
 
       await Promise.all(
         allOrders.map(async (order) => {
-          const infoLineFormatedJson = JSON.parse(order.infoLinesJson)
-          const key = keyInfoline;
-          const value = infoLineFormatedJson[key];
+          if (!order.infoLinesJson) return;
 
-          if (key && value && infoLineFormatedJson) {
-            if (typeof value === 'string' && value.toLowerCase().includes(query.toLowerCase())) {
-              const orderFormatedd = await this.getPedido(order, clienteMap, reclamoMap);
-              results.push(orderFormatedd);
-            }
+          let infoLineFormatedJson;
+          try {
+            infoLineFormatedJson = JSON.parse(order.infoLinesJson);
+          } catch (err) {
+            return;
           }
 
+          const key = keyInfoline(); 
+
+          const value = infoLineFormatedJson[key];
+
+          if (typeof value === 'string' && value.toLowerCase().includes(query.toLowerCase())) {
+            const orderFormatedd = await this.getPedido(order, clienteMap, reclamoMap);
+            results.push(orderFormatedd);
+          }
         })
-      )
+      );
 
       return {
         ok: true,
