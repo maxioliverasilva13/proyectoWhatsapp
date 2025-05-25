@@ -305,10 +305,6 @@ export class PedidoService implements OnModuleDestroy {
           const key = keyInfoline?.trim();
           const value = infoLineFormatedJson[key];
 
-          console.log('el value es', value);
-
-
-
           if (typeof value === 'string' && value.toLowerCase().includes(query.toLowerCase())) {
             const orderFormatedd = await this.getPedido(order, clienteMap, reclamoMap);
             results.push(orderFormatedd);
