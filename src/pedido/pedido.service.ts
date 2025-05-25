@@ -271,7 +271,7 @@ export class PedidoService implements OnModuleDestroy {
     return JSON.stringify(pedidos);
   }
 
-  async filtertOrdersWithQuery(query: string, keyInfoline) {
+  async filtertOrdersWithQuery(query: string, keyInfoline : string) {
     try {
       if (!query?.trim()) {
         return {
@@ -310,7 +310,7 @@ export class PedidoService implements OnModuleDestroy {
             return;
           }
 
-          const key = keyInfoline(); 
+          const key = keyInfoline; 
 
           const value = infoLineFormatedJson[key];
 
