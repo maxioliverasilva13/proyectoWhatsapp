@@ -713,12 +713,13 @@ export class PedidoService implements OnModuleDestroy {
 
       const totalItems = await query.getCount();
 
-      query
-        .orderBy('CASE WHEN pedido.reclamo != \'\' THEN 0 ELSE 1 END', 'ASC')
-        .addOrderBy('pedido.createdAt', 'DESC')
-        .take(limit)
-        .skip(offset);
-
+ query
+  .addSelect("CASE WHEN pedido.reclamo != '' THEN 0 ELSE 1 END", 'custom_order')
+  .orderBy('custom_order', 'ASC')
+  .addOrderBy('pedido.createdAt', 'DESC')
+  .take(limit)
+  .skip(offset);
+  
       const pedidos = await query.getMany();
 
       const clienteIds = pedidos.map((pedido) => pedido.cliente_id);
