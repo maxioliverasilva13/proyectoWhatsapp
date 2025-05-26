@@ -1415,7 +1415,7 @@ export class PedidoService implements OnModuleDestroy {
       };
 
       const orders = await this.pedidoRepository.find({
-        where: { fecha: MoreThan(periods.yearly.toDate()) },
+        where: { fecha: MoreThan(periods.yearly.toDate()), available: true, confirmado:true },
         relations: ['pedidosprod', 'pedidosprod.producto'],
       });
 
