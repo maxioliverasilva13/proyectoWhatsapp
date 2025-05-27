@@ -30,7 +30,7 @@ export class EmpresaService {
     private usuarioRepository: Repository<Usuario>,
     @Inject(forwardRef(() => TenantConnectionService))
     private tenantService: TenantConnectionService,
-  ) {}
+  ) { }
 
   async create(createEmpresaDto: CreateEmpresaDto) {
     // TODO: agregar libreria para validar DTO
@@ -273,6 +273,17 @@ export class EmpresaService {
       const empresaData = await this.empresaRepository.findOne({
         where: { nombre: domain },
       });
+
+      const instanceId = empresaData.greenApiInstance;
+      const token = empresaData.greenApiInstanceToken;
+
+      const res = await fetch(`https://api.green-api.com/waInstance${instanceId}/getSettings/${token}`);
+      const data = await res.json();
+
+      const usuariosEmpresa = await this.usuarioRepository.find({
+        where: { id_empresa: empresaData.id, firstUser: true }
+      })
+
       const connection = await handleGetConnectionByEmpresa(
         empresaData.db_name,
       );
@@ -284,7 +295,7 @@ export class EmpresaService {
       connection.destroy();
       return {
         ok: true,
-        data: empresaData,
+        data: { ...empresaData, numero: data.wid?.split('@')[0], userContact: usuariosEmpresa[0].correo ?? "No hay usuario" },
         products: allProducts,
       };
     } catch (error) {
