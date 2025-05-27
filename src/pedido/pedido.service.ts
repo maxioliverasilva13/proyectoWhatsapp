@@ -938,8 +938,8 @@ export class PedidoService implements OnModuleDestroy {
       const pedidos = await this.pedidoRepository
         .createQueryBuilder('pedido')
         .where(`pedido.fecha >= :inicioUTC AND pedido.fecha < :finUTC`, {
-          inicioUTC: apertura.clone().utc().format('YYYY-MM-DD HH:mm:ss'),
-          finUTC: cierre.clone().utc().format('YYYY-MM-DD HH:mm:ss'),
+          inicioUTC: apertura.clone().format('YYYY-MM-DD HH:mm:ss'),
+          finUTC: cierre.clone().format('YYYY-MM-DD HH:mm:ss'),
         })
         .andWhere('pedido.confirmado = :confirmado', { confirmado: true })
         .andWhere('pedido.finalizado = :finalizado', { finalizado: false })
@@ -1071,6 +1071,7 @@ export class PedidoService implements OnModuleDestroy {
             productName: pedidoProd?.producto?.nombre,
             total: pedidoProd?.cantidad * pedidoProd?.producto.precio,
             date: isOlder ? pedidoDate.format('LT') : pedidoDate.fromNow(),
+            fecha: pedido.fecha,
             status: pedido.confirmado,
             product: pedidoProd?.producto?.nombre,
           };
