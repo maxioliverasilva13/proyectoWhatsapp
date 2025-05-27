@@ -273,7 +273,7 @@ export class PedidoService implements OnModuleDestroy {
     return JSON.stringify(pedidos);
   }
 
-  async filtertOrdersWithQuery(query: string, keyInfoline) {
+  async filtertOrdersWithQuery(query: string, keyInfoline : string) {
     try {
       if (!query?.trim()) {
         return {
@@ -303,8 +303,17 @@ export class PedidoService implements OnModuleDestroy {
 
       await Promise.all(
         allOrders.map(async (order) => {
-          const infoLineFormatedJson = JSON.parse(order.infoLinesJson)
-          const key = keyInfoline?.trim();
+          if (!order.infoLinesJson) return;
+
+          let infoLineFormatedJson;
+          try {
+            infoLineFormatedJson = JSON.parse(order.infoLinesJson);
+          } catch (err) {
+            return;
+          }
+
+          const key = keyInfoline; 
+
           const value = infoLineFormatedJson[key];
 
           if (typeof value === 'string' && value.toLowerCase().includes(query.toLowerCase())) {
@@ -312,7 +321,7 @@ export class PedidoService implements OnModuleDestroy {
             results.push(orderFormatedd);
           }
         })
-      )
+      );
 
       return {
         ok: true,
@@ -1412,7 +1421,7 @@ export class PedidoService implements OnModuleDestroy {
       };
 
       const orders = await this.pedidoRepository.find({
-        where: { fecha: MoreThan(periods.yearly.toDate()) },
+        where: { fecha: MoreThan(periods.yearly.toDate()), available: true, confirmado:true },
         relations: ['pedidosprod', 'pedidosprod.producto'],
       });
 

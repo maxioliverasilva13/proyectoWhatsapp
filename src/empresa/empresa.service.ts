@@ -17,7 +17,7 @@ import { Tiposervicio } from 'src/tiposervicio/entities/tiposervicio.entity';
 import { Usuario } from 'src/usuario/entities/usuario.entity';
 import * as bcrypt from 'bcryptjs';
 import { handleGetConnectionByEmpresa } from 'src/utils/dbConnection';
-import { Producto } from 'src/producto/entities/producto.entity';
+import { Category } from 'src/category/entities/category.entity';
 
 @Injectable()
 export class EmpresaService {
@@ -30,7 +30,7 @@ export class EmpresaService {
     private usuarioRepository: Repository<Usuario>,
     @Inject(forwardRef(() => TenantConnectionService))
     private tenantService: TenantConnectionService,
-  ) {}
+  ) { }
 
   async create(createEmpresaDto: CreateEmpresaDto) {
     // TODO: agregar libreria para validar DTO
@@ -273,18 +273,31 @@ export class EmpresaService {
       const empresaData = await this.empresaRepository.findOne({
         where: { nombre: domain },
       });
+
+      const instanceId = empresaData.greenApiInstance;
+      const token = empresaData.greenApiInstanceToken;
+
+      const res = await fetch(`https://api.green-api.com/waInstance${instanceId}/getSettings/${token}`);
+      const data = await res.json();
+
+      const usuariosEmpresa = await this.usuarioRepository.find({
+        where: { id_empresa: empresaData.id, firstUser: true }
+      })
+
       const connection = await handleGetConnectionByEmpresa(
         empresaData.db_name,
       );
 
-      const productoRepository = await connection.getRepository(Producto);
 
-      const allProducts = await productoRepository.find();
+
+      const categoryRepository = await connection.getRepository(Category);
+
+      const allProducts = await categoryRepository.find({ relations: ["producto"] });
 
       connection.destroy();
       return {
         ok: true,
-        data: empresaData,
+        data: { ...empresaData, numero: data.wid?.split('@')[0], userContact: usuariosEmpresa[0].correo ?? "No hay usuario" },
         products: allProducts,
       };
     } catch (error) {
