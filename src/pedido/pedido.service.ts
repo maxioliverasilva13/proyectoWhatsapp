@@ -873,7 +873,7 @@ export class PedidoService implements OnModuleDestroy {
       const overlapping = pedidos.some((pedido) => {
         const inicio = moment(pedido.fecha);
         const fin = inicio.clone().add(intervaloTiempoCalendario, 'minutes');
-        const actualUtc = actual.clone().utc().add(-3, 'hours');
+        const actualUtc = actual.clone().utc();
         const isBetween = actualUtc.isBetween(inicio, fin, undefined, '[)');
 
         if (isBetween) {
