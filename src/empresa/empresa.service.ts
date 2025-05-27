@@ -17,7 +17,7 @@ import { Tiposervicio } from 'src/tiposervicio/entities/tiposervicio.entity';
 import { Usuario } from 'src/usuario/entities/usuario.entity';
 import * as bcrypt from 'bcryptjs';
 import { handleGetConnectionByEmpresa } from 'src/utils/dbConnection';
-import { Producto } from 'src/producto/entities/producto.entity';
+import { Category } from 'src/category/entities/category.entity';
 
 @Injectable()
 export class EmpresaService {
@@ -288,9 +288,11 @@ export class EmpresaService {
         empresaData.db_name,
       );
 
-      const productoRepository = await connection.getRepository(Producto);
+      
 
-      const allProducts = await productoRepository.find();
+      const categoryRepository = await connection.getRepository(Category);
+
+      const allProducts = await categoryRepository.find({relations:["producto"]});
 
       connection.destroy();
       return {
