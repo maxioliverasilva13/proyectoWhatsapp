@@ -848,13 +848,11 @@ export class PedidoService implements OnModuleDestroy {
     const query = this.pedidoRepository
       .createQueryBuilder('pedido')
       .where(`pedido.fecha >= :inicioUTC AND pedido.fecha < :finUTC`, {
-        inicioUTC: apertura.clone().utc().format('YYYY-MM-DD HH:mm:ss'),
-        finUTC: cierre.clone().utc().format('YYYY-MM-DD HH:mm:ss'),
+        inicioUTC: apertura.clone().format('YYYY-MM-DD HH:mm:ss'),
+        finUTC: cierre.clone().format('YYYY-MM-DD HH:mm:ss'),
       })
       .andWhere('pedido.available = :available', { available: true });
-    // ver si conviene el fitro de confirmado: true
 
-    console.log('withPast', withPast);
     if (!withPast) {
       query.andWhere('pedido.fecha > :nowUtc', {
         nowUtc: now.format('YYYY-MM-DD HH:mm:ss'),
@@ -862,6 +860,7 @@ export class PedidoService implements OnModuleDestroy {
     }
 
     const pedidos = await query.getMany();
+    console.log("pedidos", pedidos)
 
     const disponibilidad: string[] = [];
     const dontIncludeDisp: string[] = [];
@@ -873,7 +872,7 @@ export class PedidoService implements OnModuleDestroy {
       const overlapping = pedidos.some((pedido) => {
         const inicio = moment(pedido.fecha);
         const fin = inicio.clone().add(intervaloTiempoCalendario, 'minutes');
-        const actualUtc = actual.clone().utc();
+        const actualUtc = actual.clone().utc().add(-3, 'hours');
         const isBetween = actualUtc.isBetween(inicio, fin, undefined, '[)');
 
         if (isBetween) {
