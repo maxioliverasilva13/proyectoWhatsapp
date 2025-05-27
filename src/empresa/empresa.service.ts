@@ -288,11 +288,11 @@ export class EmpresaService {
         empresaData.db_name,
       );
 
-      
+
 
       const categoryRepository = await connection.getRepository(Category);
 
-      const allProducts = await categoryRepository.find({relations:["producto"]});
+      const allProducts = await categoryRepository.find({ relations: ["producto"] });
 
       connection.destroy();
       return {
