@@ -53,6 +53,8 @@ import { DeviceController } from './device/device.controller';
 import { PaymentsModule } from './payments/payments.module';
 import { AdminController } from './admin/admin.controller';
 import { AdminModule } from './admin/admin.module';
+import { PaymentMethodModule } from './paymentMethod/paymentMethod.module';
+import { PaymentMethodController } from './paymentMethod/paymentMethod.controller';
 
 ConfigModule.forRoot();
 
@@ -103,6 +105,7 @@ const connection = handleGetConnection();
     GreenApiModule,
     ChatGptThreadsModule,
     NumeroConfianzaModule,
+    PaymentMethodModule,
     AuthModule,
     CierreProvisorioModule,
     PlanEmpresaModule,
@@ -147,6 +150,7 @@ export class AppModule {
         ChatGptThreadsController,
         MensajeController,
         CategoryController,
+        PaymentMethodController,
       );
 
     //JWT MIDDLEWARE
