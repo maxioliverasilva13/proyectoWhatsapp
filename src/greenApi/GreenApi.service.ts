@@ -170,7 +170,6 @@ export class GreenApiService {
     paymentMethodId = "",
   }: any) {
     try {
-      console.log('openAIResponse', openAIResponse);
       const newOrder = await this.pedidoService.create({
         clienteId: clienteId,
         clientName: clientName,

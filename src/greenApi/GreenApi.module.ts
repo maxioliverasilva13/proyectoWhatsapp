@@ -24,14 +24,14 @@ import { Pedido } from 'src/pedido/entities/pedido.entity';
 import { PaymentMethodModule } from 'src/paymentMethod/paymentMethod.module';
 
 @Module({
-  imports:[ TypeOrmModule.forFeature([Chat, Mensaje, Pedido]),ChatGptThreadsModule, PedidoModule, DeviceModule, PaymentMethodModule, ClienteModule, ProductoModule,EmpresaModule, NumeroConfianzaModule, WebSocketModule, InfolineModule, MensajeModule, ChatModule, BullModule.registerQueue({
+  imports:[ TypeOrmModule.forFeature([Chat, Mensaje, Pedido]),ChatGptThreadsModule, PedidoModule, DeviceModule, ClienteModule, ProductoModule,EmpresaModule, NumeroConfianzaModule, WebSocketModule, InfolineModule, MensajeModule, ChatModule, BullModule.registerQueue({
     name:`GreenApiResponseMessagee-${process.env.SUBDOMAIN}`,
     connection: {
       host: process.env.REDIS_HOST || 'localhost',
       port: parseInt(process.env.REDIS_PORT, 10) || 6379,
       password: process.env.REDIS_PASSWORD || '',
     },
-  })],
+  }), PaymentMethodModule],
   controllers: [GrenApiController],
   providers: [GreenApiService , TenantConnectionService, GreenApiRetirveMessage, RedisService],
   exports: [GreenApiService],
