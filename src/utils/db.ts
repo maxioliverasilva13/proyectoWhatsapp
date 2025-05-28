@@ -21,6 +21,7 @@ import { Category } from "src/category/entities/category.entity";
 import { Device } from "src/device/device.entity";
 import { Payment } from "src/payments/payment.entity";
 import { Reclamo } from "src/pedido/entities/reclamo.entity";
+import { PaymentMethod } from "src/paymentMethod/entities/paymentMethod.entity";
 
 export const ENTITIES_TO_MAP_GLOBAL_DB = [
   Plan,
@@ -39,6 +40,7 @@ export const ENTITIES_TO_MAP_GLOBAL_DB = [
 
 export const ENTITIES_TO_MAP_EMPRESA_DB = [
   Producto,
+  PaymentMethod,
   Pedido,
   Cambioestadopedido,
   Chat,

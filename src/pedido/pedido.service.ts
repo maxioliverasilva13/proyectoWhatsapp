@@ -235,6 +235,7 @@ export class PedidoService implements OnModuleDestroy {
       relations: [
         'pedidosprod',
         'pedidosprod.producto',
+        'paymentMethod',
         'estado',
         'cambioEstados',
       ],
@@ -250,6 +251,7 @@ export class PedidoService implements OnModuleDestroy {
           ...pedido,
           estado: pedido?.estado?.nombre,
           estadoTexto: pedido?.estado?.mensaje,
+          paymentMethod: pedido?.paymentMethod?.name ?? "",
           pedidosprod: pedido.pedidosprod.map((pedidoProd) => {
             return {
               ...pedidoProd,
@@ -280,7 +282,7 @@ export class PedidoService implements OnModuleDestroy {
         };
       }
 
-      const allOrders = await this.pedidoRepository.find({ relations: ['pedidosprod', 'pedidosprod.producto', 'estado'] })
+      const allOrders = await this.pedidoRepository.find({ relations: ['pedidosprod', 'pedidosprod.producto', 'estado', 'paymentMethod'] })
 
       const clienteIds = allOrders.map((pedido) => pedido.cliente_id);
       const clientes = await this.clienteRepository.findByIds(clienteIds);
@@ -347,6 +349,7 @@ export class PedidoService implements OnModuleDestroy {
           clienteId: createPedidoDto?.clienteId,
         })
         .andWhere('pedido.available = :available', { available: true })
+        .andWhere('pedido.withIA = :withIA', { withIA: true })
         .andWhere('pedido.finalizado = :finalizado', { finalizado: false })
         .andWhere('pedido.fecha >= :hoy', {
           hoy: moment().startOf('day').toDate(),
@@ -475,6 +478,7 @@ export class PedidoService implements OnModuleDestroy {
         }
 
         const formatToSendFrontend = {
+          ...savedPedido,
           clientName: createPedidoDto.clientName,
           direccion:
             createPedidoDto?.infoLinesJson?.direccion ||
@@ -486,6 +490,7 @@ export class PedidoService implements OnModuleDestroy {
           id: savedPedido.id,
           fecha: savedPedido.fecha,
           status: savedPedido.confirmado,
+          infoLinesJson: savedPedido.infoLinesJson,
           createdAt: savedPedido.createdAt
         };
 
@@ -578,6 +583,7 @@ export class PedidoService implements OnModuleDestroy {
           'cambioEstados',
           'chat',
           'pedidosprod',
+          'paymentMethod',
           'estado',
           'cambioEstados.pedido',
           'cambioEstados.estado',
@@ -842,13 +848,11 @@ export class PedidoService implements OnModuleDestroy {
     const query = this.pedidoRepository
       .createQueryBuilder('pedido')
       .where(`pedido.fecha >= :inicioUTC AND pedido.fecha < :finUTC`, {
-        inicioUTC: apertura.clone().utc().format('YYYY-MM-DD HH:mm:ss'),
-        finUTC: cierre.clone().utc().format('YYYY-MM-DD HH:mm:ss'),
+        inicioUTC: apertura.clone().format('YYYY-MM-DD HH:mm:ss'),
+        finUTC: cierre.clone().format('YYYY-MM-DD HH:mm:ss'),
       })
       .andWhere('pedido.available = :available', { available: true });
-    // ver si conviene el fitro de confirmado: true
 
-    console.log('withPast', withPast);
     if (!withPast) {
       query.andWhere('pedido.fecha > :nowUtc', {
         nowUtc: now.format('YYYY-MM-DD HH:mm:ss'),
@@ -856,6 +860,7 @@ export class PedidoService implements OnModuleDestroy {
     }
 
     const pedidos = await query.getMany();
+    console.log("pedidos", pedidos)
 
     const disponibilidad: string[] = [];
     const dontIncludeDisp: string[] = [];
@@ -933,8 +938,8 @@ export class PedidoService implements OnModuleDestroy {
       const pedidos = await this.pedidoRepository
         .createQueryBuilder('pedido')
         .where(`pedido.fecha >= :inicioUTC AND pedido.fecha < :finUTC`, {
-          inicioUTC: apertura.clone().utc().format('YYYY-MM-DD HH:mm:ss'),
-          finUTC: cierre.clone().utc().format('YYYY-MM-DD HH:mm:ss'),
+          inicioUTC: apertura.clone().format('YYYY-MM-DD HH:mm:ss'),
+          finUTC: cierre.clone().format('YYYY-MM-DD HH:mm:ss'),
         })
         .andWhere('pedido.confirmado = :confirmado', { confirmado: true })
         .andWhere('pedido.finalizado = :finalizado', { finalizado: false })
@@ -1038,7 +1043,7 @@ export class PedidoService implements OnModuleDestroy {
         order: {
           fecha: 'DESC',
         },
-        relations: ['pedidosprod', 'pedidosprod.producto'],
+        relations: ['pedidosprod', 'pedidosprod.producto', 'paymentMethod'],
       });
 
       const dates = {};
@@ -1066,6 +1071,7 @@ export class PedidoService implements OnModuleDestroy {
             productName: pedidoProd?.producto?.nombre,
             total: pedidoProd?.cantidad * pedidoProd?.producto.precio,
             date: isOlder ? pedidoDate.format('LT') : pedidoDate.fromNow(),
+            fecha: pedido.fecha,
             status: pedido.confirmado,
             product: pedidoProd?.producto?.nombre,
           };

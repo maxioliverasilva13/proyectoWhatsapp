@@ -1,6 +1,7 @@
 import { Cambioestadopedido } from 'src/cambioestadopedido/entities/cambioestadopedido.entity';
 import { Chat } from 'src/chat/entities/chat.entity';
 import { Estado } from 'src/estado/entities/estado.entity';
+import { PaymentMethod } from 'src/paymentMethod/entities/paymentMethod.entity';
 import { ProductoPedido } from 'src/productopedido/entities/productopedido.entity';
 import { BaseEntity } from 'src/utils/base.entity';
 import {
@@ -31,6 +32,9 @@ export class Pedido extends BaseEntity {
 
   @ManyToOne(() => Estado, (estado) => estado.pedidos, { onDelete: 'CASCADE' })
   estado: Estado;
+
+  @ManyToOne(() => PaymentMethod, (pm) => pm.pedidos, { onDelete: 'CASCADE' })
+  paymentMethod: PaymentMethod;
 
   @Column({ nullable: true })
   detalle_pedido: string;

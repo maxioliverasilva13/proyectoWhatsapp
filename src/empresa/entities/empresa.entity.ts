@@ -94,6 +94,9 @@ export class Empresa extends BaseEntity {
   @Column({ default: 'America/Montevideo' })
   timeZone: string;
 
+  @Column({ nullable: true, default: "" })
+  transferText: string;
+
   @OneToMany(() => Currency, (curr) => curr.empresa)
   currencies: Currency[];
 

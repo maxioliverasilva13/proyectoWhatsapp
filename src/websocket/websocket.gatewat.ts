@@ -54,6 +54,8 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
 
     @SubscribeMessage('sendOrder')
     async sendOrder(body: any) {
-        this.server.emit('sendOrderRealTime', body);
+        this.server.emit('sendOrderRealTime', {
+            ...body,
+        });
     }
 }   
