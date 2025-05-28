@@ -18,6 +18,7 @@ import { Usuario } from 'src/usuario/entities/usuario.entity';
 import * as bcrypt from 'bcryptjs';
 import { handleGetConnectionByEmpresa } from 'src/utils/dbConnection';
 import { Category } from 'src/category/entities/category.entity';
+import { Infoline } from 'src/infoline/entities/infoline.entity';
 
 @Injectable()
 export class EmpresaService {
@@ -289,17 +290,19 @@ export class EmpresaService {
         empresaData.db_name,
       );
 
-
-
       const categoryRepository = await connection.getRepository(Category);
+      const infoLineRepository = await connection.getRepository(Infoline);
 
       const allProducts = await categoryRepository.find({ relations: ["producto"] });
+      const allInfoLines = await infoLineRepository.find()
+
 
       connection.destroy();
       return {
         ok: true,
         data: { ...empresaData, numero: data.wid?.split('@')[0], userContact: usuariosEmpresa[0].correo ?? "No hay usuario", tipoServicioId: empresaData.tipoServicioId.id },
         products: allProducts,
+        infoLines: allInfoLines
       };
 
     } catch (error) {
