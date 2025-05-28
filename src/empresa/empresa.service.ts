@@ -272,6 +272,7 @@ export class EmpresaService {
 
       const empresaData = await this.empresaRepository.findOne({
         where: { nombre: domain },
+        relations: ['tipoServicioId']
       });
 
       const instanceId = empresaData.greenApiInstance;
@@ -297,9 +298,10 @@ export class EmpresaService {
       connection.destroy();
       return {
         ok: true,
-        data: { ...empresaData, numero: data.wid?.split('@')[0], userContact: usuariosEmpresa[0].correo ?? "No hay usuario" },
+        data: { ...empresaData, numero: data.wid?.split('@')[0], userContact: usuariosEmpresa[0].correo ?? "No hay usuario", tipoServicioId: empresaData.tipoServicioId.id },
         products: allProducts,
       };
+
     } catch (error) {
       throw new BadRequestException({
         ok: false,
