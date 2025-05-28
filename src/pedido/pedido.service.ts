@@ -37,6 +37,7 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { TIPO_SERVICIO_DELIVERY_ID } from 'src/database/seeders/app/tipopedido.seed';
 import { DeviceService } from 'src/device/device.service';
 import { Reclamo } from './entities/reclamo.entity';
+import { PaymentMethod } from 'src/paymentMethod/entities/paymentMethod.entity';
 
 @Injectable()
 export class PedidoService implements OnModuleDestroy {
@@ -49,6 +50,8 @@ export class PedidoService implements OnModuleDestroy {
   constructor(
     @InjectRepository(Pedido)
     private pedidoRepository: Repository<Pedido>,
+    @InjectRepository(PaymentMethod)
+    private paymentMethodRepo: Repository<PaymentMethod>,
     @InjectRepository(Estado)
     private estadoRepository: Repository<Estado>,
     @InjectRepository(Cambioestadopedido)
@@ -422,6 +425,13 @@ export class PedidoService implements OnModuleDestroy {
           newPedido.chatIdWhatsapp = createPedidoDto.chatId.toString();
         }
         newPedido.detalle_pedido = createPedidoDto?.detalles ?? '';
+
+        if (createPedidoDto?.paymentMethodId && createPedidoDto?.paymentMethodId !== "") {
+          const paymentMethod = await this.paymentMethodRepo.findOne({ where: { id: Number(createPedidoDto?.paymentMethodId)} });
+          if (paymentMethod?.id) {
+            newPedido.paymentMethod = paymentMethod;
+          }
+        }
 
         if (existChatPreview) {
           newPedido.chat = existChatPreview;
@@ -1043,7 +1053,7 @@ export class PedidoService implements OnModuleDestroy {
         order: {
           fecha: 'DESC',
         },
-        relations: ['pedidosprod', 'pedidosprod.producto', 'paymentMethod'],
+        relations: ['pedidosprod', 'pedidosprod.producto'],
       });
 
       const dates = {};

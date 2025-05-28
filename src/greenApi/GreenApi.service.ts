@@ -4,6 +4,7 @@ import { ChatGptThreadsService } from 'src/chatGptThreads/chatGptThreads.service
 import { ClienteService } from 'src/cliente/cliente.service';
 import { DeviceService } from 'src/device/device.service';
 import { InfolineService } from 'src/infoline/infoline.service';
+import { PaymentMethodService } from 'src/paymentMethod/paymentMethod.service';
 import { Pedido } from 'src/pedido/entities/pedido.entity';
 import { PedidoService } from 'src/pedido/pedido.service';
 import { ProductoService } from 'src/producto/producto.service';
@@ -24,6 +25,7 @@ export class GreenApiService {
     private readonly productoService: ProductoService,
     private readonly infoLineService: InfolineService,
     private readonly deviceService: DeviceService,
+    private readonly paymentMethodService: PaymentMethodService,
   ) {}
 
   async onModuleInit() {
@@ -93,6 +95,7 @@ export class GreenApiService {
       timeZone,
       this.productoService,
       this.pedidoService,
+      this.paymentMethodService,
       this,
       this.infoLineService,
       empresaId,
@@ -164,6 +167,7 @@ export class GreenApiService {
     messagePush = 'Test',
     originalChatId,
     withIA = false,
+    paymentMethodId = "",
   }: any) {
     try {
       console.log('openAIResponse', openAIResponse);
@@ -182,6 +186,7 @@ export class GreenApiService {
         chatId: chatIdExist,
         originalChatId: originalChatId,
         withIA: withIA,
+        paymentMethodId: paymentMethodId,
       });
       // await this.chatGptThreadsService.deleteThread(currentThreadId);
       await this.deviceService.sendNotificationEmpresa(

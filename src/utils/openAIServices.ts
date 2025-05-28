@@ -7,6 +7,7 @@ import { ProductoService } from 'src/producto/producto.service';
 import { PedidoService } from 'src/pedido/pedido.service';
 import { GreenApiService } from 'src/greenApi/GreenApi.service';
 import { InfolineService } from 'src/infoline/infoline.service';
+import { PaymentMethodService } from 'src/paymentMethod/paymentMethod.service';
 
 export const askAssistant = async (question, instrucciones) => {
   try {
@@ -77,6 +78,7 @@ export async function sendMessageToThread(
   timeZone,
   productoService: ProductoService,
   pedidoService: PedidoService,
+  paymentMethodService: PaymentMethodService,
   greenApiService: GreenApiService,
   infoLineService: InfolineService,
   empresaId: any,
@@ -172,6 +174,9 @@ export async function sendMessageToThread(
           } else if (name === 'getPedidosByUser') {
             console.log('getPedidosByUser');
             toolResult = await pedidoService.getMyOrders(clienteId);
+          } else if (name === 'getPaymentMethods') {
+            console.log('getPaymentMethods');
+            toolResult = await paymentMethodService.findAll();
           } else if (name === 'getInfoLines') {
             console.log('getInfoLines');
             const textInfoLines =
@@ -189,7 +194,7 @@ export async function sendMessageToThread(
             console.log('cancelOrder');
             const resp = await pedidoService.cancel(args.orderId, true);
             toolResult = resp;
-          }  else if (name === 'getCurrencies') {
+          } else if (name === 'getCurrencies') {
             console.log('getCurrencies');
             toolResult = await productoService.getCurrencies();
           } else if (name === 'confirmOrder') {
@@ -207,6 +212,7 @@ export async function sendMessageToThread(
               messagePush: args.messagePush,
               originalChatId: originalChatId,
               withIA: true,
+              paymentMethodId: args?.paymentMethodId,
             });
           } else if (name === 'getAvailability') {
             console.log('getAvailability');

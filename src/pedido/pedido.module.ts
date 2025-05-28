@@ -19,6 +19,7 @@ import { Category } from 'src/category/entities/category.entity';
 import { BullModule } from '@nestjs/bullmq';
 import { DeviceModule } from 'src/device/device.module';
 import { Reclamo } from './entities/reclamo.entity';
+import { PaymentMethod } from 'src/paymentMethod/entities/paymentMethod.entity';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { Reclamo } from './entities/reclamo.entity';
       ProductoPedido,
       Category,
       Producto,
+      PaymentMethod,
       Tiposervicio,
       Chat,
       ProductoPedido,
