@@ -29,7 +29,6 @@ export class PedidoController {
     return this.pedidoService.create(createPedidoDto);
   }
 
-
   @Get('/statistics')
   getStatistics(@Req() request: any) {
     const filterType = request.query['type'] as any;
