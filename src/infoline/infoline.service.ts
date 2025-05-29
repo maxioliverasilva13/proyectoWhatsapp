@@ -8,6 +8,7 @@ import { Tiposervicio } from 'src/tiposervicio/entities/tiposervicio.entity';
 import { handleGetGlobalConnection } from 'src/utils/dbConnection';
 import { TipoPedido } from 'src/enums/tipopedido';
 import getCurrentDate from 'src/utils/getCurrentDate';
+import { Empresa } from 'src/empresa/entities/empresa.entity';
 
 @Injectable()
 export class InfolineService implements OnModuleDestroy {
@@ -60,8 +61,22 @@ export class InfolineService implements OnModuleDestroy {
     }
   }
 
-  findAll() {
-    return this.infoLineRepository.find();
+  async findAll() {
+    const globalConnection = await handleGetGlobalConnection();
+    try {
+      const empresaRepo = globalConnection.getRepository(Empresa);
+      const empresa = await empresaRepo.findOne({ where: { db_name: process.env.SUBDOMAIN } })
+
+      return this.infoLineRepository.find({ where: { id_tipo_servicio: Number(empresa?.tipoServicioId ?? 0) } });
+    } catch (error) {
+       throw new BadRequestException({
+        ok: false,
+        statusCode: 400,
+        message: error?.message,
+      });
+    } finally {
+      globalConnection.destroy();
+    }
   }
 
   async findOne(id: number) {
@@ -70,10 +85,9 @@ export class InfolineService implements OnModuleDestroy {
   }
 
   async findAllFormatedText(empresaType: TipoPedido) {
-    try {      
+    try {
       const tipoServicioExist = await this.tipoServicioRepository.findOne({ where: { tipo: empresaType } })
-      console.log(tipoServicioExist);
-      
+
       if (!tipoServicioExist) {
         throw new BadRequestException('no existe el tipo de servicio proporcionado');
       }
