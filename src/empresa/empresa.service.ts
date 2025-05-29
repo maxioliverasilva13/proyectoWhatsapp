@@ -296,11 +296,21 @@ export class EmpresaService {
       const allProducts = await categoryRepository.find({ relations: ["producto"] });
       const allInfoLines = await infoLineRepository.find()
 
+      const apiUrl = `${process.env.ENV === 'dev' ? 'http' : 'https'}://${process.env.VIRTUAL_HOST?.replace(
+        'app',
+        empresaData?.db_name,
+      )}`;
 
       connection.destroy();
       return {
         ok: true,
-        data: { ...empresaData, numero: data.wid?.split('@')[0], userContact: usuariosEmpresa[0].correo ?? "No hay usuario", tipoServicioId: empresaData.tipoServicioId.id },
+        data: {
+          ...empresaData,
+          numero: data.wid?.split('@')[0],
+          userContact: usuariosEmpresa[0].correo ?? "No hay usuario",
+          tipoServicioId: empresaData.tipoServicioId.id,
+          apiUrl
+        },
         products: allProducts,
         infoLines: allInfoLines
       };

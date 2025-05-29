@@ -168,7 +168,9 @@ export class AppModule {
         { path: '/upload', method: RequestMethod.ALL },
         { path: '/upload/image', method: RequestMethod.ALL },
         { path: "auth/sendLinkToGmail", method: RequestMethod.ALL },
-        { path: "auth/open-reset-link", method: RequestMethod.ALL }
+        { path: "auth/open-reset-link", method: RequestMethod.ALL },
+        { path: "calendar/next-date-avaiable", method: RequestMethod.ALL },
+        { path: "calendar/dates-avaiable", method: RequestMethod.ALL },
       )
       .forRoutes('*');
   }
