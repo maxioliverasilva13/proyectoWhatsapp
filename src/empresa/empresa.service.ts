@@ -272,7 +272,7 @@ export class EmpresaService {
       }
 
       const empresaData = await this.empresaRepository.findOne({
-        where: { nombre: domain },
+        where: { db_name: domain },
         relations: ['tipoServicioId']
       });
 
