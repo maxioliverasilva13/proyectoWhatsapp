@@ -28,9 +28,7 @@ import { Mensaje } from 'src/mensaje/entities/mensaje.entity';
 import { Cliente } from 'src/cliente/entities/cliente.entity';
 import getCurrentDate from 'src/utils/getCurrentDate';
 import { Empresa } from 'src/empresa/entities/empresa.entity';
-import { EstadoDefectoIds } from 'src/enums/estadoDefecto';
 import * as moment from 'moment-timezone';
-import { log } from 'node:console';
 import { Category } from 'src/category/entities/category.entity';
 import { Queue } from 'bullmq';
 import { InjectQueue } from '@nestjs/bullmq';
@@ -317,9 +315,9 @@ export class PedidoService implements OnModuleDestroy {
 
           const key = keyInfoline; 
 
-          const value = infoLineFormatedJson[key];
+          const value = infoLineFormatedJson[key] ?? null;
 
-          if (typeof value === 'string' && value.toLowerCase().includes(query.toLowerCase())) {
+          if (value && typeof value === 'string' && value.toLowerCase().includes(query.toLowerCase())) {
             const orderFormatedd = await this.getPedido(order, clienteMap, reclamoMap);
             results.push(orderFormatedd);
           }
