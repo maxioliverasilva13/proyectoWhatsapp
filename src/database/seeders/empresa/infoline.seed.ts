@@ -23,12 +23,12 @@ export class InfoLineSeed implements Seeder {
 
     await Promise.all(
       defaultsInfoLineDelivery?.map(async (infoline) => {
-        return await infoLineRepository.upsert(infoline, ['id']);
+        return await infoLineRepository.upsert(infoline, ['nombre']);
       }),
     );
     await Promise.all(
       defaultsInfoLineReservas?.map(async (infoline) => {
-        return await infoLineRepository.upsert(infoline, ['id']);
+        return await infoLineRepository.upsert(infoline, ['nombre']);
       }),
     );
   }
