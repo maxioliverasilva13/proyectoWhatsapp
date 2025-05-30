@@ -739,6 +739,7 @@ export class PedidoService implements OnModuleDestroy {
       detalle: pedido.detalle_pedido,
       orderId: pedido.id,
       date: pedido.fecha,
+      transferUrl: pedido?.transferUrl,
       status: pedido.confirmado,
       createdAt: pedido?.createdAt,
     };
