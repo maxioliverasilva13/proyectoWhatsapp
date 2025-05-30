@@ -168,6 +168,7 @@ export class GreenApiService {
     originalChatId,
     withIA = false,
     paymentMethodId = "",
+    transferUrl = "",
   }: any) {
     try {
       const newOrder = await this.pedidoService.create({
@@ -178,6 +179,7 @@ export class GreenApiService {
         products: openAIResponse.data,
         empresaType,
         detalles: detalles,
+        transferUrl: transferUrl,
         numberSender,
         infoLinesJson: openAIResponse.infoLines,
         fecha: openAIResponse.fecha,

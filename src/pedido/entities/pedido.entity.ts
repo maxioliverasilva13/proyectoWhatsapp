@@ -42,6 +42,9 @@ export class Pedido extends BaseEntity {
   @Column({ nullable: true })
   chatIdWhatsapp: string;
 
+  @Column({ nullable: true, default: "" })
+  transferUrl: string;
+
   @Column()
   tipo_servicio_id: number;
 

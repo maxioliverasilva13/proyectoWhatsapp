@@ -10,6 +10,7 @@ export class CreatePedidoDto {
     numberSender? : number;
     infoLinesJson: any;
     fecha?: any;
+    transferUrl?: any;
     paymentMethodId?: string;
     withIA?: boolean;
     originalChatId?: string;

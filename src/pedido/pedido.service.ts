@@ -411,6 +411,7 @@ export class PedidoService implements OnModuleDestroy {
         newPedido.confirmado = createPedidoDto.confirmado || false;
         newPedido.cliente_id = createPedidoDto.clienteId;
         newPedido.estado = firstStatus;
+        newPedido.transferUrl = createPedidoDto?.transferUrl;
         newPedido.withIA = createPedidoDto?.withIA ?? false;
         newPedido.tipo_servicio_id = tipoServicio.id;
         newPedido.available = true;

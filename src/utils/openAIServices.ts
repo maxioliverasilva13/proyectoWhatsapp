@@ -200,6 +200,7 @@ export async function sendMessageToThread(
           } else if (name === 'confirmOrder') {
             toolResult = await greenApiService.hacerPedido({
               currentThreadId: threadId,
+              transferUrl: args?.transferUrl ?? "",
               clienteId: clientId,
               empresaId: empresaId,
               detalles: args.detalles,
