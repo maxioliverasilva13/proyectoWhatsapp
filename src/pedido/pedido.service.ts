@@ -274,7 +274,7 @@ export class PedidoService implements OnModuleDestroy {
     return JSON.stringify(pedidos);
   }
 
-  async filtertOrdersWithQuery(query: string, keyInfoline : string) {
+  async filtertOrdersWithQuery(query: string, keyInfoline: string) {
     try {
       if (!query?.trim()) {
         return {
@@ -313,7 +313,7 @@ export class PedidoService implements OnModuleDestroy {
             return;
           }
 
-          const key = keyInfoline; 
+          const key = keyInfoline;
 
           const value = infoLineFormatedJson[key] ?? null;
 
@@ -426,7 +426,7 @@ export class PedidoService implements OnModuleDestroy {
         newPedido.detalle_pedido = createPedidoDto?.detalles ?? '';
 
         if (createPedidoDto?.paymentMethodId && createPedidoDto?.paymentMethodId !== "") {
-          const paymentMethod = await this.paymentMethodRepo.findOne({ where: { id: Number(createPedidoDto?.paymentMethodId)} });
+          const paymentMethod = await this.paymentMethodRepo.findOne({ where: { id: Number(createPedidoDto?.paymentMethodId) } });
           if (paymentMethod?.id) {
             newPedido.paymentMethod = paymentMethod;
           }
@@ -642,6 +642,8 @@ export class PedidoService implements OnModuleDestroy {
           chatId: pedidoExist.chat,
           date: pedidoExist.fecha,
           confirm: pedidoExist.confirmado,
+          paymentMethod: pedidoExist?.paymentMethod,
+          transferUrl: pedidoExist?.transferUrl,
           id: pedidoExist.id,
           estimateTime,
           estadoActual: pedidoExist.estado,
@@ -1430,7 +1432,7 @@ export class PedidoService implements OnModuleDestroy {
       };
 
       const orders = await this.pedidoRepository.find({
-        where: { fecha: MoreThan(periods.yearly.toDate()), available: true, confirmado:true },
+        where: { fecha: MoreThan(periods.yearly.toDate()), available: true, confirmado: true },
         relations: ['pedidosprod', 'pedidosprod.producto'],
       });
 
