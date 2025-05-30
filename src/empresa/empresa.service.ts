@@ -294,7 +294,9 @@ export class EmpresaService {
       const infoLineRepository = await connection.getRepository(Infoline);
 
       const allProducts = await categoryRepository.find({ relations: ["producto"] });
-      const allInfoLines = await infoLineRepository.find()
+      const allInfoLines = await infoLineRepository.find({
+        where: { id_tipo_servicio: empresaData.tipoServicioId.id }
+      })
 
       const apiUrl = `${process.env.ENV === 'dev' ? 'http' : 'https'}://${process.env.VIRTUAL_HOST?.replace(
         'app',
