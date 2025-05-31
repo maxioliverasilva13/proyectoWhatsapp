@@ -65,9 +65,9 @@ export class InfolineService implements OnModuleDestroy {
     const globalConnection = await handleGetGlobalConnection();
     try {
       const empresaRepo = globalConnection.getRepository(Empresa);
-      const empresa = await empresaRepo.findOne({ where: { db_name: process.env.SUBDOMAIN } })
-
-      return this.infoLineRepository.find({ where: { id_tipo_servicio: Number(empresa?.tipoServicioId ?? 0) } });
+      const empresa = await empresaRepo.findOne({ where: { db_name: process.env.SUBDOMAIN }, relations: ['tipoServicioId'] })
+      console.log(empresa, empresa?.tipoServicioId?.id)
+      return this.infoLineRepository.find({ where: { id_tipo_servicio: Number(empresa?.tipoServicioId?.id ?? 0) } });
     } catch (error) {
        throw new BadRequestException({
         ok: false,
