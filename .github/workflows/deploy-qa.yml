@@ -64,6 +64,8 @@ jobs:
         FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
         FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
         RESEND_KEY: ${{ secrets.RESEND_KEY}}
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        DROPLET_USER: ${{ secrets.DROPLET_USER }}
 
       run: node deployCompanies.js
 
