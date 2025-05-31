@@ -87,6 +87,9 @@ function createEnvFileApp() {
       POSTGRES_GLOBAL_DB_HOST=${process.env.POSTGRES_GLOBAL_DB_HOST}
       POSTGRES_GLOBAL_DB_PORT=${process.env.POSTGRES_GLOBAL_DB_PORT}
       JWT_SECRET_KEY=${process.env.JWT_SECRET_KEY}
+      SSH_PRIVATE_KEY=${process.env.SSH_PRIVATE_KEY}
+      DROPLET_IP=${process.env.DROPLET_IP}
+      DROPLET_USER=${process.env.DROPLET_USER}
       ENV=qa
       DOCKER_BUILDKIT=1
       SUBDOMAIN=app
