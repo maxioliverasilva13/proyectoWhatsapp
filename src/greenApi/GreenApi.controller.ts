@@ -133,7 +133,7 @@ export class GrenApiController {
                 } else if (messageData.typeMessage === 'audioMessage') {
                   const fileUrl = messageData.fileMessageData.downloadUrl;
                   messageToSend = await SpeechToText(fileUrl);
-                } else if (messageData.typeMessage === 'imageMessage') {
+                } else if (messageData.typeMessage === 'imageMessage' || messageData?.typeMessage === "documentMessage") {
                   const imageUrl = messageData.fileMessageData.downloadUrl;
                   messageToSend = `[Imagen recibida] ${imageUrl}`;
                 } else {
