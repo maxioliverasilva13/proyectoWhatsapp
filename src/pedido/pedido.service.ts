@@ -1004,7 +1004,7 @@ export class PedidoService implements OnModuleDestroy {
     const { intervaloTiempoCalendario, timeZone = "America/Montevideo" } = empresa;
     if (!intervaloTiempoCalendario || !timeZone) return [];
 
-    const resultados: { fecha: string; cuposDisponibles: number }[] = [];
+    const resultados: { fecha: string; cuposDisponibles: number, dayOfWeek: number }[] = [];
 
     const inicioMes = moment.tz({ year: anio, month: mes - 1, day: 1 }, timeZone);
     const finMes = inicioMes.clone().endOf('month');
@@ -1016,7 +1016,7 @@ export class PedidoService implements OnModuleDestroy {
       const horariosDia = await this.horarioService.findByDay(diaSemana);
 
       if (!horariosDia || horariosDia.length === 0) {
-        resultados.push({ fecha: fechaStr, cuposDisponibles: 0 });
+        resultados.push({ fecha: fechaStr, cuposDisponibles: 0, dayOfWeek: diaSemana });
         continue;
       }
 
@@ -1071,7 +1071,7 @@ export class PedidoService implements OnModuleDestroy {
         }
       }
 
-      resultados.push({ fecha: fechaStr, cuposDisponibles: cupos });
+      resultados.push({ fecha: fechaStr, cuposDisponibles: cupos, dayOfWeek: diaSemana });
     }
 
     return resultados;
