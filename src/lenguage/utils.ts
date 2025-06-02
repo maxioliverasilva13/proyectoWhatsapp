@@ -1,4 +1,4 @@
-function getLanguageFromTimezone(timezone: string): 'es' | 'en' {
+export const getLanguageFromTimezone = (timezone: string): 'es' | 'en' => {
   const esTimezones = [
     'Europe/Madrid',
     'Africa/Ceuta',

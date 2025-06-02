@@ -19,6 +19,7 @@ import { encode } from 'gpt-3-encoder';
 import { RedisService } from 'src/redis/redis.service';
 import { PedidoService } from 'src/pedido/pedido.service';
 import { translations } from 'src/lenguage/translation';
+import { getLanguageFromTimezone } from 'src/lenguage/utils';
 
 @Controller()
 export class GrenApiController {
