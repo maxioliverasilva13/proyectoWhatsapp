@@ -20,6 +20,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { DeviceModule } from 'src/device/device.module';
 import { Reclamo } from './entities/reclamo.entity';
 import { PaymentMethod } from 'src/paymentMethod/entities/paymentMethod.entity';
+import { HorarioModule } from 'src/horario/horario.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { PaymentMethod } from 'src/paymentMethod/entities/paymentMethod.entity';
     ]),
     ProductopedidoModule,
     DeviceModule,
+    HorarioModule,
     ChatModule,
     MensajeModule,
     WebSocketModule,

@@ -55,6 +55,8 @@ import { AdminController } from './admin/admin.controller';
 import { AdminModule } from './admin/admin.module';
 import { PaymentMethodModule } from './paymentMethod/paymentMethod.module';
 import { PaymentMethodController } from './paymentMethod/paymentMethod.controller';
+import { HorarioController } from './horario/horario.controller';
+import { HorarioModule } from './horario/horario.module';
 
 ConfigModule.forRoot();
 
@@ -113,6 +115,7 @@ const connection = handleGetConnection();
     ImageModule,
     CategoryModule,
     DeviceModule,
+    HorarioModule,
     PaymentsModule,
     PaymentsModule,
   ],
@@ -148,6 +151,7 @@ export class AppModule {
         PedidoController,
         InfolineController,
         ChatGptThreadsController,
+        HorarioController,
         MensajeController,
         CategoryController,
         PaymentMethodController,
@@ -171,6 +175,7 @@ export class AppModule {
         { path: "auth/open-reset-link", method: RequestMethod.ALL },
         { path: "/pedido/calendar/next-date-avaiable", method: RequestMethod.ALL },
         { path: "/pedido/calendar/dates-avaiable", method: RequestMethod.ALL },
+        { path: "/horario", method: RequestMethod.GET },
       )
       .forRoutes('*');
   }

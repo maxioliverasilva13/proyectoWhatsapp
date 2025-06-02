@@ -9,7 +9,7 @@ import { InjectQueue } from '@nestjs/bullmq';
 
 @Injectable()
 export class AppService {
-  private shouldExecuteInterval = false;
+  private shouldExecuteIntervalOpenOrClose = false;
   private shouldExecuteIntervalDeleteThreads = false;
   private shouldExecuteIntervalRemainders = false;
 
@@ -17,8 +17,8 @@ export class AppService {
     const subdomain = process.env.SUBDOMAIN;
     
     if (subdomain === "app") {      
-      this.shouldExecuteInterval = true;
     } else {
+      this.shouldExecuteIntervalOpenOrClose = true;
       this.shouldExecuteIntervalRemainders = true;
       this.shouldExecuteIntervalDeleteThreads = true;
     }
@@ -50,7 +50,7 @@ export class AppService {
 
   @Interval(300000)
   handleIntervalOpenOrClose() {
-    if (this.shouldExecuteInterval) {
+    if (this.shouldExecuteIntervalOpenOrClose) {
       OpenOrClose();
     }
   }

@@ -20,6 +20,8 @@ import { RedisService } from 'src/redis/redis.service';
 import { PedidoService } from 'src/pedido/pedido.service';
 import { translations } from 'src/lenguage/translation';
 import { getLanguageFromTimezone } from 'src/lenguage/utils';
+import { HorarioService } from 'src/horario/horario.service';
+import { estaAbierto } from 'src/horario/utils';
 
 @Controller()
 export class GrenApiController {
@@ -33,6 +35,7 @@ export class GrenApiController {
     private readonly chatService: ChatService,
     private readonly messagesService: MensajeService,
     private readonly pedidoService: PedidoService,
+    private readonly horarioService: HorarioService,
     @InjectQueue(`GreenApiResponseMessagee-${process.env.SUBDOMAIN}`)
     private readonly messageQueue: Queue,
     private readonly redisService: RedisService,
@@ -41,6 +44,7 @@ export class GrenApiController {
   @Post('/webhooks')
   async handleWebhook(@Req() request: Request, @Body() body: any) {
     try {
+      console.log("entor")
       if (process.env.SUBDOMAIN === 'app') return;
       if (body.stateInstance) {
         const greenApiStatus = body.stateInstance;
@@ -61,16 +65,16 @@ export class GrenApiController {
         if (typeWebhook === 'incomingMessageReceived') {
           console.log('mensaje recibido');
           const orderPlanStatus = await this.pedidoService.orderPlanStatus();
-          if (orderPlanStatus?.slotsToCreate <= 0) {
-            return;
-          }
+          // if (orderPlanStatus?.slotsToCreate <= 0) {
+          //   return;
+          // }
           console.log('plan ok');
 
           const senderData = body?.senderData;
           const sender = senderData?.sender;
           const chatId = senderData?.chatId;
-          const numberSender = sender.match(/^\d+/)[0];
-          const senderName = senderData?.chatName ?? senderData.senderName;
+          const numberSender = sender?.match(/^\d+/)[0];
+          const senderName = senderData?.chatName ?? senderData?.senderName;
           const numberExist = await this.numeroConfianza.getOne(
             numberSender,
             empresaId,
@@ -99,29 +103,10 @@ export class GrenApiController {
             if (numberExist?.data) {
               return;
             } else {
-              const now = moment.tz(timeZone);
-              const apertura = now.clone().set({
-                hour: parseInt(InfoCompany.hora_apertura.split(':')[0]),
-                minute: parseInt(InfoCompany.hora_apertura.split(':')[1]),
-                second: 0,
-                millisecond: 0,
-              });
 
-              const cierre = now.clone().set({
-                hour: parseInt(InfoCompany.hora_cierre.split(':')[0]),
-                minute: parseInt(InfoCompany.hora_cierre.split(':')[1]),
-                second: 0,
-                millisecond: 0,
-              });
+              const estaDentroDeHorario = await estaAbierto(InfoCompany?.timeZone, this.horarioService);
 
-              const estaDentroDeHorario =
-                InfoCompany.abierto &&
-                (apertura.isBefore(cierre)
-                  ? now.isBetween(apertura, cierre)
-                  : now.isSameOrAfter(apertura) || now.isBefore(cierre));
-
-              console.log('estaDentroDeHorario', estaDentroDeHorario);
-              if (estaDentroDeHorario) {
+              if (estaDentroDeHorario === true) {
                 let messageToSend;
 
                 if (
@@ -236,25 +221,31 @@ export class GrenApiController {
                 });
               } else {
                 const timezoneEmpresa = InfoCompany?.timeZone;
-                let textReponse = '';
-                const aperturaStr = apertura.format('HH:mm');
-                const cierreStr = cierre.format('HH:mm');
                 const lang = getLanguageFromTimezone(timezoneEmpresa);
-                if (translations[lang] ?? '') {
-                  if (InfoCompany.hora_apertura && InfoCompany.hora_cierre) {
-                    textReponse =
-                      translations[lang].closed_hours(aperturaStr, cierreStr) ??
-                      '';
-                  } else {
-                    textReponse = translations[lang].closed ?? '';
-                  }
+
+                const now = moment.tz(timezoneEmpresa);
+                const dayOfWeek = now.isoWeekday();
+
+                const horarios = await this.horarioService.findByDay(dayOfWeek);
+
+                let textResponse = '';
+
+                if ((translations[lang] ?? '') && horarios.length > 0) {
+                  // Convertimos cada horario a texto: "08:00 - 12:00"
+                  const horariosStr = horarios
+                    .map(h => `${h.hora_inicio.slice(0, 5)} - ${h.hora_fin.slice(0, 5)}`)
+                    .join(', ');
+
+                  textResponse = translations[lang].closed_hours(horariosStr);
+                } else {
+                  textResponse = translations[lang]?.closed ?? '';
                 }
 
                 await this.messageQueue.add(
                   'send',
                   {
                     chatId: chatId,
-                    message: { message: textReponse },
+                    message: { message: textResponse },
                   },
                   {
                     priority: 0,
@@ -262,6 +253,7 @@ export class GrenApiController {
                   },
                 );
               }
+
             }
           } finally {
             globalCconnection.destroy();

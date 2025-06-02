@@ -36,12 +36,15 @@ import { TIPO_SERVICIO_DELIVERY_ID } from 'src/database/seeders/app/tipopedido.s
 import { DeviceService } from 'src/device/device.service';
 import { Reclamo } from './entities/reclamo.entity';
 import { PaymentMethod } from 'src/paymentMethod/entities/paymentMethod.entity';
+import { HorarioService } from 'src/horario/horario.service';
+import { CierreProvisorio } from 'src/cierreProvisorio/entities/cierreProvisorio.entitty';
 
 @Injectable()
 export class PedidoService implements OnModuleDestroy {
   private tipoServicioRepository: Repository<Tiposervicio>;
   private clienteRepository: Repository<Cliente>;
   private empresaRepository: Repository<Empresa>;
+  private cierreProvisorioRepo: Repository<CierreProvisorio>;
   private globalConnection: DataSource;
   private reclamoRepo: Repository<Reclamo>
 
@@ -68,6 +71,7 @@ export class PedidoService implements OnModuleDestroy {
     @InjectQueue(`sendMessageChangeStatusOrder-${process.env.SUBDOMAIN}`)
     private readonly messageQueue: Queue,
     private readonly deviceService: DeviceService,
+    private readonly horarioService: HorarioService,
   ) { }
 
   async onModuleInit() {
@@ -79,6 +83,7 @@ export class PedidoService implements OnModuleDestroy {
     this.clienteRepository = this.globalConnection.getRepository(Cliente);
     this.empresaRepository = this.globalConnection.getRepository(Empresa);
     this.reclamoRepo = this.globalConnection.getRepository(Reclamo);
+    this.cierreProvisorioRepo = this.globalConnection.getRepository(CierreProvisorio)
   }
 
   async getStatistics(filterType: any) {
@@ -835,76 +840,72 @@ export class PedidoService implements OnModuleDestroy {
       where: { db_name: process.env.SUBDOMAIN },
     });
 
-    const { hora_apertura, hora_cierre, intervaloTiempoCalendario, timeZone } =
-      empresa;
+    const { intervaloTiempoCalendario, timeZone = "America/Montevideo" } = empresa;
+    const diaSemana = moment(fecha).endOf("day").tz(timeZone).isoWeekday();
+    const horariosDia = await this.horarioService.findByDay(diaSemana);
+    if (!timeZone || !intervaloTiempoCalendario || !horariosDia) return [];
 
-    if (!hora_apertura || !hora_cierre || !timeZone) return [];
 
-    const apertura = moment.tz(
-      `${fecha} ${hora_apertura}`,
-      'YYYY-MM-DD HH:mm:ss',
-      timeZone,
-    );
-    const cierre = moment.tz(
-      `${fecha} ${hora_cierre}`,
-      'YYYY-MM-DD HH:mm:ss',
-      timeZone,
-    );
-
-    if (cierre.isBefore(apertura)) {
-      cierre.add(1, 'day');
-    }
+    if (horariosDia.length === 0) return [];
 
     const now = moment.tz(timeZone);
-
-    const query = this.pedidoRepository
-      .createQueryBuilder('pedido')
-      .where(`pedido.fecha >= :inicioUTC AND pedido.fecha < :finUTC`, {
-        inicioUTC: apertura.clone().format('YYYY-MM-DD HH:mm:ss'),
-        finUTC: cierre.clone().format('YYYY-MM-DD HH:mm:ss'),
-      })
-      .andWhere('pedido.available = :available', { available: true });
-
-    if (!withPast) {
-      query.andWhere('pedido.fecha > :nowUtc', {
-        nowUtc: now.format('YYYY-MM-DD HH:mm:ss'),
-      });
-    }
-
-    const pedidos = await query.getMany();
-    console.log("pedidos", pedidos)
-
     const disponibilidad: string[] = [];
-    const dontIncludeDisp: string[] = [];
+    const pedidosExistentes = await this.pedidoRepository.find({
+      where: {
+        available: true,
+        finalizado: false,
+        fecha: Between(
+          moment.tz(`${fecha} 00:00`, timeZone).utc().toDate(),
+          moment.tz(`${fecha} 23:59:59`, timeZone).utc().toDate()
+        ),
+      },
+    });
 
-    let actual = apertura.clone();
 
-    while (actual.isBefore(cierre)) {
-      const actualDate = actual.clone().format('YYYY-MM-DD HH:mm');
-      const overlapping = pedidos.some((pedido) => {
-        const inicio = moment(pedido.fecha);
-        const fin = inicio.clone().add(intervaloTiempoCalendario, 'minutes');
+    const cierresProvisorios = await this.cierreProvisorioRepo.find({
+      where: {
+        empresa: { id: empresa.id },
+        final: MoreThan(now.clone().subtract("3", "hours").toDate()),
+      },
+    });
+
+    for (const horario of horariosDia) {
+      const apertura = moment.tz(`${fecha} ${horario.hora_inicio}`, 'YYYY-MM-DD HH:mm', timeZone);
+      let cierre = moment.tz(`${fecha} ${horario.hora_fin}`, 'YYYY-MM-DD HH:mm', timeZone);
+
+      // Si cierra después de medianoche
+      if (cierre.isBefore(apertura)) {
+        cierre.add(1, 'day');
+      }
+
+      let actual = apertura.clone();
+
+      while (actual.isBefore(cierre)) {
+        const actualDate = actual.clone().format('YYYY-MM-DD HH:mm');
         const actualUtc = actual.clone().utc().add(-3, 'hours');
-        const isBetween = actualUtc.isBetween(inicio, fin, undefined, '[)');
 
-        if (isBetween) {
-          dontIncludeDisp.push(inicio.format('YYYY-MM-DD HH:mm'));
-        }
-        return isBetween;
-      });
-      let conditionToAdd = false;
-      if (withPast === true) {
-        conditionToAdd = withPast;
-      } else {
-        conditionToAdd = !actual.isBefore(now);
-      }
-      if (conditionToAdd && !overlapping) {
-        if (!dontIncludeDisp.includes(actualDate)) {
-          disponibilidad.push(actualDate);
-        }
-      }
+        const overlapping = pedidosExistentes.some((pedido) => {
+          const inicio = moment.utc(pedido.fecha);
+          const fin = inicio.clone().add(intervaloTiempoCalendario, 'minutes');
+          return actualUtc.isBetween(inicio, fin, undefined, '[)');
+        });
 
-      actual.add(intervaloTiempoCalendario, 'minutes');
+        const enCierreProvisorio = cierresProvisorios.some(cierre => {
+          const inicio = moment.tz(cierre.inicio, timeZone).utc();
+          const fin = moment.tz(cierre.final, timeZone).utc();
+          return actualUtc.isBetween(inicio, fin, undefined, '[)');
+        });
+
+        const conditionToAdd = withPast || !actual.isBefore(now);
+
+        if (conditionToAdd && !overlapping && !enCierreProvisorio) {
+          if (!disponibilidad.includes(actualDate)) {
+            disponibilidad.push(actualDate);
+          }
+        }
+
+        actual.add(intervaloTiempoCalendario, 'minutes');
+      }
     }
 
     return disponibilidad;
@@ -918,74 +919,165 @@ export class PedidoService implements OnModuleDestroy {
       where: { db_name: process.env.SUBDOMAIN },
     });
 
-    const { hora_apertura, hora_cierre, intervaloTiempoCalendario, timeZone } =
-      empresa;
+    const { intervaloTiempoCalendario, timeZone = "America/Montevideo" } = empresa;
 
-    if (!hora_apertura || !hora_cierre || !timeZone) return [];
+    if (!intervaloTiempoCalendario || !timeZone) return [];
 
     const inicio = moment.tz(fechaInicio, 'YYYY-MM-DD', timeZone);
     const fin = moment.tz(fechaFin, 'YYYY-MM-DD', timeZone);
-
-    const allDisponibilidades: string[] = [];
     const now = moment.tz(timeZone);
+    const allDisponibilidades: string[] = [];
 
     for (let m = inicio.clone(); m.isSameOrBefore(fin); m.add(1, 'day')) {
-      const apertura = moment.tz(
-        `${m.format('YYYY-MM-DD')} ${hora_apertura}`,
-        'YYYY-MM-DD HH:mm:ss',
-        timeZone,
-      );
-      const cierre = moment.tz(
-        `${m.format('YYYY-MM-DD')} ${hora_cierre}`,
-        'YYYY-MM-DD HH:mm:ss',
-        timeZone,
-      );
+      const fecha = m.format('YYYY-MM-DD');
+      const diaSemana = m.isoWeekday();
+      const horariosDia = await this.horarioService.findByDay(diaSemana);
 
-      const dontIncludeDisp: string[] = [];
+      if (!horariosDia || horariosDia.length === 0) continue;
 
-      if (cierre.isBefore(apertura)) {
-        cierre.add(1, 'day');
-      }
+      const pedidosDelDia = await this.pedidoRepository.find({
+        where: {
+          finalizado: false,
+          available: true,
+          fecha: Between(
+            moment.tz(`${fecha} 00:00`, timeZone).utc().toDate(),
+            moment.tz(`${fecha} 23:59:59`, timeZone).utc().toDate()
+          ),
+        },
+      });
 
-      const pedidos = await this.pedidoRepository
-        .createQueryBuilder('pedido')
-        .where(`pedido.fecha >= :inicioUTC AND pedido.fecha < :finUTC`, {
-          inicioUTC: apertura.clone().format('YYYY-MM-DD HH:mm:ss'),
-          finUTC: cierre.clone().format('YYYY-MM-DD HH:mm:ss'),
-        })
-        .andWhere('pedido.confirmado = :confirmado', { confirmado: true })
-        .andWhere('pedido.finalizado = :finalizado', { finalizado: false })
-        .andWhere('pedido.available = :available', { available: true })
-        .getMany();
+      const cierresProvisorios = await this.cierreProvisorioRepo.find({
+        where: {
+          empresa: { id: empresa.id },
+          final: MoreThan(now.clone().subtract("3", "hours").toDate()),
+        },
+      });
 
-      let actual = apertura.clone();
-      while (actual.isBefore(cierre)) {
-        const overlapping = pedidos.some((pedido) => {
-          const inicio = moment(pedido.fecha);
-          const fin = inicio.clone().add(intervaloTiempoCalendario, 'minutes');
-          const actualUtc = actual.clone().utc().add(-3, 'hours');
-          const isBetween = actualUtc.isBetween(inicio, fin, undefined, '[)');
+      for (const horario of horariosDia) {
+        const apertura = moment.tz(`${fecha} ${horario.hora_inicio}`, 'YYYY-MM-DD HH:mm', timeZone);
+        let cierre = moment.tz(`${fecha} ${horario.hora_fin}`, 'YYYY-MM-DD HH:mm', timeZone);
 
-          if (isBetween) {
-            dontIncludeDisp.push(inicio.format('YYYY-MM-DD HH:mm'));
-          }
-          return isBetween;
-        });
-        if (!actual.isBefore(now)) {
-          if (!overlapping) {
-            const newDateToAdd = actual.clone().format('YYYY-MM-DD HH:mm');
-            if (!dontIncludeDisp.includes(newDateToAdd)) {
-              allDisponibilidades.push(newDateToAdd);
-            }
-          }
+        if (cierre.isBefore(apertura)) {
+          cierre.add(1, 'day');
         }
 
-        actual.add(intervaloTiempoCalendario, 'minutes');
+        let actual = apertura.clone();
+
+        while (actual.isBefore(cierre)) {
+          const actualDate = actual.clone().format('YYYY-MM-DD HH:mm');
+          const actualUtc = actual.clone().utc().add(-3, 'hours');
+
+          const overlapping = pedidosDelDia.some((pedido) => {
+            const inicio = moment.utc(pedido.fecha);
+            const fin = inicio.clone().add(intervaloTiempoCalendario, 'minutes');
+            return actualUtc.isBetween(inicio, fin, undefined, '[)');
+          });
+
+          const enCierreProvisorio = cierresProvisorios.some(cierre => {
+            const inicio = moment.tz(cierre.inicio, timeZone).utc();
+            const fin = moment.tz(cierre.final, timeZone).utc();
+            return actualUtc.isBetween(inicio, fin, undefined, '[)');
+          });
+
+          if (!actual.isBefore(now) && !overlapping && !enCierreProvisorio) {
+            if (!allDisponibilidades.includes(actualDate)) {
+              allDisponibilidades.push(actualDate);
+            }
+          }
+
+          actual.add(intervaloTiempoCalendario, 'minutes');
+        }
       }
     }
 
     return allDisponibilidades;
   }
+
+  async obtenerCuposDisponiblesPorDiaDelMes(
+    anio: number,
+    mes: number,
+  ): Promise<{ fecha: string; cuposDisponibles: number }[]> {
+    const empresa = await this.empresaRepository.findOne({
+      where: { db_name: process.env.SUBDOMAIN },
+    });
+
+    const { intervaloTiempoCalendario, timeZone = "America/Montevideo" } = empresa;
+    if (!intervaloTiempoCalendario || !timeZone) return [];
+
+    const resultados: { fecha: string; cuposDisponibles: number }[] = [];
+
+    const inicioMes = moment.tz({ year: anio, month: mes - 1, day: 1 }, timeZone);
+    const finMes = inicioMes.clone().endOf('month');
+    const now = moment.tz(timeZone);
+
+    for (let dia = inicioMes.clone(); dia.isSameOrBefore(finMes); dia.add(1, 'day')) {
+      const fechaStr = dia.format('YYYY-MM-DD');
+      const diaSemana = dia.isoWeekday();
+      const horariosDia = await this.horarioService.findByDay(diaSemana);
+
+      if (!horariosDia || horariosDia.length === 0) {
+        resultados.push({ fecha: fechaStr, cuposDisponibles: 0 });
+        continue;
+      }
+
+      const pedidos = await this.pedidoRepository.find({
+        where: {
+          finalizado: false,
+          available: true,
+          fecha: Between(
+            moment.tz(`${fechaStr} 00:00`, timeZone).utc().toDate(),
+            moment.tz(`${fechaStr} 23:59:59`, timeZone).utc().toDate()
+          ),
+        },
+      });
+
+      const cierresProvisorios = await this.cierreProvisorioRepo.find({
+        where: {
+          empresa: { id: empresa.id },
+          final: MoreThan(now.clone().subtract("3", "hours").toDate()),
+        },
+      });
+
+      let cupos = 0;
+
+      for (const horario of horariosDia) {
+        const apertura = moment.tz(`${fechaStr} ${horario.hora_inicio}`, 'YYYY-MM-DD HH:mm', timeZone);
+        let cierre = moment.tz(`${fechaStr} ${horario.hora_fin}`, 'YYYY-MM-DD HH:mm', timeZone);
+        if (cierre.isBefore(apertura)) cierre.add(1, 'day');
+
+        let actual = apertura.clone();
+
+        while (actual.isBefore(cierre)) {
+          const actualUtc = actual.clone().utc().add(-3, 'hours');
+
+          const overlapping = pedidos.some((pedido) => {
+            const inicio = moment.utc(pedido.fecha);
+            const fin = inicio.clone().add(intervaloTiempoCalendario, 'minutes');
+            return actualUtc.isBetween(inicio, fin, undefined, '[)');
+          });
+
+          const enCierreProvisorio = cierresProvisorios.some(cierre => {
+            const inicio = moment.tz(cierre.inicio, timeZone).utc();
+            const fin = moment.tz(cierre.final, timeZone).utc();
+            return actualUtc.isBetween(inicio, fin, undefined, '[)');
+          });
+
+
+          if (!actual.isBefore(now) && !overlapping && !enCierreProvisorio) {
+            cupos++;
+          }
+
+          actual.add(intervaloTiempoCalendario, 'minutes');
+        }
+      }
+
+      resultados.push({ fecha: fechaStr, cuposDisponibles: cupos });
+    }
+
+    return resultados;
+  }
+
+
 
   async getNextDateTimeAvailable(timeZone: string): Promise<any> {
     try {
@@ -995,18 +1087,6 @@ export class PedidoService implements OnModuleDestroy {
 
       if (!empresaInfo) {
         throw new Error('Empresa no encontrada');
-      }
-
-      const { hora_apertura, hora_cierre, intervaloTiempoCalendario } =
-        empresaInfo;
-
-      if (
-        !hora_apertura ||
-        !hora_cierre ||
-        !timeZone ||
-        !intervaloTiempoCalendario
-      ) {
-        throw new Error('Faltan datos de configuración de la empresa');
       }
 
       const today = moment().tz(timeZone).format('YYYY-MM-DD');

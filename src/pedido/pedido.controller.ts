@@ -72,6 +72,16 @@ export class PedidoController {
     );
   }
 
+  @Get('/calendar/dates-avaiable-by-month')
+  obtenerCuposDisponiblesPorDiaDelMes(@Req() request: any) {
+    const anio = request.query['anio'];
+    const mes = request.query['mes'];
+    return this.pedidoService.obtenerCuposDisponiblesPorDiaDelMes(
+      anio,
+      mes,
+    );
+  }
+
   @Post('/aviableDate')
   disponible(
     @Query('date') date: string,
@@ -135,8 +145,8 @@ export class PedidoController {
 
   @Get('/filter/searchWIthQuery')
   searchOrdersWithQuery(
-    @Query('query') query : string,
-    @Query('keyInfoline') keyInfoline : string
+    @Query('query') query: string,
+    @Query('keyInfoline') keyInfoline: string
   ) {
     return this.pedidoService.filtertOrdersWithQuery(query, keyInfoline);
   }

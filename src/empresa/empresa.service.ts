@@ -52,15 +52,15 @@ export class EmpresaService {
         newEmpresa.nombre = createEmpresaDto.nombre;
         newEmpresa.db_name = dbName;
 
-        if (
-          !isValidTimeFormat(createEmpresaDto?.hora_apertura) ||
-          !isValidTimeFormat(createEmpresaDto?.hora_cierre)
-        ) {
-          throw new Error('Hora de apertur y cierre invalidos');
-        }
+        // if (
+        //   !isValidTimeFormat(createEmpresaDto?.hora_apertura) ||
+        //   !isValidTimeFormat(createEmpresaDto?.hora_cierre)
+        // ) {
+        //   throw new Error('Hora de apertur y cierre invalidos');
+        // }
 
-        newEmpresa.hora_apertura = createEmpresaDto.hora_apertura;
-        newEmpresa.hora_cierre = createEmpresaDto.hora_cierre;
+        // newEmpresa.hora_apertura = createEmpresaDto.hora_apertura;
+        // newEmpresa.hora_cierre = createEmpresaDto.hora_cierre;
         newEmpresa.logo = createEmpresaDto.logo;
         newEmpresa.descripcion = createEmpresaDto.descripcion;
         newEmpresa.menu = createEmpresaDto.menu;

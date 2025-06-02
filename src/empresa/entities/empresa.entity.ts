@@ -1,5 +1,6 @@
 import { CierreProvisorio } from 'src/cierreProvisorio/entities/cierreProvisorio.entitty';
 import { Currency } from 'src/currencies/entities/currency.entity';
+import { Horario } from 'src/horario/entities/horario.entity';
 import { NumeroConfianza } from 'src/numerosConfianza/entities/numeroConfianza.entity';
 import { Payment } from 'src/payments/payment.entity';
 import { PlanEmpresa } from 'src/planEmpresa/entities/planEmpresa.entity';
