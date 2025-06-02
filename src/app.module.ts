@@ -175,6 +175,7 @@ export class AppModule {
         { path: "auth/open-reset-link", method: RequestMethod.ALL },
         { path: "/pedido/calendar/next-date-avaiable", method: RequestMethod.ALL },
         { path: "/pedido/calendar/dates-avaiable", method: RequestMethod.ALL },
+        { path: "/calendar/dates-avaiable-by-month", method: RequestMethod.GET },
         { path: "/horario", method: RequestMethod.GET },
       )
       .forRoutes('*');
