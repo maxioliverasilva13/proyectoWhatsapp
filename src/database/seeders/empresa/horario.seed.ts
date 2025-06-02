@@ -14,68 +14,68 @@ export class HorarioSeed implements Seeder {
         const defaultHorarios = [
             {
                 id: 1,
-                dayOfWeek: 1,
+                dayOfWeek: 0,
                 hora_inicio: "09:00",
                 hora_fin: "13:00"
             },
             {
                 id: 2,
-                dayOfWeek: 1,
+                dayOfWeek: 0,
                 hora_inicio: "14:00",
                 hora_fin: "18:00"
             },
 
             {
                 id: 3,
-                dayOfWeek: 2,
+                dayOfWeek: 1,
                 hora_inicio: "09:00",
                 hora_fin: "13:00"
             },
             {
                 id: 4,
-                dayOfWeek: 2,
+                dayOfWeek: 1,
                 hora_inicio: "14:00",
                 hora_fin: "18:00"
             },
             {
                 id: 5,
-                dayOfWeek: 3,
+                dayOfWeek: 2,
                 hora_inicio: "09:00",
                 hora_fin: "13:00"
             },
             {
                 id: 6,
-                dayOfWeek: 3,
+                dayOfWeek: 2,
                 hora_inicio: "14:00",
                 hora_fin: "18:00"
             },
             {
                 id: 7,
-                dayOfWeek: 4,
+                dayOfWeek: 3,
                 hora_inicio: "09:00",
                 hora_fin: "13:00"
             },
             {
                 id: 8,
-                dayOfWeek: 4,
+                dayOfWeek: 3,
                 hora_inicio: "14:00",
                 hora_fin: "18:00"
             },
             {
                 id: 9,
-                dayOfWeek: 5,
+                dayOfWeek: 4,
                 hora_inicio: "09:00",
                 hora_fin: "13:00"
             },
             {
                 id: 10,
-                dayOfWeek: 5,
+                dayOfWeek: 4,
                 hora_inicio: "14:00",
                 hora_fin: "18:00"
             },
             {
                 id: 11,
-                dayOfWeek: 6,
+                dayOfWeek: 5,
                 hora_inicio: "09:00",
                 hora_fin: "13:00"
             },

@@ -1063,7 +1063,7 @@ export class PedidoService implements OnModuleDestroy {
           });
 
 
-          if (!actual.isBefore(now) && !overlapping && !enCierreProvisorio) {
+          if (!actual.isSameOrBefore(now) && !overlapping && !enCierreProvisorio) {
             cupos++;
           }
 
