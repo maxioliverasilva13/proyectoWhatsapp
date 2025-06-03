@@ -69,6 +69,7 @@ ENV=qa
 DOCKER_BUILDKIT=1
 SUBDOMAIN=${empresa.db_name}
 RESEND_KEY: ${process.env.RESEND_KEY}
+DEEPSEEK_TOKEN=${process.env.DEEPSEEK_TOKEN}
 `;
 
   fs.writeFileSync(`.env.${empresa.db_name}`, envContent);

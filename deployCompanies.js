@@ -50,6 +50,7 @@ function createEnvFile(empresa) {
     OPEN_AI_TOKEN=${process.env.OPEN_AI_TOKEN}
     JWT_SECRET_KEY=${process.env.JWT_SECRET_KEY}
     ASSISTANT_ID=${process.env.ASSISTANT_ID}
+    DEEPSEEK_TOKEN=${process.env.DEEPSEEK_TOKEN}
     ENV=qa
     DOCKER_BUILDKIT=1
     SUBDOMAIN=${empresa.db_name}
@@ -90,6 +91,7 @@ function createEnvFileApp() {
       SSH_PRIVATE_KEY=${process.env.SSH_PRIVATE_KEY}
       DROPLET_IP=${process.env.DROPLET_IP}
       DROPLET_USER=${process.env.DROPLET_USER}
+      DEEPSEEK_TOKEN=${process.env.DEEPSEEK_TOKEN}
       ENV=qa
       DOCKER_BUILDKIT=1
       SUBDOMAIN=app
