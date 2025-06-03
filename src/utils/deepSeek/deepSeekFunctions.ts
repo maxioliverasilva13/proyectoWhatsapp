@@ -153,6 +153,7 @@ export async function sendMessageWithTools(
             tools: [...Customtools],
             tool_choice: "auto",
             max_tokens: 4096,
+            temperature: 0.5,
             stream: false,
         }),
     });

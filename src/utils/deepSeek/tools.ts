@@ -4,7 +4,7 @@ export const Customtools = [
         "function": {
 
             "name": "getProductsByEmpresa",
-            "description": "Busca una lista de productos por su ID",
+            "description": "Busca una lista de productos por su ID en tiempo real",
 
             "parameters": {
                 "type": "object",
