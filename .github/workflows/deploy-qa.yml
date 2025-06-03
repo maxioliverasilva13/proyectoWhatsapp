@@ -66,6 +66,8 @@ jobs:
         RESEND_KEY: ${{ secrets.RESEND_KEY}}
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         DROPLET_USER: ${{ secrets.DROPLET_USER }}
+        DEEPSEEK_TOKEN: ${{ secrets.DEEPSEEK_TOKEN }}
+        
 
       run: node deployCompanies.js
 

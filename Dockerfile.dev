@@ -14,8 +14,6 @@ RUN npm install -g @nestjs/cli
 RUN npm i --save-dev @types/node
 RUN npm install --save @green-api/whatsapp-api-client 
 
-COPY instrucciones.txt ./src/utils/deepSeek/instrucciones.txt
-
 RUN npm run build
 
 FROM node:18-alpine
@@ -28,9 +26,6 @@ RUN npm install -g @nestjs/cli
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package*.json ./
-
-RUN cp src/utils/deepSeek/instrucciones.txt /app/dist/utils/deepSeek/instrucciones.txt
-
 
 ENV NODE_ENV=development
 
