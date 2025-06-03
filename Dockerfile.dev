@@ -29,6 +29,9 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package*.json ./
 
+RUN cp src/utils/deepSeek/instrucciones.txt /app/dist/utils/deepSeek/instrucciones.txt
+
+
 ENV NODE_ENV=development
 
 EXPOSE 3000

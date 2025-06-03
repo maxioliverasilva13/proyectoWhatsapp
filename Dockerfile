@@ -21,6 +21,7 @@ WORKDIR /app
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 
+RUN cp src/utils/deepSeek/instrucciones.txt ./dist/utils/deepSeek/instrucciones.txt
 
 ENV NODE_ENV=production
 
