@@ -1,3 +1,7 @@
-const fs = require('fs');
+import * as fs from 'fs';
+import * as path from 'path';
 
-export const instructions = fs.readFileSync('./instrucciones.txt', 'utf-8');
+export const instructions = fs.readFileSync(
+  path.join(__dirname, 'instrucciones.txt'),
+  'utf-8'
+);
