@@ -7,15 +7,25 @@ export class Mensaje extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column()
+    @Column({nullable: true})
     mensaje: string;
 
-    @Column({default : false})
+    @Column({ default: false })
     isClient: boolean
 
-    @Column({ type: 'timestamp with time zone', default : new Date()})
+    @Column({ default: false })
+    isTool: boolean
+
+    @Column({ nullable: true })
+    tool_call_id: string
+
+    @Column({ type: 'json', nullable: true })
+    tool_calls: any;
+
+    @Column({ type: 'timestamp with time zone', default: new Date() })
     time: Date
 
     @ManyToOne(() => Chat, (chat) => chat.mensajes)
     chat: Chat;
 }
+

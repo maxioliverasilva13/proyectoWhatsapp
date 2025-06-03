@@ -16,7 +16,7 @@ export class ChatGptThreadsService {
     private chatRepository: Repository<Chat>,
     @InjectRepository(Mensaje)
     private messageRepository: Repository<Mensaje>,
-  ) {}
+  ) { }
 
   async getLastThreads(numberPhone) {
     try {
@@ -41,7 +41,7 @@ export class ChatGptThreadsService {
 
       return {
         ok: true,
-        threadId: lastThread?.threadId ? lastThread?.threadId : null,
+        threadId: lastThread?.id ? lastThread?.id : null,
         chatId: lastThread.chatId.toString(),
         statusRun: lastThread.sesionStatus,
         originalChatId: originalChatId,
@@ -59,7 +59,6 @@ export class ChatGptThreadsService {
 
   async createThreads(data) {
     try {
-      console.log('aca', data);
       const originalChatId = data?.originalChatId;
       if (!data) {
         throw new BadRequestException('debe de proveer la data correctamente');
@@ -70,6 +69,7 @@ export class ChatGptThreadsService {
       newThreads.threadId = data.threadId;
       newThreads.sesionStatus = true;
       newThreads.chatId = data.chatId;
+
       if (originalChatId) {
         newThreads.originalChatId = originalChatId;
       } else {
@@ -104,13 +104,41 @@ export class ChatGptThreadsService {
   ) {
     const lastThread = await this.threadsRepository.findOne({
       where: { numberPhone: numberPhone },
-      order: { id: 'DESC' },
+      order: { id: 'DESC' }
     });
+
+    let allMessages = []
 
     if (lastThread) {
       const chatOfThread = await this.chatRepository.findOne({
-        where: { id: Number(lastThread.originalChatId) },
+        where: { id: Number(lastThread.originalChatId) }, relations: ['mensajes'],
       });
+
+      if (chatOfThread?.mensajes && chatOfThread?.mensajes?.length > 0) {
+        allMessages = chatOfThread?.mensajes?.map((m) => {
+          if (m.isTool) {
+            if (m.tool_calls) {
+              return {
+                role: "assistant",
+                content: m.mensaje,
+                tool_calls: m.tool_calls
+              }
+              
+            } else {
+              return {
+                role: 'tool',
+                tool_call_id: m.tool_call_id,
+                content: m.mensaje,
+              }
+            }
+          } else {
+            return {
+              role: m.isClient ? 'user' : 'assistant',
+              content: m.mensaje,
+            }
+          }
+        });
+      }
 
       if (chatOfThread) {
         await this.messageRepository.save({
@@ -118,14 +146,17 @@ export class ChatGptThreadsService {
           isClient: !isFromIA,
           chat: chatOfThread,
         });
+
       }
     }
+
+    return allMessages
   }
 
-  async updateThreadStatus(threadId: string, timeZone: string) {
+  async updateThreadStatus(threadId: number, timeZone: string) {
     try {
       const thread = await this.threadsRepository.findOne({
-        where: { threadId },
+        where: { id: threadId },
       });
 
       if (!thread) {

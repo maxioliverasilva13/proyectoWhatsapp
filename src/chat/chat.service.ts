@@ -54,7 +54,12 @@ export class ChatService {
 
   async findOne(id: number) {
     try {
-      const chat = await this.chatRepository.findOne({ where: { id }, relations:['mensajes'] })
+      const chat = await this.chatRepository
+      .createQueryBuilder('chat')
+      .leftJoinAndSelect('chat.mensajes', 'mensaje', 'mensaje.isTool = false')
+      .where('chat.id = :id', { id })
+      .getOne();
+      
       if (!chat) {
         throw new BadRequestException('no existe pedido con ese id')
       }

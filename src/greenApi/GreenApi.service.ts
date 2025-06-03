@@ -1,17 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { encode } from 'querystring';
 import { ChatGptThreadsService } from 'src/chatGptThreads/chatGptThreads.service';
 import { ClienteService } from 'src/cliente/cliente.service';
 import { DeviceService } from 'src/device/device.service';
 import { InfolineService } from 'src/infoline/infoline.service';
+import { MensajeService } from 'src/mensaje/mensaje.service';
 import { PaymentMethodService } from 'src/paymentMethod/paymentMethod.service';
-import { Pedido } from 'src/pedido/entities/pedido.entity';
 import { PedidoService } from 'src/pedido/pedido.service';
 import { ProductoService } from 'src/producto/producto.service';
+import { sendMessageWithTools } from 'src/utils/deepSeek/deepSeekFunctions';
 import { connectToGreenApi } from 'src/utils/greenApi';
 import {
-  askAssistant,
-  closeThread,
   createThread,
   sendMessageToThread,
 } from 'src/utils/openAIServices';
@@ -26,7 +24,8 @@ export class GreenApiService {
     private readonly infoLineService: InfolineService,
     private readonly deviceService: DeviceService,
     private readonly paymentMethodService: PaymentMethodService,
-  ) {}
+    private readonly messagesService: MensajeService
+  ) { }
 
   async onModuleInit() {
     const subdomain = process.env.SUBDOMAIN;
@@ -58,8 +57,6 @@ export class GreenApiService {
       originalChatId = originalChatFromThread;
     }
 
-    console.log('senderName', senderName);
-
     const { clienteId, clientName } =
       await this.clienteService.createOrReturnExistClient({
         empresaId: empresaId,
@@ -68,47 +65,54 @@ export class GreenApiService {
       });
 
     let currentThreadId = threadId;
-    if (!threadId) {
-      currentThreadId = await createThread(empresaType, empresaId, clienteId, senderName);
 
+    if (!threadId) {
       const resp = await this.chatGptThreadsService.createThreads({
         numberPhone: numberSender,
         threadId: currentThreadId,
         chatId: chatId,
         originalChatId: originalChatId,
       });
+      
+      if (resp.thread.id) {
+        currentThreadId = resp.thread.id
+      }
       if (resp?.thread?.originalChatId) {
         originalChatId = resp?.thread?.originalChatId;
       }
     }
-    console.log('pertenece al chat', originalChatId);
-    await this.chatGptThreadsService.createMessageByThrad(
+
+    const messages = await this.chatGptThreadsService.createMessageByThrad(
       textMessage,
       numberSender,
       false,
     );
 
-    const openAIResponse = await sendMessageToThread(
-      currentThreadId,
-      textMessage,
-      false,
-      timeZone,
-      this.productoService,
-      this.pedidoService,
-      this.paymentMethodService,
-      this,
-      this.infoLineService,
-      empresaId,
-      clienteId,
-      empresaType,
-      clientName,
-      numberSender,
-      chatIdExist,
-      clienteId,
-      originalChatId,
-    );
+    const openAIResponse = await sendMessageWithTools(textMessage, messages,
+      {
+        productoService: this.productoService,
+        pedidoService: this.pedidoService,
+        paymentMethodService: this.paymentMethodService,
+        greenApiService: this,
+        infoLineService: this.infoLineService,
+        messagesService: this.messagesService
+      },
+      {
+        threadId,
+        clienteId,
+        empresaId,
+        empresaType,
+        clientName,
+        numberSender,
+        chatIdExist,
+        originalChatId,
+        timeZone,
+        senderName: senderName,
+        userId: clienteId
+      }
+    )
 
-    if (openAIResponse?.isError === true) {
+    if (!openAIResponse) {
       return { isError: true };
     }
 
@@ -126,7 +130,7 @@ export class GreenApiService {
     console.log('afuera', openAIResponse);
 
     try {
-      const openAIResponseRaw = openAIResponse.content[0].text.value;
+      const openAIResponseRaw = openAIResponse;
       console.log('openAIResponseRaw', openAIResponseRaw);
 
       try {

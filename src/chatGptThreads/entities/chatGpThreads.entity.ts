@@ -8,7 +8,7 @@ export class ChatGptThreads extends BaseEntity {
     @Column({ type: 'bigint' })
     numberPhone: string; 
 
-    @Column()
+    @Column({nullable: true})
     threadId: string;
 
     @Column({nullable : true})

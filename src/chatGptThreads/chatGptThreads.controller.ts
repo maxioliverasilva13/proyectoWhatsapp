@@ -23,7 +23,7 @@ export class ChatGptThreadsController {
     }
 
     @Put(":threadId")
-    handleUpdateThreadStatus(@Param("threadId") threadId : string,  @Req() request : Request){
+    handleUpdateThreadStatus(@Param("threadId") threadId : number,  @Req() request : Request){
         const timeZone = request['timeZone']
         return this.chatGptThreadsService.updateThreadStatus(threadId,timeZone)
     }

@@ -42,6 +42,7 @@ export const askAssistant = async (question, instrucciones) => {
   }
 };
 
+
 export async function createThread(empresaType, empresaId = '', userId, senderName) {
   const formatedText = `EmpresaId: ${empresaId} \n EmpresaType: ${empresaType} \n UserId: ${userId} \n Nombre de usuario: ${senderName} \n
     CURRENT_TIME:${getCurrentDate()} \n`;
@@ -66,7 +67,6 @@ export async function createThread(empresaType, empresaId = '', userId, senderNa
   }
 
   const threadData = (await response.json()) as any;
-  console.log('thread creado');
 
   return threadData.id;
 }

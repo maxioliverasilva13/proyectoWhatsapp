@@ -10,6 +10,8 @@ COPY . .
 
 RUN npm install -g @nestjs/cli --force
 
+COPY instrucciones.txt ./src/utils/deepSeek/instrucciones.txt
+
 RUN npm run build
 
 FROM node:18-alpine
