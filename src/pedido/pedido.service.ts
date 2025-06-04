@@ -765,21 +765,20 @@ export class PedidoService implements OnModuleDestroy {
         .leftJoinAndSelect('pedido.pedidosprod', 'pedidosprod')
         .leftJoinAndSelect('pedidosprod.producto', 'producto')
         .innerJoinAndSelect('pedido.estado', 'estado')
-        .where('pedido.available = :available', { available: true });
 
       if (filter === 'pending') {
         query.andWhere('pedido.confirmado = :confirmado', {
           confirmado: false,
-        });
+        })
+        .andWhere('pedido.finalizado = :finalizado', { finalizado: false });
       } else if (filter === 'finished') {
         query
-          .andWhere('pedido.confirmado = :confirmado', { confirmado: true })
-          .andWhere('estado.finalizador = :finalizador', { finalizador: true });
+          .where('estado.finalizado = :finalizado', { finalizado: true });
       } else if (filter === 'active') {
         query
           .andWhere('pedido.confirmado = :confirmado', { confirmado: true })
-          .andWhere('estado.finalizador = :finalizador', {
-            finalizador: false,
+          .andWhere('estado.finalizado = :finalizado', {
+            finalizado: false,
           });
       }
 
