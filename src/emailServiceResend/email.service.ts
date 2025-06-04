@@ -48,7 +48,6 @@ export class EmailServiceResend {
         throw new BadRequestException('No hay variable de entorno')
       }
 
-      console.log('Email sent successfully:', data);
       return { success: true, data };
 
     } catch (error: any) {

@@ -27,7 +27,6 @@ export class ClienteController {
     @Query('query') query: string,
     @Query('empresaId') empresaId: string,
   ) {
-    console.log("xd");
     return this.clienteService.findAll({
       query: query,
       empresaId: empresaId,

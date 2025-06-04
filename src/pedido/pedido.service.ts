@@ -361,7 +361,7 @@ export class PedidoService implements OnModuleDestroy {
           hoy: moment().startOf('day').toDate(),
         })
         .getMany();
-      console.log('currentOrders', currentOrders);
+      console.log('currentOrders', currentOrders?.length);
       if (currentOrders?.length > 3) {
         throw new BadRequestException(
           'No se pueden tener mas de 3 ordenes activas.',
@@ -407,7 +407,6 @@ export class PedidoService implements OnModuleDestroy {
       let globalTotal = 0;
 
       const crearNuevoPedido = async (products) => {
-        console.log('recibo', products);
 
         let total = 0;
         const infoLineToJson = createPedidoDto.infoLinesJson;
@@ -474,7 +473,6 @@ export class PedidoService implements OnModuleDestroy {
               }
 
               total += productExist.precio * product.cantidad;
-              console.log('lo voy a crear jeje');
 
               const newProdPedido = await this.productoPedidoRepository.create({
                 cantidad: product.cantidad,
@@ -1262,7 +1260,6 @@ export class PedidoService implements OnModuleDestroy {
 
         let newInfoLines = {};
         try {
-          console.log('typeof 1 value', typeof value, value);
           newInfoLines = typeof value === 'string' ? JSON.parse(value) : value;
         } catch (e) {
           console.error('Error al parsear infoLinesJson entrante:', e);
@@ -1286,7 +1283,7 @@ export class PedidoService implements OnModuleDestroy {
   }
 
   async createReclamo(pedidoId: number, text: string) {
-    console.log("me llega", pedidoId, text)
+    console.log("creo reclamo con", pedidoId, text)
     try {
       const pedido = await this.pedidoRepository.findOne({
         where: { id: pedidoId },
@@ -1442,8 +1439,6 @@ export class PedidoService implements OnModuleDestroy {
 
       ordersDay.map((order) => {
         if (order.pedidosprod.length > 0) {
-          console.log('entro');
-
           order.pedidosprod.map((pedidoProd) => {
             ganancia += pedidoProd.cantidad * pedidoProd.producto.precio;
           });

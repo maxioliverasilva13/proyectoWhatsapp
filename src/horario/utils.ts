@@ -4,8 +4,6 @@ import { HorarioService } from './horario.service';
 export const estaAbierto = async (timeZone: string, horarioService: HorarioService): Promise<boolean> => {
   const now = moment.tz(timeZone);
   const dayOfWeek = now.isoWeekday();
-  console.log("dayOfWeek", dayOfWeek)
-
   const horarios = await horarioService.findByDay(dayOfWeek);
 
   return horarios.some(horario => {

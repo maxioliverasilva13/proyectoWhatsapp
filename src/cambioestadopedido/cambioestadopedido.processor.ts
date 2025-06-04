@@ -23,8 +23,6 @@ export class SendMessageChangeStatusOrder extends WorkerHost {
 
         console.log(process.env.ID_INSTANCE, process.env.API_TOKEN_INSTANCE);
         try {
-            console.log('entro');
-            
             const resp = await fetch(
                 `https://api.greenapi.com/waInstance${process.env.ID_INSTANCE}/sendMessage/${process.env.API_TOKEN_INSTANCE}`,
                 {

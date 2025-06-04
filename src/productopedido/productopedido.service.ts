@@ -13,16 +13,12 @@ export class ProductopedidoService {
     
     async create(productoPedidoDto : ProductoPedidoDto) {
         try {
-            console.log('entro');
-            
             const pedido = new ProductoPedido;
             pedido.pedidoId = productoPedidoDto.pedidoId;
             pedido.productoId = productoPedidoDto.productoId;
             pedido.cantidad = productoPedidoDto.cantidad;
             pedido.detalle = productoPedidoDto.detalle;
 
-            console.log('lo cree', pedido);
-            
             await this.productoPedido.save(pedido)
 
             return {
