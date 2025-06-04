@@ -135,7 +135,7 @@ export async function sendMessageWithTools(
         ...messages
     ];
 
-    console.log(chatMessages);
+    // console.log(chatMessages);
     
     if (msg) {
         chatMessages.push({ role: 'user', content: msg });
