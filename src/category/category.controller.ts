@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
 } from '@nestjs/common';
 import { CategoryService } from './category.service';
@@ -36,4 +37,8 @@ export class CategoryController {
     return this.categoryService.deleteCategory(parseInt(idCategory))
   }
 
+   @Patch(':id')
+  async updateCategory(@Param('idCategory') idCategory : string, @Body() data : any) {
+    return this.categoryService.update(parseInt(idCategory), data)
+  }
 }

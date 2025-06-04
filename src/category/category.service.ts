@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, ReturnDocument } from 'typeorm'
 import { Category } from './entities/category.entity';
@@ -25,7 +25,8 @@ export class CategoryService {
       const newCategory = this.categoryRepository.create({
         name: data.name,
         description: data.description,
-        image: data.image
+        image: data.image,
+        enabled: true,
       })
 
       await this.categoryRepository.save(newCategory)
@@ -48,7 +49,7 @@ export class CategoryService {
 
   async getAllCategories() {
     try {
-      const allCategories = await this.categoryRepository.find()
+      const allCategories = await this.categoryRepository.find({ where: { enabled: true } })
       
       return {
         ok:true,
@@ -122,6 +123,18 @@ export class CategoryService {
         error: 'Bad Request',
       });
     }
+  }
+
+  async update(id: number, updateDto: any): Promise<Category> {
+    const category = await this.categoryRepository.findOne({ where: { id } });
+
+    if (!category) {
+      throw new NotFoundException(`Categoría con ID ${id} no encontrada`);
+    }
+
+    const updated = Object.assign(category, updateDto);
+
+    return this.categoryRepository.save(updated);
   }
 
 }

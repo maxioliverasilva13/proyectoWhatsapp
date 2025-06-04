@@ -19,4 +19,7 @@ export class Category extends BaseEntity {
 
   @ManyToMany(() => Producto, (prod) => prod.category)
   producto: Producto[];
+
+  @Column({ default: true, nullable: true })
+  enabled: boolean;
 }
