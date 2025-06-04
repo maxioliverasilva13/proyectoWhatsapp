@@ -62,7 +62,12 @@ export const Customtools = [
 
             "parameters": {
                 "type": "object",
-                "properties": {},
+                "properties": {
+                    "userId": {
+                        "type": "string",
+                        "description": "Id del empleado (solo si la empresa es de tipo reserva)"
+                    }
+                },
                 "required": []
             }
         }
@@ -79,6 +84,10 @@ export const Customtools = [
                     "date": {
                         "type": "string",
                         "description": "fecha a chequear la disponibilidad"
+                    },
+                    "userId": {
+                        "type": "string",
+                        "description": "Id del empleado (solo si la empresa es de tipo reserva)"
                     }
                 },
                 "required": [
@@ -119,6 +128,10 @@ export const Customtools = [
                             "detalles": {
                                 "type": "string",
                                 "description": "Detalles específicos proporcionados por el usuario sobre la orden"
+                            },
+                            "userId": {
+                                "type": "string",
+                                "description": "Id del empleado que va a atender, solo si la empresa es de tipo Reserva"
                             },
                             "data": {
                                 "type": "array",

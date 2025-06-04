@@ -214,6 +214,7 @@ export async function sendMessageToThread(
               originalChatId: originalChatId,
               withIA: true,
               paymentMethodId: args?.paymentMethodId,
+              userId: args?.userId,
             });
           } else if (name === 'getAvailability') {
             console.log('getAvailability');

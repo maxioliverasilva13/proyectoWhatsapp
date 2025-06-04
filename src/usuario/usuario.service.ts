@@ -10,39 +10,45 @@ import * as bcrypt from 'bcryptjs';
 export class UsuarioService {
   constructor(
     @InjectRepository(Usuario)
-    private usuarioRepository: Repository<Usuario>
-  ) { }
+    private usuarioRepository: Repository<Usuario>,
+  ) {}
 
   async create(createUsuarioDto: CreateUsuarioDto) {
     try {
-      const existUser = await this.usuarioRepository.findOne({ where: { correo: createUsuarioDto.correo, id_empresa: createUsuarioDto.id_empresa } })
+      const existUser = await this.usuarioRepository.findOne({
+        where: {
+          correo: createUsuarioDto.correo,
+          id_empresa: createUsuarioDto.id_empresa,
+        },
+      });
 
       if (existUser) {
-        throw new BadRequestException('There is already a user with that email')
+        throw new BadRequestException(
+          'There is already a user with that email',
+        );
       }
       const hashedPassword = await bcrypt.hash(createUsuarioDto.password, 10);
 
-      const user = new Usuario()
-      user.nombre = createUsuarioDto.nombre
-      user.apellido = createUsuarioDto.apellido
-      user.correo = createUsuarioDto.correo
-      user.password = hashedPassword
-      user.id_empresa = createUsuarioDto.id_empresa
-      user.id_rol = 1
+      const user = new Usuario();
+      user.nombre = createUsuarioDto.nombre;
+      user.apellido = createUsuarioDto.apellido;
+      user.correo = createUsuarioDto.correo;
+      user.password = hashedPassword;
+      user.id_empresa = createUsuarioDto.id_empresa;
+      user.id_rol = 1;
       user.activo = true;
       if (createUsuarioDto?.image) {
         user.image = createUsuarioDto?.image;
       }
 
-      await this.usuarioRepository.save(user)
+      await this.usuarioRepository.save(user);
 
       return {
         ok: true,
         statusCode: 200,
         message: 'User created successfully',
-        data: user
-      }
-
+        data: user,
+      };
     } catch (error) {
       throw new BadRequestException({
         ok: false,
@@ -55,13 +61,21 @@ export class UsuarioService {
 
   async findAll(empresaId: number) {
     try {
-
       const allUsers = await this.usuarioRepository.find({
         where: {
           id_empresa: empresaId,
         },
         select: [
-          "createdAt", "id", "nombre", "apellido", "correo", "id_empresa", "id_rol", "activo", "firstUser", "image",
+          'createdAt',
+          'id',
+          'nombre',
+          'apellido',
+          'correo',
+          'id_empresa',
+          'id_rol',
+          'activo',
+          'firstUser',
+          'image',
         ],
       });
 
@@ -88,24 +102,65 @@ export class UsuarioService {
     }
   }
 
-
-  async findOne(id: number) {
+  async getWorkers(empresaId: number) {
     try {
-      const user = await this.usuarioRepository.findOne({
-        where: { id }, select: [
-          "createdAt", "id", "nombre", "apellido", "correo", "id_empresa", "id_rol", "activo", "firstUser", "image",
-        ]
-      })
-      if (!user) {
-        throw new BadRequestException('There is no user with that id.')
+      const allUsers = await this.usuarioRepository.find({
+        where: {
+          id_empresa: empresaId,
+          activo: true,
+        },
+        select: ['createdAt', 'id', 'nombre', 'apellido', 'activo', 'image'],
+      });
+
+      if (allUsers.length === 0) {
+        return {
+          ok: false,
+          statusCode: 404,
+          message: `No se encontraron usuarios para la empresa con ID ${empresaId}`,
+        };
       }
 
       return {
         ok: true,
         statusCode: 200,
-        data: user
+        data: allUsers,
+      };
+    } catch (error) {
+      throw new BadRequestException({
+        ok: false,
+        statusCode: 400,
+        message: error?.message || 'Error al buscar los usuarios',
+        error: 'Bad Request',
+      });
+    }
+  }
+
+  async findOne(id: number) {
+    try {
+      const user = await this.usuarioRepository.findOne({
+        where: { id },
+        select: [
+          'createdAt',
+          'id',
+          'nombre',
+          'apellido',
+          'correo',
+          'id_empresa',
+          'id_rol',
+          'activo',
+          'firstUser',
+          'image',
+        ],
+      });
+      if (!user) {
+        throw new BadRequestException('There is no user with that id.');
       }
 
+      return {
+        ok: true,
+        statusCode: 200,
+        data: user,
+      };
     } catch (error) {
       throw new BadRequestException({
         ok: false,
@@ -134,23 +189,24 @@ export class UsuarioService {
 
   async remove(id: number) {
     try {
-      const user = await this.usuarioRepository.findOne({ where: { id } })
+      const user = await this.usuarioRepository.findOne({ where: { id } });
       if (!user) {
-        throw new BadRequestException('There is no user with that id.')
+        throw new BadRequestException('There is no user with that id.');
       }
 
       if (user.firstUser) {
-        throw new BadRequestException('The default company user cannot be deleted')
+        throw new BadRequestException(
+          'The default company user cannot be deleted',
+        );
       }
 
-      await this.usuarioRepository.delete(user.id)
+      await this.usuarioRepository.delete(user.id);
 
       return {
         ok: true,
         statusCode: 200,
-        data: 'User deleted succesfully'
-      }
-
+        data: 'User deleted succesfully',
+      };
     } catch (error) {
       throw new BadRequestException({
         ok: false,

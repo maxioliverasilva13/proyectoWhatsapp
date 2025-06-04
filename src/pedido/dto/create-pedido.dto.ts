@@ -9,6 +9,7 @@ export class CreatePedidoDto {
     empresaType: TipoPedido;
     numberSender? : number;
     infoLinesJson: any;
+    userId?: string;
     fecha?: any;
     transferUrl?: any;
     paymentMethodId?: string;

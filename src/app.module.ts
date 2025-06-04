@@ -177,6 +177,9 @@ export class AppModule {
         { path: "/pedido/calendar/dates-avaiable", method: RequestMethod.ALL },
         { path: "/pedido/calendar/dates-avaiable-by-month", method: RequestMethod.GET },
         { path: "/horario", method: RequestMethod.GET },
+        { path: "/usuario/workers/:empresaId", method: RequestMethod.GET },
+        { path: "/usuario/workers", method: RequestMethod.GET },
+
       )
       .forRoutes('*');
   }

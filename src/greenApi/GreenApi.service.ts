@@ -96,7 +96,8 @@ export class GreenApiService {
         paymentMethodService: this.paymentMethodService,
         greenApiService: this,
         infoLineService: this.infoLineService,
-        messagesService: this.messagesService
+        messagesService: this.messagesService,
+        clienteService: this.clienteService,
       },
       {
         threadId,
@@ -168,6 +169,7 @@ export class GreenApiService {
     withIA = false,
     paymentMethodId = "",
     transferUrl = "",
+    userId = ""
   }: any) {
     try {
       const newOrder = await this.pedidoService.create({
@@ -187,6 +189,7 @@ export class GreenApiService {
         originalChatId: originalChatId,
         withIA: withIA,
         paymentMethodId: paymentMethodId,
+        userId: userId,
       });
       // await this.chatGptThreadsService.deleteThread(currentThreadId);
       await this.deviceService.sendNotificationEmpresa(

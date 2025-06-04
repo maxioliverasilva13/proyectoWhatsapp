@@ -17,6 +17,11 @@ export class UsuarioController {
     return this.usuarioService.findAll(empresaId);
   }
 
+  @Get('/workers/:empresaId')
+  getWorkers(@Param('empresaId') empresaId : number) {    
+    return this.usuarioService.getWorkers(empresaId);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.usuarioService.findOne(+id);

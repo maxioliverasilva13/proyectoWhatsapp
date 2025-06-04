@@ -50,35 +50,37 @@ export class PedidoController {
   }
 
   @Get('/calendar/formatCalendar/:date')
-  getOrdersForCalendar(@Param('date') date: string, @Req() request: Request) {
+  getOrdersForCalendar(@Param('date') date: string, @Req() request: Request, @Query('userId') userId: number) {
     const timeZone = request['timeZone'];
-    return this.pedidoService.getOrdersForCalendar(date, timeZone);
+    return this.pedidoService.getOrdersForCalendar(date, timeZone, userId);
   }
 
   @Get('/calendar/next-date-avaiable')
-  getNextDateAvailable(@Req() request: Request) {
+  getNextDateAvailable(@Req() request: Request, @Query('userId') userId: number) {
     const timeZone = request['timeZone'];
 
     return this.pedidoService.getNextDateTimeAvailable(timeZone);
   }
 
   @Get('/calendar/dates-avaiable')
-  getDatesAvailable(@Req() request: any) {
+  getDatesAvailable(@Req() request: any, @Query('userId') userId: number) {
     const fecha = request.query['fecha'];
     const withPast = request.query['withPast'];
     return this.pedidoService.obtenerDisponibilidadActivasByFecha(
       fecha,
       withPast === 'true',
+      userId,
     );
   }
 
   @Get('/calendar/dates-avaiable-by-month')
-  obtenerCuposDisponiblesPorDiaDelMes(@Req() request: any) {
+  obtenerCuposDisponiblesPorDiaDelMes(@Req() request: any, @Query('userId') userId: number) {
     const anio = request.query['anio'];
     const mes = request.query['mes'];
     return this.pedidoService.obtenerCuposDisponiblesPorDiaDelMes(
       anio,
       mes,
+      userId
     );
   }
 

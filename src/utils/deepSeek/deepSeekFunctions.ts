@@ -14,7 +14,8 @@ interface Services {
     paymentMethodService: any;
     greenApiService: any;
     infoLineService: any;
-    messagesService: any
+    messagesService: any;
+    clienteService: any;
 }
 
 interface Context {
@@ -64,8 +65,6 @@ async function executeToolByName(
     console.log("intentando llamar a funcion", name)
 
     if (name === 'getProductsByEmpresa') {
-        console.log('siii, debo de traer prouctos jasjsasjaasjasjasjjsajassjasjasjas');
-
         console.log('getProductsByEmpresa');
         toolResult = await productoService.findAllInText();
     } else if (name === 'getPedidosByUser') {
@@ -108,13 +107,14 @@ async function executeToolByName(
             originalChatId,
             withIA: true,
             paymentMethodId: args?.paymentMethodId,
+            userId: args?.userId,
         });
     } else if (name === 'getAvailability') {
         console.log('getAvailability');
-        toolResult = await pedidoService.obtenerDisponibilidadActivasByFecha(args.date);
+        toolResult = await pedidoService.obtenerDisponibilidadActivasByFecha(args.date, false, args.userId);
     } else if (name === 'getNextAvailability') {
         console.log('getNextAvailability');
-        toolResult = await pedidoService.getNextDateTimeAvailable(timeZone);
+        toolResult = await pedidoService.getNextDateTimeAvailable(timeZone, args.userId);
     } else {
         toolResult = { error: `Tool ${name} no implementada` };
     }
@@ -130,7 +130,7 @@ export async function sendMessageWithTools(
     context: Context
 ): Promise<string> {
   const formatedText = `EmpresaId: ${context.empresaId} \n EmpresaType: ${context.empresaType} \n UserId: ${context.userId} \n Nombre de usuario: ${context.senderName} \n
-    CURRENT_TIME:${getCurrentDate()} \n`;
+    CURRENT_TIME:${getCurrentDate()} CURRENT_EMPLEADOS:${JSON.stringify(services.clienteService.findUsersByEmpresa(context.empresaId) ?? "[]")} \n`;
     // Copia profunda del historial de mensajes
     let currentMessages = [...messages];
 

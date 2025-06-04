@@ -10,11 +10,13 @@ import { DataSource, ILike, Repository } from 'typeorm';
 import { handleGetGlobalConnection } from 'src/utils/dbConnection';
 import { GetEmpresaDTO } from './dto/get-empresa-.dto';
 import { Empresa } from 'src/empresa/entities/empresa.entity';
+import { Usuario } from 'src/usuario/entities/usuario.entity';
 
 @Injectable()
 export class ClienteService implements OnModuleDestroy {
   private clienteRepository: Repository<Cliente>;
   private empresaRepository: Repository<Empresa>;
+  private usuarioRepository: Repository<Usuario>;
   private globalConnection: DataSource;
 
   async onModuleInit() {
@@ -23,11 +25,27 @@ export class ClienteService implements OnModuleDestroy {
     }
     this.clienteRepository = this.globalConnection.getRepository(Cliente);
     this.empresaRepository = this.globalConnection.getRepository(Empresa);
+    this.usuarioRepository = this.globalConnection.getRepository(Usuario);
   }
 
   async findByEmpresa(empresaId: number) {
-    const clients = await this.clienteRepository.find({ where: { empresa_id: empresaId } });
+    const clients = await this.clienteRepository.find({
+      where: { empresa_id: empresaId },
+    });
     return clients?.length;
+  }
+
+  async findUsersByEmpresa(empresaId: number) {
+    const users = await this.usuarioRepository.find({
+      where: { id_empresa: empresaId },
+    });
+    return users.map((user) => {
+      return {
+        nombre: user?.nombre,
+        apellido: user?.apellido,
+        image: user?.image,
+      };
+    });
   }
 
   async onModuleDestroy() {

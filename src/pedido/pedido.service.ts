@@ -443,6 +443,10 @@ export class PedidoService implements OnModuleDestroy {
           newPedido.chat = originalChat;
         }
 
+        if (createPedidoDto?.userId) {
+          newPedido.owner_user_id = createPedidoDto?.userId;
+        }
+
         const savedPedido = await this.pedidoRepository.save(newPedido);
 
         const newStatusOrder = await this.cambioEstadoRepository.create({
@@ -832,6 +836,7 @@ export class PedidoService implements OnModuleDestroy {
   async obtenerDisponibilidadActivasByFecha(
     fecha: string,
     withPast = false,
+    userId?: any,
   ): Promise<string[]> {
     const empresa = await this.empresaRepository.findOne({
       where: { db_name: process.env.SUBDOMAIN },
@@ -851,6 +856,7 @@ export class PedidoService implements OnModuleDestroy {
       where: {
         available: true,
         finalizado: false,
+        owner_user_id: userId,
         fecha: Between(
           moment.tz(`${fecha} 00:00`, timeZone).utc().toDate(),
           moment.tz(`${fecha} 23:59:59`, timeZone).utc().toDate()
@@ -911,6 +917,7 @@ export class PedidoService implements OnModuleDestroy {
   async obtenerDisponibilidadActivasPorRango(
     fechaInicio: string,
     fechaFin: string,
+    userId?: any,
   ): Promise<string[]> {
     const empresa = await this.empresaRepository.findOne({
       where: { db_name: process.env.SUBDOMAIN },
@@ -936,6 +943,7 @@ export class PedidoService implements OnModuleDestroy {
         where: {
           finalizado: false,
           available: true,
+          owner_user_id: userId,
           fecha: Between(
             moment.tz(`${fecha} 00:00`, timeZone).utc().toDate(),
             moment.tz(`${fecha} 23:59:59`, timeZone).utc().toDate()
@@ -993,6 +1001,7 @@ export class PedidoService implements OnModuleDestroy {
   async obtenerCuposDisponiblesPorDiaDelMes(
     anio: number,
     mes: number,
+    userId?: any,
   ): Promise<{ fecha: string; cuposDisponibles: number }[]> {
     const empresa = await this.empresaRepository.findOne({
       where: { db_name: process.env.SUBDOMAIN },
@@ -1021,6 +1030,7 @@ export class PedidoService implements OnModuleDestroy {
         where: {
           finalizado: false,
           available: true,
+          owner_user_id: userId,
           fecha: Between(
             moment.tz(`${fechaStr} 00:00`, timeZone).utc().toDate(),
             moment.tz(`${fechaStr} 23:59:59`, timeZone).utc().toDate()
@@ -1076,7 +1086,7 @@ export class PedidoService implements OnModuleDestroy {
 
 
 
-  async getNextDateTimeAvailable(timeZone: string): Promise<any> {
+  async getNextDateTimeAvailable(timeZone: string, userId?: any): Promise<any> {
     try {
       const empresaInfo = await this.empresaRepository.findOne({
         where: { db_name: process.env.SUBDOMAIN },
@@ -1097,6 +1107,7 @@ export class PedidoService implements OnModuleDestroy {
       const disponibilidades = await this.obtenerDisponibilidadActivasPorRango(
         fechaActual,
         fechaFin,
+        userId,
       );
 
       if (disponibilidades.length > 0) {
@@ -1116,7 +1127,7 @@ export class PedidoService implements OnModuleDestroy {
     }
   }
 
-  async getOrdersForCalendar(dateTime: string, timeZone: string) {
+  async getOrdersForCalendar(dateTime: string, timeZone: string, userId?: any) {
     try {
       const now = getCurrentDate();
       const filterDate = moment(dateTime, 'YYYY-MM-DD').startOf('day');
@@ -1128,6 +1139,7 @@ export class PedidoService implements OnModuleDestroy {
         where: {
           available: true,
           fecha: Between(filterDateStart, filterDateEnd),
+          owner_user_id: userId,
         },
         order: {
           fecha: 'DESC',
