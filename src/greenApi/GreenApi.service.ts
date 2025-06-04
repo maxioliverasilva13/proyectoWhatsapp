@@ -112,6 +112,8 @@ export class GreenApiService {
       }
     )
 
+    console.log("La IA devuelve", openAIResponse)
+
     if (!openAIResponse) {
       return { isError: true };
     }
