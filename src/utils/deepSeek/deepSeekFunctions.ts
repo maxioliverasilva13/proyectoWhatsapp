@@ -156,6 +156,9 @@ export async function sendMessageWithTools(
             max_tokens: 4096,
             temperature: 0.5,
             stream: false,
+            response_format: {
+                type: "json_object"
+            }
         }),
     });
 
