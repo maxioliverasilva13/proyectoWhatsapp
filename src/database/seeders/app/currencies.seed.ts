@@ -22,9 +22,10 @@ export class CurrenciesSeed implements Seeder {
       { id: 10, codigo: 'BRL', simbolo: 'R$' },
       { id: 11, codigo: 'INR', simbolo: '₹' },
       { id: 12, codigo: 'RUB', simbolo: '₽' },
+      { id: 12, codigo: 'UYU', simbolo: '$' },
     ];
 
-    const existingCurrency = await currencyRepository.findOne({ where: { codigo: 'USD' } });
+    const existingCurrency = await currencyRepository.findOne({ where: { codigo: 'UYU' } });
     if (existingCurrency) {
       return;
     }
