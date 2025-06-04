@@ -55,21 +55,16 @@ export class GrenApiController {
           console.log('Hubo un problema con la configuración de la API');
         }
       } else {
-        console.log('Entro al procesamiento', body);
-
         const timeZone = request['timeZone'];
         const empresaId = request['empresaId'];
         const empresaType = request['empresaType'];
         const { typeWebhook, messageData } = body;
 
         if (typeWebhook === 'incomingMessageReceived') {
-          console.log('mensaje recibido');
           // const orderPlanStatus = await this.pedidoService.orderPlanStatus();
           // if (orderPlanStatus?.slotsToCreate <= 0) {
           //   return;
           // }
-          console.log('plan ok');
-
           const senderData = body?.senderData;
           const sender = senderData?.sender;
           const chatId = senderData?.chatId;
@@ -186,9 +181,16 @@ export class GrenApiController {
                       chatId,
                     );
                     if (!respText?.isError) {
+                      console.log('xd2', typeof respText);
+                      console.log("valor es", respText);
+
+                      let info = { message: undefined }
+                      if (typeof respText === "string") {
+                        info = JSON.parse(respText ?? "{}")
+                      }
                       await this.messageQueue.add(
                         'send',
-                        { chatId, message: respText?.message ?? respText },
+                        { chatId, message: info },
                         { priority: 0, attempts: 5 },
                       );
 

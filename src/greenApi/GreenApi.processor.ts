@@ -22,9 +22,7 @@ export class GreenApiRetirveMessage extends WorkerHost {
       chatId,
       message: message?.message,
     };
-    console.log(payload);
 
-    console.log(process.env.ID_INSTANCE, process.env.API_TOKEN_INSTANCE);
     try {
       const resp = await fetch(
         `https://api.greenapi.com/waInstance${process.env.ID_INSTANCE}/sendMessage/${process.env.API_TOKEN_INSTANCE}`,
