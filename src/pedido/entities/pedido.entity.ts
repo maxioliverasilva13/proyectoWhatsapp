@@ -24,7 +24,7 @@ export class Pedido extends BaseEntity {
   @Column({ default: false })
   withIA: boolean;
 
-  @Column({ nullable: true, default: "" })
+  @Column({ nullable: true, default: '' })
   reclamo: string;
 
   @OneToMany(() => Cambioestadopedido, (cmbe) => cmbe.pedido)
@@ -42,7 +42,7 @@ export class Pedido extends BaseEntity {
   @Column({ nullable: true })
   chatIdWhatsapp: string;
 
-  @Column({ nullable: true, default: "" })
+  @Column({ nullable: true, default: '' })
   transferUrl: string;
 
   @Column()
@@ -75,4 +75,7 @@ export class Pedido extends BaseEntity {
 
   @Column({ nullable: true, length: 99999 })
   infoLinesJson: string;
+
+  @Column({ nullable: true })
+  owner_user_id: string;
 }

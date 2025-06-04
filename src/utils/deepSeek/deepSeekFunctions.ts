@@ -129,8 +129,8 @@ export async function sendMessageWithTools(
     services: Services,
     context: Context
 ): Promise<string> {
-    const formatedText = `EmpresaId: ${context.empresaId}\n...`;
-
+  const formatedText = `EmpresaId: ${context.empresaId} \n EmpresaType: ${context.empresaType} \n UserId: ${context.userId} \n Nombre de usuario: ${context.senderName} \n
+    CURRENT_TIME:${getCurrentDate()} \n`;
     // Copia profunda del historial de mensajes
     let currentMessages = [...messages];
 
