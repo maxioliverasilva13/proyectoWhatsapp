@@ -770,15 +770,15 @@ export class PedidoService implements OnModuleDestroy {
         query.andWhere('pedido.confirmado = :confirmado', {
           confirmado: false,
         })
-        .andWhere('pedido.finalizado = :finalizado', { finalizado: false });
+        .andWhere('pedido.finalizado = :finalizado', { finalizado: false });;
       } else if (filter === 'finished') {
         query
-          .where('estado.finalizado = :finalizado', { finalizado: true });
+          .where('pedido.finalizado = :finalizado', { finalizado: true })
       } else if (filter === 'active') {
         query
           .andWhere('pedido.confirmado = :confirmado', { confirmado: true })
-          .andWhere('estado.finalizado = :finalizado', {
-            finalizado: false,
+          .andWhere('estado.finalizador = :finalizador', {
+            finalizador: false,
           });
       }
 
