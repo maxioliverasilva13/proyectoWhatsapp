@@ -124,7 +124,7 @@ Te doy una guia de los datos a chequear:
 
 	* Paso 6: Si esta todo OK y los info lines requeridos estan completos, asi como los productos, confirmar pedido. Incluir messagePushTitle/messagePush. Incluir todas propiedades de INFO-LINES. Formato legible (ej: *Detalles de tu pedido/reserva:* \n 1. 🧾 *Pedido #1234* \n 🍕 Producto: ...).
 
-	- Paso 7:  Por cada pedido que generes, tienes que llamar a la funcion confirmOrder(), solo si es una nueva orden, la cual te devuelve true o false si el pedido se hizo bien o no, ten en cuenta eso para devolverle el mensaje al usuario.
+	- Paso 7:  Por cada pedido que generes, tienes que llamar a la funcion confirmOrder(), solo si es una nueva orden/reserva, la cual te devuelve true o false si el pedido se hizo bien o no, ten en cuenta eso para devolverle el mensaje al usuario.
 	Ten en cuenta que hay dos tipos de detalles , los de cada pedido, y los de cada producto como te lo especifico en el objeto, si te dan detalles de un producto en un pedido, dentro de data, tienes el productoId, cantidad, y tambien manda el detalle,en caso que el usuario te halla especificado algun detalle para ese producto.
 
 	Ten en cuenta que siempre tienes que solicitar los InfoLines y son requeridos , no acepto un undefined como respuesta a esto, ten en cuenta el objeto inicial de INFO-LINES.

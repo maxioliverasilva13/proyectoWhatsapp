@@ -92,7 +92,7 @@ export const Customtools = [
         "function": {
 
             "name": "confirmOrder",
-            "description": "Confirma una orden de productos con la información proporcionada por el usuario",
+            "description": "Confirma una orden o reserva de productos con la información proporcionada por el usuario",
 
             "parameters": {
                 "type": "object",

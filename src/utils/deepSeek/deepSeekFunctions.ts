@@ -61,6 +61,8 @@ async function executeToolByName(
 
     let toolResult: any;
 
+    console.log("intentando llamar a funcion", name)
+
     if (name === 'getProductsByEmpresa') {
         console.log('siii, debo de traer prouctos jasjsasjaasjasjasjjsajassjasjasjas');
 
@@ -189,6 +191,7 @@ export async function sendMessageWithTools(
                     console.error('Error parsing tool call arguments', e);
                 }
 
+                console.log("executeToolByName", name, args)
                 const toolOutput = await executeToolByName(name, args, services, context);
 
                 const toolOutputString =
