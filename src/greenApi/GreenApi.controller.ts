@@ -189,7 +189,10 @@ export class GrenApiController {
                         info = JSON.parse(respText ?? "{}")
                       } else if (typeof respText === "object") {
                         if (typeof respText?.message === "string") {
-                          info = JSON.parse(respText?.message ?? "{}")
+                          const cleaned = respText?.message.replace(/\\"/g, '"');
+                          const parsed = JSON.parse(cleaned ?? "{}");
+                          console.log("parsed", parsed)
+                          info = parsed;
                         } else {
                           info = respText;
                         }
