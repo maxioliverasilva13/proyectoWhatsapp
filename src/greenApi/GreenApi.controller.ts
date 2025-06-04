@@ -188,14 +188,15 @@ export class GrenApiController {
                       if (typeof respText === "string") {
                         info = JSON.parse(respText ?? "{}")
                       } else if (typeof respText === "object") {
-                        if (typeof respText?.message?.contains("ok")) {
-                          const cleaned = respText?.message.replace(/\\"/g, '"');
-                          const parsed = JSON.parse(cleaned ?? "{}");
-                          console.log("parsed", parsed)
-                          info = parsed;
-                        } else {
-                          info = respText;
-                        }
+                        // if (typeof respText?.message?.contains("ok")) {
+                        //   const cleaned = respText?.message.replace(/\\"/g, '"');
+                        //   const parsed = JSON.parse(cleaned ?? "{}");
+                        //   console.log("parsed", parsed)
+                        //   info = parsed;
+                        // } else {
+                        //   info = respText;
+                        // }
+                        info = respText;
                       }
                       await this.messageQueue.add(
                         'send',
