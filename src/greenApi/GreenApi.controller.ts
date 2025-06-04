@@ -187,6 +187,12 @@ export class GrenApiController {
                       let info = { message: undefined }
                       if (typeof respText === "string") {
                         info = JSON.parse(respText ?? "{}")
+                      } else if (typeof respText === "object") {
+                        if (typeof respText?.message === "string") {
+                          info = JSON.parse(respText?.message ?? "{}")
+                        } else {
+                          info = respText;
+                        }
                       }
                       await this.messageQueue.add(
                         'send',
