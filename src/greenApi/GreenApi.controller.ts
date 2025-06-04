@@ -188,7 +188,7 @@ export class GrenApiController {
                     if (!respText?.isError) {
                       await this.messageQueue.add(
                         'send',
-                        { chatId, message: respText },
+                        { chatId, message: respText?.message ?? respText },
                         { priority: 0, attempts: 5 },
                       );
 

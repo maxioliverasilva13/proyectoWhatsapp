@@ -153,7 +153,7 @@ export class GreenApiService {
       );
     }
 
-    const respToUser = textError ? textError : openAIResponseFormatted;
+    const respToUser = textError ? textError : openAIResponseFormatted?.message;
     return respToUser;
   }
 
