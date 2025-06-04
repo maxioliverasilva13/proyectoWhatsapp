@@ -141,6 +141,7 @@ export async function sendMessageWithTools(
         chatMessages.push({ role: 'user', content: msg });
     }
 
+    console.log("variable es ", process.env.DEEPSEEK_TOKEN)
     const response = await fetch('https://api.deepseek.com/chat/completions', {
         method: 'POST',
         headers: {
