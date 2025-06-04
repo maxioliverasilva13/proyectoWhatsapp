@@ -34,6 +34,7 @@ services:
       POSTGRES_DB_GLOBAL: ${POSTGRES_DB_GLOBAL}
       POSTGRES_GLOBAL_DB_PORT: ${POSTGRES_GLOBAL_DB_PORT}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      DEEPSEEK_TOKEN: ${DEEPSEEK_TOKEN}
     labels:
       - traefik.enable=true
       - traefik.http.routers.app-router.rule=Host(`app.whatsproy.com`)

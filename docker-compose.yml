@@ -30,6 +30,7 @@ services:
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       ASSISTANT_ID: ${ASSISTANT_ID}
       RESEND_KEY: ${RESEND_KEY}
+      DEEPSEEK_TOKEN: ${DEEPSEEK_TOKEN}
 
     labels:
       - traefik.enable=true
