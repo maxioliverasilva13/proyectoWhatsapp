@@ -1,3 +1,4 @@
+import { toolresults } from "googleapis/build/src/apis/toolresults";
 import getCurrentDate from "../getCurrentDate";
 import { instructions } from "./instructions";
 import { Customtools } from "./tools";
@@ -126,94 +127,95 @@ export async function sendMessageWithTools(
     services: Services,
     context: Context
 ): Promise<string> {
-    const formatedText = `EmpresaId: ${context.empresaId} \n EmpresaType: ${context.empresaType} \n UserId: ${context.userId} \n Nombre de usuario: ${context.senderName} \n
-    CURRENT_TIME:${getCurrentDate()} \n`;
+    const formatedText = `EmpresaId: ${context.empresaId}\n...`;
 
-    const chatMessages = [
-        { role: 'system', content: instructions },
-        { role: 'system', content: formatedText },
-        ...messages
-    ];
+    // Copia profunda del historial de mensajes
+    let currentMessages = [...messages];
 
-    // console.log(chatMessages);
-    
     if (msg) {
-        chatMessages.push({ role: 'user', content: msg });
+        currentMessages.push({ role: 'user', content: msg });
     }
 
-    console.log("variable es ", process.env.DEEPSEEK_TOKEN)
-    const response = await fetch('https://api.deepseek.com/chat/completions', {
-        method: 'POST',
-        headers: {
-            Authorization: `Bearer ${process.env.DEEPSEEK_TOKEN}`,
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            model: 'deepseek-chat',
-            messages: chatMessages,
-            tools: [...Customtools],
-            tool_choice: "auto",
-            max_tokens: 4096,
-            temperature: 0.5,
-            stream: false,
-            response_format: {
-                type: "json_object"
-            }
-        }),
-    });
+    let maxIterations = 5;
+    let lastMessage = null;
 
-    const data = await response.json();
+    while (maxIterations-- > 0) {
+        const chatMessages = [
+            { role: 'system', content: instructions },
+            { role: 'system', content: formatedText },
+            ...currentMessages
+        ];
 
-    const message = data?.choices?.[0]?.message;
+        const response = await fetch('https://api.deepseek.com/chat/completions', {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${process.env.DEEPSEEK_TOKEN}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                model: 'deepseek-chat',
+                messages: chatMessages,
+                tools: [...Customtools],
+                tool_choice: "auto",
+                max_tokens: 4096,
+                temperature: 0.5,
+                stream: false
+            }),
+        });
 
-    if (!message) {
-        console.error("⚠️ Respuesta inesperada de DeepSeek:", JSON.stringify(data, null, 2));
-        throw new Error("La respuesta del modelo no contiene mensaje");
-    }
+        const data = await response.json();
+        const message = data?.choices?.[0]?.message;
+        lastMessage = message;
 
-    if (message.tool_calls && message.tool_calls.length > 0) {
-        console.log('chatiidexist es ', context.chatIdExist);
-        
-        await services.messagesService.createToolCallsMessage({
-            tool_calls: message.tool_calls,
-            chat: context.originalChatId
-        })
-
-        messages.push({
-            role: 'assistant',
-            content: "envio de tools",
-            tool_calls: message.tool_calls
-        })
-
-
-        for (const toolCall of message.tool_calls) {
-            const { name, arguments: rawArgs } = toolCall.function;
-            let args = {};
-            try {
-                args = JSON.parse(rawArgs);
-            } catch (e) {
-                console.error('Error parsing tool call arguments', e);
-            }
-
-            const toolOutput = await executeToolByName(name, args, services, context);
-
-            messages.push({
-                role: 'tool',
-                tool_call_id: toolCall.id,
-                content: JSON.stringify(toolOutput),
+        if (message?.tool_calls?.length > 0) {
+            await services.messagesService.createToolCallsMessage({
+                tool_calls: message.tool_calls,
+                chat: context.originalChatId
             });
 
-            await services.messagesService.createToolMessage({
-                mensaje: JSON.stringify(toolOutput),
-                toolCallId: toolCall.id,
-                chat: context.originalChatId
-            })
+            currentMessages.push({
+                role: 'assistant',
+                content: "envio de tools",
+                tool_calls: message.tool_calls
+            });
+
+            // Procesar cada herramienta
+            for (const toolCall of message.tool_calls) {
+                const { name, arguments: rawArgs } = toolCall.function;
+                let args = {};
+                try {
+                    args = JSON.parse(rawArgs);
+                } catch (e) {
+                    console.error('Error parsing tool call arguments', e);
+                }
+
+                const toolOutput = await executeToolByName(name, args, services, context);
+
+                const toolOutputString =
+                    typeof toolOutput === 'string' ? toolOutput :
+                        typeof toolOutput === 'object' ? JSON.stringify(toolOutput) :
+                            String(toolOutput);
+
+                await services.messagesService.createToolMessage({
+                    mensaje: toolOutputString,
+                    toolCallId: toolCall.id,
+                    chat: context.originalChatId
+                });
+
+                currentMessages.push({
+                    role: 'tool',
+                    tool_call_id: toolCall.id,
+                    content: toolOutputString
+                });
+            }
+
+            continue;
         }
-        return sendMessageWithTools(null, messages, services, context);
+
+        if (message?.content) {
+            return message.content;
+        }
     }
 
-    return message.content;
+    return lastMessage?.content || "No pude generar una respuesta";
 }
-
-
-

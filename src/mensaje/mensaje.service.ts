@@ -48,6 +48,9 @@ export class MensajeService {
   }
 
   async createToolMessage(createMensajeDto: CreateMensajeToolDto) {
+
+    console.log('aqui rrecibo content', createMensajeDto.mensaje);
+    
     try {
       const chatExist = await this.chatRepository.findOne({ where: { id: createMensajeDto.chat } })
       if (!chatExist) {

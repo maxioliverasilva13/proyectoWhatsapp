@@ -64,6 +64,7 @@ export class GrenApiController {
           // if (orderPlanStatus?.slotsToCreate <= 0) {
           //   return;
           // }
+
           const senderData = body?.senderData;
           const sender = senderData?.sender;
           const chatId = senderData?.chatId;
@@ -73,9 +74,6 @@ export class GrenApiController {
             numberSender,
             empresaId,
           );
-          let chatExist = await this.chatRepository.findOne({
-            where: { chatIdExternal: chatId },
-          });
           const globalCconnection = await handleGetGlobalConnection();
           const empresa = await globalCconnection.getRepository(Empresa);
           const InfoCompany = await empresa.findOne({
@@ -179,10 +177,8 @@ export class GrenApiController {
                       timeZone,
                       chatId,
                     );
+                    
                     if (!respText?.isError) {
-                      console.log('xd2', typeof respText);
-                      console.log("valor es", respText);
-
                       let info = { message: undefined }
                       if (typeof respText === "string") {
                         info = JSON.parse(respText ?? "{}")
@@ -194,7 +190,7 @@ export class GrenApiController {
                         //   info = parsed;
                         // } else {
                         //   info = respText;
-                        // }
+                        // }                        
                         info = respText;
                       }
                       await this.messageQueue.add(
@@ -202,6 +198,12 @@ export class GrenApiController {
                         { chatId, message: info },
                         { priority: 0, attempts: 5 },
                       );
+
+                      let chatExist = await this.chatRepository.findOne({
+                        where: { chatIdExternal: chatId },
+                        order: { id: 'DESC' },
+                      });
+
 
                       if (!chatExist) {
                         const { data } = await this.chatService.create({
@@ -211,18 +213,11 @@ export class GrenApiController {
                       }
 
                       if (chatExist) {
-                        await Promise.all([
-                          this.messagesService.create({
-                            chat: chatExist.id,
-                            isClient: true,
-                            mensaje: messageToSend,
-                          }),
-                          this.messagesService.create({
+                          await this.messagesService.create({
                             chat: chatExist.id,
                             isClient: false,
-                            mensaje: respText,
-                          }),
-                        ]);
+                            mensaje: respText.message,
+                          })
                       }
                     } else {
                       console.log('Mensaje descartado, no se responderá');

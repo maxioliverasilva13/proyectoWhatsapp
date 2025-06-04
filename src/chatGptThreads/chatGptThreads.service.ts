@@ -70,14 +70,10 @@ export class ChatGptThreadsService {
       newThreads.sesionStatus = true;
       newThreads.chatId = data.chatId;
 
-      if (originalChatId) {
-        newThreads.originalChatId = originalChatId;
-      } else {
-        const newChat = await this.chatRepository.save({
-          chatIdExternal: newThreads?.chatId,
-        });
-        newThreads.originalChatId = newChat?.id.toString();
-      }
+      const newChat = await this.chatRepository.save({
+        chatIdExternal: newThreads?.chatId,
+      });
+      newThreads.originalChatId = newChat?.id.toString();
 
       const resp = await this.threadsRepository.save(newThreads);
 
@@ -114,26 +110,29 @@ export class ChatGptThreadsService {
         where: { id: Number(lastThread.originalChatId) }, relations: ['mensajes'],
       });
 
+      console.log('la cantidad de menasjes son ', chatOfThread.mensajes.length);
+
+
       if (chatOfThread?.mensajes && chatOfThread?.mensajes?.length > 0) {
         allMessages = chatOfThread?.mensajes?.map((m) => {
-          if (m.isTool) {
+          if (m.isTool === true) {
             if (m.tool_calls) {
               return {
                 role: "assistant",
-                content: m.mensaje,
+                content: m.mensaje ?? "Tool calls",
                 tool_calls: m.tool_calls
               }
-              
+
             } else {
               return {
                 role: 'tool',
                 tool_call_id: m.tool_call_id,
-                content: m.mensaje,
+                content: m.mensaje ?? "Tool call",
               }
             }
           } else {
             return {
-              role: m.isClient ? 'user' : 'assistant',
+              role: m.isClient === true ? 'user' : 'assistant',
               content: m.mensaje,
             }
           }
@@ -146,7 +145,6 @@ export class ChatGptThreadsService {
           isClient: !isFromIA,
           chat: chatOfThread,
         });
-
       }
     }
 

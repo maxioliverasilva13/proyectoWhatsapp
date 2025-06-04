@@ -48,6 +48,7 @@ export class GreenApiService {
     chatId,
   ) {
     let originalChatId = '';
+
     const {
       threadId,
       chatId: chatIdExist,
@@ -73,7 +74,7 @@ export class GreenApiService {
         chatId: chatId,
         originalChatId: originalChatId,
       });
-      
+
       if (resp.thread.id) {
         currentThreadId = resp.thread.id
       }
@@ -112,8 +113,6 @@ export class GreenApiService {
       }
     )
 
-    console.log("La IA devuelve", openAIResponse)
-
     if (!openAIResponse) {
       return { isError: true };
     }
@@ -129,7 +128,6 @@ export class GreenApiService {
 
     let openAIResponseFormatted;
 
-    console.log('afuera', openAIResponse);
 
     try {
       const openAIResponseRaw = openAIResponse;
@@ -147,15 +145,10 @@ export class GreenApiService {
     let textError;
     await this.chatGptThreadsService.updateThreadStatus(threadId, timeZone);
 
-    if (openAIResponseFormatted?.message) {
-      await this.chatGptThreadsService.createMessageByThrad(
-        openAIResponseFormatted?.message,
-        numberSender,
-        true,
-      );
-    }
-
     const respToUser = textError ? textError : openAIResponseFormatted;
+
+    console.log('devolvere respToUser', respToUser);
+
     return respToUser;
   }
 
