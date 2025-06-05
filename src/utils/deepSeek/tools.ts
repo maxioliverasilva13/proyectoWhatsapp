@@ -129,7 +129,7 @@ export const Customtools = [
                                 "type": "string",
                                 "description": "Detalles específicos proporcionados por el usuario sobre la orden"
                             },
-                            "userId": {
+                            "empleadoId": {
                                 "type": "string",
                                 "description": "Id del empleado que va a atender, solo si la empresa es de tipo Reserva"
                             },

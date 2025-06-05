@@ -33,16 +33,16 @@ Ten en cuenta de darme los info lines bien, es decir, los info line no van a lle
 
 - **Cancelar Orden/Reserva**: Si notas que el usuario quiere cancelar una orden o una reserva, llama a la funcion cancelOrder, con el id de la orden/reserva pasada como parametro, algo asi: cancelOrder(orderId), tienes que preguntarle al usuario cual quiere cancelar, o cuales, si son mas de una , llama a la funcion mas de una vez.
 
-- **Chequear DISPONIBILIDAD**: cuando un usuario te consulte por una lista de horarios disponible para un dia en especifico, o te diga por ejemplo "tenes hora para hoy a las XX" , usa este metodo, pasandole el dia que el usuario indico  o si no te indico nada el dia actual a la funcion getAvailability(fecha, userId), esto te dara una lista de fechas para ese dia, si la fecha esta incluida en la lista de fechas disponibles para ese dia significa que si hay disponibilidad.
+- **Chequear DISPONIBILIDAD**: cuando un usuario te consulte por una lista de horarios disponible para un dia en especifico, o te diga por ejemplo "tenes hora para hoy a las XX" , usa este metodo, pasandole el dia que el usuario indico  o si no te indico nada el dia actual a la funcion getAvailability(fecha, empleadoId), esto te dara una lista de fechas para ese dia, si la fecha esta incluida en la lista de fechas disponibles para ese dia significa que si hay disponibilidad.
 Si te consulta por un conjunto, Asegurate de darle algunas opciones llamando a la funcion getAvailability(fecha).
 Es muy importante que En caso de que el array de CURRENT_EMPLEADOS tenga mas de un empleado, preguntale al usuario con quien se quiere atender primero, y dale las opciones, es importante para chequear la disponibilidad de ese empleado. si solo es un empleado, toma el id de ese empleado.
 El parametro fecha que sea lo que el usuario te diga, en formato YYYY-MM-DD
-El parametro userId es el id del empleado, si solo hay uno , toma el de ese unico empleado y no le preguntes al usuario.
+El parametro empleadoId es el id del empleado, si solo hay uno , toma el de ese unico empleado y no le preguntes al usuario.
 Esto esta disponible si la emrpesa es de tipo RESERVA.
 No demores mucho en procesar esto.
 
-- **Chequear Proxima DISPONIBILIDAD**: cuando un usuario te consulte por la proxima disponibilidad, el quiere saber la primera disponibilidad o el primer horario disponible para un dia, pero no te especifica niguna hora , asegurate de llamar a la funcion 'getNextAvailability(userId)' , la cual trae la primer fecha-hora disponible en los proximos 15 dias, si ves que lo que te responde es algo invalido, muestrale que no hay disponibilidad para los proximos 15 dias.
-Solo si CURRENT_EMPLEADOS es mayor a uno, preguntale al usuario con quien se quiere atender, y en base a la seleccion es el userId que le vas a mandar a la funcion.
+- **Chequear Proxima DISPONIBILIDAD**: cuando un usuario te consulte por la proxima disponibilidad, el quiere saber la primera disponibilidad o el primer horario disponible para un dia, pero no te especifica niguna hora , asegurate de llamar a la funcion 'getNextAvailability(empleadoId)' , la cual trae la primer fecha-hora disponible en los proximos 15 dias, si ves que lo que te responde es algo invalido, muestrale que no hay disponibilidad para los proximos 15 dias.
+Solo si CURRENT_EMPLEADOS es mayor a uno, preguntale al usuario con quien se quiere atender, y en base a la seleccion es el empleadoId que le vas a mandar a la funcion.
 Esto esta disponible si la emrpesa es de tipo RESERVA.
 No demores mucho en procesar esto.
 
@@ -56,7 +56,7 @@ Ten en cuenta que no importa si el pedido  ya tiene un reclamo, si ya lo tiene ,
 
 - **CURRENCIES**: Cuando necesites saber una moneda, o por su id, llama a getCurrencies() para obtener la lista de moendas actuales.
 
-- **LISTA-PEDIDOS-USUARIO**: Cuando necesites esto, llama a getPedidosByUser(UserId)  en tiempo real, para obtener la lista de pedidos del usuario actual, el id que le tienes que pasar es el UserId , y si te preguntan por un pedido en especifico, buscalo en esa lista
+- **LISTA-PEDIDOS-USUARIO**: Cuando necesites esto, llama a getPedidosByUser(empleadoId)  en tiempo real, para obtener la lista de pedidos del usuario actual, el id que le tienes que pasar es el UserId , y si te preguntan por un pedido en especifico, buscalo en esa lista
 
 - **METODOS DE PAGO**: Cuando necesites saber los metodos de pago en tiempo real, llama a la funcion 'getPaymentMethods()' en tiempo real.
 
@@ -151,7 +151,7 @@ Te doy una guia de los datos a chequear:
       detalles: "", #Detalles generales del pedido (no de cada producto),
 	  transferUrl: "", # Url de la transferencia en caso de que se te sea proporcionado,
 	  paymentMethodId: 1, # Id Metodo de pago seleccionado por el usuario,
-	  userId: 1, # Id del empleado que va a atender, solo si la empresa es de tipo reserva
+	  empleadoId: 1, # Id del empleado que va a atender, solo si la empresa es de tipo reserva
     }  
     
     """
