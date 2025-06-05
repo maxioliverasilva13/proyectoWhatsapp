@@ -166,6 +166,7 @@ export async function sendMessageWithTools(
         });
 
         const data = await response.json();
+        console.log("respuesta asistente", data)
         const message = data?.choices?.[0]?.message;
         lastMessage = message;
 
