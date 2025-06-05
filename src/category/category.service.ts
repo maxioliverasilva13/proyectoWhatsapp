@@ -101,10 +101,20 @@ export class CategoryService {
 
   async deleteCategory(idCategory: number) {
     try {
-      const categoryExist = await this.categoryRepository.findOne({ where: { id: idCategory } })
+      const categoryExist = await this.categoryRepository.findOne({ where: { id: idCategory }, relations: ['producto']  })
 
       if (!categoryExist) {
         throw new BadRequestException("No category could be found with that id")
+      }
+
+      if (categoryExist.producto.length > 0) {
+        Promise.all(
+          categoryExist.producto.map(async (prod) => {
+            prod.category = prod.category.filter((cat) => cat.id !== categoryExist.id)
+            await this.productRepository.save(prod)
+          })
+
+        )
       }
 
       await this.categoryRepository.delete(categoryExist.id)
@@ -126,23 +136,13 @@ export class CategoryService {
 
   async update(id: number, updateDto: any) {
     try {
-      const category = await this.categoryRepository.findOne({ where: { id }, relations: ['producto'] });
+      const category = await this.categoryRepository.findOne({ where: { id }});
 
       if (!category) {
         throw new NotFoundException(`Categoría con ID ${id} no encontrada`);
       }
 
       const updated = Object.assign(category, updateDto);
-
-      if (category.producto.length > 0) {
-        Promise.all(
-          category.producto.map(async (prod) => {
-            prod.category = prod.category.filter((cat) => cat.id !== category.id)
-            await this.productRepository.save(prod)
-          })
-
-        )
-      }
 
       await this.categoryRepository.save(updated);
 
