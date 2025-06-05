@@ -36,9 +36,11 @@ export class ClienteService implements OnModuleDestroy {
   }
 
   async findUsersByEmpresa(empresaId: number) {
+    console.log(" me llaman", empresaId)
     const users = await this.usuarioRepository.find({
       where: { id_empresa: empresaId },
     });
+    console.log("users", users)
     return users.map((user) => {
       return {
         nombre: user?.nombre,
