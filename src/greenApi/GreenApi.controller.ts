@@ -39,7 +39,7 @@ export class GrenApiController {
     @InjectQueue(`GreenApiResponseMessagee-${process.env.SUBDOMAIN}`)
     private readonly messageQueue: Queue,
     private readonly redisService: RedisService,
-  ) { }
+  ) {}
 
   @Post('/webhooks')
   async handleWebhook(@Req() request: Request, @Body() body: any) {
@@ -95,8 +95,10 @@ export class GrenApiController {
             if (numberExist?.data) {
               return;
             } else {
-
-              const estaDentroDeHorario = await estaAbierto(InfoCompany?.timeZone, this.horarioService);
+              const estaDentroDeHorario = await estaAbierto(
+                InfoCompany?.timeZone,
+                this.horarioService,
+              );
 
               if (estaDentroDeHorario === true) {
                 let messageToSend;
@@ -111,7 +113,10 @@ export class GrenApiController {
                 } else if (messageData.typeMessage === 'audioMessage') {
                   const fileUrl = messageData.fileMessageData.downloadUrl;
                   messageToSend = await SpeechToText(fileUrl);
-                } else if (messageData.typeMessage === 'imageMessage' || messageData?.typeMessage === "documentMessage") {
+                } else if (
+                  messageData.typeMessage === 'imageMessage' ||
+                  messageData?.typeMessage === 'documentMessage'
+                ) {
                   const imageUrl = messageData.fileMessageData.downloadUrl;
                   messageToSend = `[Imagen recibida] ${imageUrl}`;
                 } else {
@@ -177,22 +182,35 @@ export class GrenApiController {
                       timeZone,
                       chatId,
                     );
-                    
+
                     if (!respText?.isError) {
-                      let info = { message: undefined }
-                      if (typeof respText === "string") {
-                        info = JSON.parse(respText ?? "{}")
-                      } else if (typeof respText === "object") {
-                        // if (typeof respText?.message?.contains("ok")) {
-                        //   const cleaned = respText?.message.replace(/\\"/g, '"');
-                        //   const parsed = JSON.parse(cleaned ?? "{}");
-                        //   console.log("parsed", parsed)
-                        //   info = parsed;
-                        // } else {
-                        //   info = respText;
-                        // }                        
-                        info = respText;
+                      let info = { message: undefined };
+                      try {
+                        if (typeof respText === 'string') {
+                          const parsed = JSON.parse(respText);
+                          if (
+                            parsed &&
+                            typeof parsed === 'object' &&
+                            'message' in parsed
+                          ) {
+                            info = parsed;
+                          } else {
+                            info.message = respText;
+                          }
+                        } else if (
+                          typeof respText === 'object' &&
+                          respText !== null
+                        ) {
+                          info = respText;
+                        }
+                      } catch (e) {
+                        console.warn(
+                          'No se pudo parsear el string como JSON:',
+                          e,
+                        );
+                        info.message = respText;
                       }
+                      console.log('info es', info);
                       await this.messageQueue.add(
                         'send',
                         { chatId, message: info },
@@ -204,7 +222,6 @@ export class GrenApiController {
                         order: { id: 'DESC' },
                       });
 
-
                       if (!chatExist) {
                         const { data } = await this.chatService.create({
                           chatIdExternal: chatId,
@@ -213,11 +230,11 @@ export class GrenApiController {
                       }
 
                       if (chatExist) {
-                          await this.messagesService.create({
-                            chat: chatExist.id,
-                            isClient: false,
-                            mensaje: respText.message,
-                          })
+                        await this.messagesService.create({
+                          chat: chatExist.id,
+                          isClient: false,
+                          mensaje: respText.message,
+                        });
                       }
                     } else {
                       console.log('Mensaje descartado, no se responderá');
@@ -239,7 +256,10 @@ export class GrenApiController {
                 if ((translations[lang] ?? '') && horarios.length > 0) {
                   // Convertimos cada horario a texto: "08:00 - 12:00"
                   const horariosStr = horarios
-                    .map(h => `${h.hora_inicio.slice(0, 5)} - ${h.hora_fin.slice(0, 5)}`)
+                    .map(
+                      (h) =>
+                        `${h.hora_inicio.slice(0, 5)} - ${h.hora_fin.slice(0, 5)}`,
+                    )
                     .join(', ');
 
                   textResponse = translations[lang].closed_hours(horariosStr);
@@ -259,7 +279,6 @@ export class GrenApiController {
                   },
                 );
               }
-
             }
           } finally {
             globalCconnection.destroy();
