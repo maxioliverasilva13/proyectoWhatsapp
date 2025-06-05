@@ -127,13 +127,23 @@ export class CategoryService {
 
   async update(id: number, updateDto: any) {
     try {
-      const category = await this.categoryRepository.findOne({ where: { id } });
+      const category = await this.categoryRepository.findOne({ where: { id }, relations: ['producto'] });
 
       if (!category) {
         throw new NotFoundException(`Categoría con ID ${id} no encontrada`);
       }
 
       const updated = Object.assign(category, updateDto);
+
+      if (category.producto.length > 0) {
+        Promise.all(
+          category.producto.map(async (prod) => {
+            prod.category = prod.category.filter((cat) => cat.id !== category.id)
+            await this.productRepository.save(prod)
+          })
+
+        )
+      }
 
       await this.categoryRepository.save(updated);
 
