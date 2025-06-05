@@ -49,7 +49,7 @@ export class CategoryService {
 
   async getAllCategories() {
     try {
-      const allCategories = await this.categoryRepository.find({ where: { enabled: true } })
+      const allCategories = await this.categoryRepository.find({ where: { enabled: true }, relations: ['producto'] })
 
       return {
         ok: true,
