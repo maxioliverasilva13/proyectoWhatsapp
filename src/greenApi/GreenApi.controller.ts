@@ -23,6 +23,15 @@ import { getLanguageFromTimezone } from 'src/lenguage/utils';
 import { HorarioService } from 'src/horario/horario.service';
 import { estaAbierto } from 'src/horario/utils';
 
+function parseDeepJSON(input: any): any {
+  let current = input;
+  try {
+    while (typeof current === 'string') {
+      current = JSON.parse(current);
+    }
+  } catch (e) {}
+  return current;
+}
 @Controller()
 export class GrenApiController {
   constructor(
@@ -185,23 +194,20 @@ export class GrenApiController {
 
                     if (!respText?.isError) {
                       let info = { message: undefined };
+
                       try {
-                        if (typeof respText === 'string') {
-                          const parsed = JSON.parse(respText);
-                          if (
-                            parsed &&
-                            typeof parsed === 'object' &&
-                            'message' in parsed
-                          ) {
-                            info = parsed;
-                          } else {
-                            info.message = respText;
-                          }
-                        } else if (
-                          typeof respText === 'object' &&
-                          respText !== null
+                        const parsed = parseDeepJSON(respText);
+
+                        if (
+                          parsed &&
+                          typeof parsed === 'object' &&
+                          'message' in parsed
                         ) {
-                          info = respText;
+                          info = parsed;
+                        } else if (typeof parsed === 'string') {
+                          info.message = parsed;
+                        } else {
+                          info.message = respText;
                         }
                       } catch (e) {
                         console.warn(
