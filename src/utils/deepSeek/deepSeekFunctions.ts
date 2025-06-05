@@ -149,7 +149,7 @@ export async function sendMessageWithTools(
     ];
 
     console.log("[Iteración]", 5 - maxIterations);
-    console.log("[Enviando mensajes]", JSON.stringify(chatMessages, null, 2));
+    console.log("[Enviando mensajes]");
 
     const response = await fetch('https://api.deepseek.com/chat/completions', {
       method: 'POST',
