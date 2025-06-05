@@ -16,12 +16,12 @@ export class CategoryService {
 
   async createCategory(data: CreateCategoryDto) {
     try {
-      const existCategoryWithName = await this.categoryRepository.findOne({where: {name : data.name}})
-      
-      if(existCategoryWithName) {
+      const existCategoryWithName = await this.categoryRepository.findOne({ where: { name: data.name } })
+
+      if (existCategoryWithName) {
         throw new BadRequestException("")
       }
-      
+
       const newCategory = this.categoryRepository.create({
         name: data.name,
         description: data.description,
@@ -32,9 +32,9 @@ export class CategoryService {
       await this.categoryRepository.save(newCategory)
 
       return {
-        ok:true,
+        ok: true,
         message: "Category created successfully",
-        data : newCategory
+        data: newCategory
       }
 
     } catch (error) {
@@ -50,9 +50,9 @@ export class CategoryService {
   async getAllCategories() {
     try {
       const allCategories = await this.categoryRepository.find({ where: { enabled: true } })
-      
+
       return {
-        ok:true,
+        ok: true,
         data: allCategories
       }
 
@@ -73,21 +73,21 @@ export class CategoryService {
         where: { id: idCategory },
         relations: ['producto', 'producto.category'],
       });
-  
+
       if (!categoryExist) {
         throw new BadRequestException("No category could be found with that id");
       }
-  
+
       const productsWithCategories = categoryExist.producto.map(product => {
         return {
           ...product,
-          category: product.category, 
+          category: product.category,
         };
       });
-  
+
       return {
         ok: true,
-        data: productsWithCategories, 
+        data: productsWithCategories,
       };
     } catch (error) {
       throw new BadRequestException({
@@ -98,20 +98,20 @@ export class CategoryService {
       });
     }
   }
-  
+
 
   async deleteCategory(idCategory: number) {
     try {
-      const categoryExist = await this.categoryRepository.findOne({where: {id : idCategory}})
+      const categoryExist = await this.categoryRepository.findOne({ where: { id: idCategory } })
 
-      if(!categoryExist) {
+      if (!categoryExist) {
         throw new BadRequestException("No category could be found with that id")
       }
 
       await this.categoryRepository.delete(categoryExist.id)
 
       return {
-        ok:true,
+        ok: true,
         message: "Category delete successfully"
       }
 
@@ -125,16 +125,26 @@ export class CategoryService {
     }
   }
 
-  async update(id: number, updateDto: any): Promise<Category> {
-    const category = await this.categoryRepository.findOne({ where: { id } });
+  async update(id: number, updateDto: any) {
+    try {
+      const category = await this.categoryRepository.findOne({ where: { id } });
 
-    if (!category) {
-      throw new NotFoundException(`Categoría con ID ${id} no encontrada`);
+      if (!category) {
+        throw new NotFoundException(`Categoría con ID ${id} no encontrada`);
+      }
+
+      const updated = Object.assign(category, updateDto);
+
+      await this.categoryRepository.save(updated);
+
+      return {
+        ok: true,
+        data: updated
+      }
+
+    } catch (error) {
+      console.log(error);
     }
-
-    const updated = Object.assign(category, updateDto);
-
-    return this.categoryRepository.save(updated);
   }
 
 }
