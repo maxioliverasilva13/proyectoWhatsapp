@@ -23,15 +23,16 @@ import { getLanguageFromTimezone } from 'src/lenguage/utils';
 import { HorarioService } from 'src/horario/horario.service';
 import { estaAbierto } from 'src/horario/utils';
 
-function parseDeepJSON(input: any): any {
-  let current = input;
+function parseDeep(input: any): any {
+  let result = input;
   try {
-    while (typeof current === 'string') {
-      current = JSON.parse(current);
+    while (typeof result === 'string') {
+      result = JSON.parse(result);
     }
   } catch (e) {}
-  return current;
+  return result;
 }
+
 @Controller()
 export class GrenApiController {
   constructor(
@@ -69,10 +70,10 @@ export class GrenApiController {
         const { typeWebhook, messageData } = body;
 
         if (typeWebhook === 'incomingMessageReceived') {
-          // const orderPlanStatus = await this.pedidoService.orderPlanStatus();
-          // if (orderPlanStatus?.slotsToCreate <= 0) {
-          //   return;
-          // }
+          const orderPlanStatus = await this.pedidoService.orderPlanStatus();
+          if (orderPlanStatus?.slotsToCreate <= 0) {
+            return;
+          }
 
           const senderData = body?.senderData;
           const sender = senderData?.sender;
@@ -196,18 +197,30 @@ export class GrenApiController {
                       let info = { message: undefined };
 
                       try {
-                        const parsed = parseDeepJSON(respText);
+                        const parsed = parseDeep(respText);
 
+                        // Si hay un message anidado en otro message, lo sacamos
                         if (
                           parsed &&
                           typeof parsed === 'object' &&
                           'message' in parsed
                         ) {
-                          info = parsed;
-                        } else if (typeof parsed === 'string') {
-                          info.message = parsed;
+                          const inner = parseDeep(parsed.message);
+
+                          if (
+                            inner &&
+                            typeof inner === 'object' &&
+                            'message' in inner
+                          ) {
+                            info.message = inner.message;
+                          } else if (typeof inner === 'string') {
+                            info.message = inner;
+                          } else {
+                            info.message = parsed.message;
+                          }
                         } else {
-                          info.message = respText;
+                          info.message =
+                            typeof parsed === 'string' ? parsed : respText;
                         }
                       } catch (e) {
                         console.warn(
@@ -216,7 +229,7 @@ export class GrenApiController {
                         );
                         info.message = respText;
                       }
-                      console.log('info es', info);
+
                       await this.messageQueue.add(
                         'send',
                         { chatId, message: info },
