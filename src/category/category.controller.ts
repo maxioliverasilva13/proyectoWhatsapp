@@ -33,8 +33,8 @@ export class CategoryController {
   }
 
   @Delete(':id')
-  async deleteCategory(@Param('idCategory') idCategory: string) {
-    return this.categoryService.deleteCategory(parseInt(idCategory))
+  async deleteCategory(@Param('id') id: string) {
+    return this.categoryService.deleteCategory(parseInt(id))
   }
 
   @Patch(':id')
