@@ -220,5 +220,7 @@ export async function sendMessageWithTools(
         }
     }
 
+    console.log("lastMessage", lastMessage)
+
     return lastMessage?.content || "No pude generar una respuesta";
 }
