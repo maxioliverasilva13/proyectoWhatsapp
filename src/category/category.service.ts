@@ -101,7 +101,7 @@ export class CategoryService {
 
   async deleteCategory(idCategory: number) {
     try {
-      const categoryExist = await this.categoryRepository.findOne({ where: { id: idCategory }, relations: ['producto', 'producto.category'] })
+      const categoryExist = await this.categoryRepository.findOne({ where: { id: idCategory }, relations: ['producto', 'producto.category', 'producto.category.producto'] })
 
       if (!categoryExist) {
         throw new BadRequestException("No category could be found with that id")
