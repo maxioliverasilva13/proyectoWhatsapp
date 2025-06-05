@@ -130,8 +130,9 @@ export async function sendMessageWithTools(
   context: Context
 ): Promise<string> {
   const formatedText = `EmpresaId: ${context.empresaId} \n EmpresaType: ${context.empresaType} \n UserId: ${context.userId} \n Nombre de usuario: ${context.senderName} \n
-    CURRENT_TIME:${getCurrentDate()} CURRENT_EMPLEADOS:${JSON.stringify(services.clienteService.findUsersByEmpresa(context.empresaId) ?? "[]")} \n`;
+    CURRENT_TIME:${getCurrentDate()}\n CURRENT_EMPLEADOS:${JSON.stringify(services.clienteService.findUsersByEmpresa(context.empresaId) ?? "[]")} \n`;
 
+  console.log("formatedText", formatedText)
   let currentMessages = [...messages];
 
   if (msg) {
