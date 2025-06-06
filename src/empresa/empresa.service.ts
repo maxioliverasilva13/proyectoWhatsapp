@@ -19,6 +19,7 @@ import * as bcrypt from 'bcryptjs';
 import { handleGetConnectionByEmpresa } from 'src/utils/dbConnection';
 import { Category } from 'src/category/entities/category.entity';
 import { Infoline } from 'src/infoline/entities/infoline.entity';
+import { Horario } from 'src/horario/entities/horario.entity';
 
 @Injectable()
 export class EmpresaService {
@@ -292,11 +293,14 @@ export class EmpresaService {
 
       const categoryRepository = await connection.getRepository(Category);
       const infoLineRepository = await connection.getRepository(Infoline);
+      const horariosRepository = await connection.getRepository(Horario);
+
 
       const allProducts = await categoryRepository.find({ relations: ["producto"] });
       const allInfoLines = await infoLineRepository.find({
         where: { id_tipo_servicio: empresaData.tipoServicioId.id }
       })
+      const allHorarios = await horariosRepository.find()
 
       const apiUrl = `${process.env.ENV === 'dev' ? 'http' : 'https'}://${process.env.VIRTUAL_HOST?.replace(
         'app',
@@ -314,7 +318,8 @@ export class EmpresaService {
           apiUrl
         },
         products: allProducts,
-        infoLines: allInfoLines
+        infoLines: allInfoLines,
+        horario: allHorarios
       };
 
     } catch (error) {
