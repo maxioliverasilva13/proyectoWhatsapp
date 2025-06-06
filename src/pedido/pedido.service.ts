@@ -797,7 +797,7 @@ export class PedidoService implements OnModuleDestroy {
           .andWhere('pedido.finalizado = :finalizado', { finalizado: false })
            .andWhere('pedido.available = :available', { available: true });
       } else if (filter === 'finished') {
-        query.where('pedido.finalizado = :finalizado', { finalizado: true }).orWhere('pedido.available = :available', { available: true });
+        query.where('pedido.finalizado = :finalizado', { finalizado: true }).andWhere('pedido.available = :available', { available: true });
       } else if (filter === 'active') {
         query
           .andWhere('pedido.confirmado = :confirmado', { confirmado: true })
