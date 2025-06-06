@@ -198,6 +198,7 @@ export async function sendMessageToThread(
             console.log('getCurrencies');
             toolResult = await productoService.getCurrencies();
           } else if (name === 'confirmOrder') {
+            console.log("en args tengo", args)
             toolResult = await greenApiService.hacerPedido({
               currentThreadId: threadId,
               transferUrl: args?.transferUrl ?? "",
@@ -220,11 +221,11 @@ export async function sendMessageToThread(
             console.log('getAvailability');
             toolResult =
               await pedidoService.obtenerDisponibilidadActivasByFecha(
-                args.date,
+                args.date, args.empleadoId
               );
           } else if (name === 'getNextAvailability') {
             console.log('getNextAvailability');
-            toolResult = await pedidoService.getNextDateTimeAvailable(timeZone);
+            toolResult = await pedidoService.getNextDateTimeAvailable(timeZone, args.empleadoId);
           } else {
             toolResult = { error: `Tool ${name} no implementada` };
           }

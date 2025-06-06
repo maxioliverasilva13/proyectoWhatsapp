@@ -43,6 +43,7 @@ export class ClienteService implements OnModuleDestroy {
     console.log("users", users)
     return users.map((user) => {
       return {
+        id: user?.id,
         nombre: user?.nombre,
         apellido: user?.apellido,
         image: user?.image,
