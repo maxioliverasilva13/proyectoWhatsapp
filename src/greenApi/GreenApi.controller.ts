@@ -197,38 +197,49 @@ export class GrenApiController {
                       let info = { message: undefined };
 
                       try {
-                        const parsed = parseDeep(respText);
-
-                        // Si hay un message anidado en otro message, lo sacamos
                         if (
-                          parsed &&
-                          typeof parsed === 'object' &&
-                          'message' in parsed
+                          typeof respText === 'object' &&
+                          respText !== null &&
+                          'message' in respText
                         ) {
-                          const inner = parseDeep(parsed.message);
+                          const rawMsg = respText.message;
 
-                          if (
-                            inner &&
-                            typeof inner === 'object' &&
-                            'message' in inner
-                          ) {
-                            info.message = inner.message;
-                          } else if (typeof inner === 'string') {
-                            info.message = inner;
+                          if (typeof rawMsg === 'string') {
+                            try {
+                              const innerParsed = JSON.parse(rawMsg);
+                              if (
+                                innerParsed &&
+                                typeof innerParsed === 'object' &&
+                                'message' in innerParsed
+                              ) {
+                                console.log('xd1', innerParsed.message);
+                                info.message = innerParsed.message;
+                              } else {
+                                console.log('xd2', rawMsg);
+
+                                info.message = rawMsg;
+                              }
+                            } catch (e) {
+                              console.log('xd3', rawMsg);
+
+                              info.message = rawMsg;
+                            }
                           } else {
-                            info.message = parsed.message;
+                            console.log('xd4', rawMsg);
+
+                            info.message = rawMsg;
                           }
                         } else {
-                          info.message =
-                            typeof parsed === 'string' ? parsed : respText;
+                          console.log('xd5', respText);
+
+                          info.message = respText;
                         }
                       } catch (e) {
-                        console.warn(
-                          'No se pudo parsear el string como JSON:',
-                          e,
-                        );
+                        console.warn('Error procesando respText.message', e);
                         info.message = respText;
                       }
+
+                      console.log('info =', info);
 
                       await this.messageQueue.add(
                         'send',
