@@ -1075,12 +1075,15 @@ export class PedidoService implements OnModuleDestroy {
 
 
           if (!actual.isSameOrBefore(now) && !overlapping && !enCierreProvisorio) {
+            console.log("agrego cupo")
             cupos++;
           }
 
           actual.add(intervaloTiempoCalendario, 'minutes');
         }
       }
+
+      console.log("cupos", cupos)
 
       resultados.push({ fecha: fechaStr, cuposDisponibles: cupos, dayOfWeek: diaSemana });
     }
