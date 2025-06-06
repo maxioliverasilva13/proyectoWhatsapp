@@ -188,7 +188,7 @@ export class GrenApiController {
                 await this.redisService.handleIncomingMessageWithBuffering({
                   chatId,
                   message: messageToSend,
-                  delayMs: 5000,
+                  delayMs: 10000,
                   maxTokens: 250,
                   numberSender,
                   empresaType,
@@ -211,6 +211,7 @@ export class GrenApiController {
                       return;
                     }
 
+                    console.log("fullMessage", fullMessage)
                     const respText = await this.greenApi.handleMessagetText(
                       fullMessage,
                       numberSender,

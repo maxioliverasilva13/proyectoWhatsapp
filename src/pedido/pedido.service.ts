@@ -1023,10 +1023,13 @@ export class PedidoService implements OnModuleDestroy {
       const diaSemana = dia.isoWeekday();
       const horariosDia = await this.horarioService.findByDay(diaSemana);
 
+      console.log("diaSemaan", diaSemana, horariosDia);
+
       if (!horariosDia || horariosDia.length === 0) {
         resultados.push({ fecha: fechaStr, cuposDisponibles: 0, dayOfWeek: diaSemana });
         continue;
       }
+      console.log("sigo")
 
       const pedidos = await this.pedidoRepository.find({
         where: {
