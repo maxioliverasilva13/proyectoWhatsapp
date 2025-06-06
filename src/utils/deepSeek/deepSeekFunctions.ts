@@ -86,7 +86,7 @@ async function executeToolByName(
         toolResult = resp.ok;
     } else if (name === 'cancelOrder') {
         console.log('cancelOrder');
-        toolResult = await pedidoService.cancel(args.orderId, true);
+        toolResult = await pedidoService.remove(args.orderId);
     } else if (name === 'getCurrencies') {
         console.log('getCurrencies');
         toolResult = await productoService.getCurrencies();

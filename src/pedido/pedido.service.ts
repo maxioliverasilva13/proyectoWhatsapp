@@ -1472,8 +1472,6 @@ ${productosList}
         ],
       });
 
-      pedidoExist.available = false;
-
       const client = await this.clienteRepository.findOne({
         where: { id: pedidoExist.cliente_id },
       });
@@ -1513,7 +1511,7 @@ Para más información, por favor contactanos.`;
         );
       }
 
-      await this.pedidoRepository.save(pedidoExist);
+      await this.pedidoRepository.update(id, { available: false })
 
       return {
         ok: true,
