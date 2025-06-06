@@ -1049,6 +1049,7 @@ export class PedidoService implements OnModuleDestroy {
 
       let cupos = 0;
 
+      const nowUtc = moment().utc();
       for (const horario of horariosDia) {
         const apertura = moment.tz(`${fechaStr} ${horario.hora_inicio}`, 'YYYY-MM-DD HH:mm', timeZone);
         let cierre = moment.tz(`${fechaStr} ${horario.hora_fin}`, 'YYYY-MM-DD HH:mm', timeZone);
@@ -1071,10 +1072,10 @@ export class PedidoService implements OnModuleDestroy {
             return actualUtc.isBetween(inicio, fin, undefined, '[)');
           });
 
-          console.log(actual, now, !actual.isSameOrBefore(now), overlapping, enCierreProvisorio)
+          console.log(actualUtc.isAfter(nowUtc), overlapping, enCierreProvisorio)
 
 
-          if (!actual.isSameOrBefore(now) && !overlapping && !enCierreProvisorio) {
+          if (actualUtc.isAfter(nowUtc) && !overlapping && !enCierreProvisorio) {
             console.log("agrego cupo")
             cupos++;
           }
