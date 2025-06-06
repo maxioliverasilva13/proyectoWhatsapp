@@ -1014,7 +1014,7 @@ export class PedidoService implements OnModuleDestroy {
 
     const resultados: { fecha: string; cuposDisponibles: number, dayOfWeek: number }[] = [];
 
-    const inicioMes = moment.tz({ year: anio, month: mes - 1, day: 1 }, timeZone);
+    const inicioMes = moment.tz({ year: anio, month: mes, day: 1 }, timeZone);
     const finMes = inicioMes.clone().endOf('month');
     const now = moment.tz(timeZone);
 
