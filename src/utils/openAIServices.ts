@@ -192,7 +192,7 @@ export async function sendMessageToThread(
             toolResult = resp.ok;
           } else if (name === 'cancelOrder') {
             console.log('cancelOrder');
-            const resp = await pedidoService.cancel(args.orderId, true);
+            const resp = await pedidoService.remove(args.orderId);
             toolResult = resp;
           } else if (name === 'getCurrencies') {
             console.log('getCurrencies');
