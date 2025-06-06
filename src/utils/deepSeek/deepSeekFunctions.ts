@@ -64,6 +64,7 @@ async function executeToolByName(
 
     console.log("intentando llamar a funcion", name)
 
+    console.log("args", args)
     if (name === 'getProductsByEmpresa') {
         console.log('getProductsByEmpresa');
         toolResult = await productoService.findAllInText();
@@ -107,14 +108,14 @@ async function executeToolByName(
             originalChatId,
             withIA: true,
             paymentMethodId: args?.paymentMethodId,
-            userId: args?.userId,
+            userId: args?.info?.empleadoId,
         });
     } else if (name === 'getAvailability') {
         console.log('getAvailability');
-        toolResult = await pedidoService.obtenerDisponibilidadActivasByFecha(args.date, false, args.userId);
+        toolResult = await pedidoService.obtenerDisponibilidadActivasByFecha(args.date, false, args.empleadoId);
     } else if (name === 'getNextAvailability') {
         console.log('getNextAvailability');
-        toolResult = await pedidoService.getNextDateTimeAvailable(timeZone, args.userId);
+        toolResult = await pedidoService.getNextDateTimeAvailable(timeZone, args.empleadoId);
     } else {
         toolResult = { error: `Tool ${name} no implementada` };
     }
@@ -124,101 +125,119 @@ async function executeToolByName(
 
 
 export async function sendMessageWithTools(
-    msg: string | null,
-    messages: any[],
-    services: Services,
-    context: Context
+  msg: string | null,
+  messages: any[],
+  services: Services,
+  context: Context
 ): Promise<string> {
+  const usersEmpresa = await services.clienteService.findUsersByEmpresa(context.empresaId);
   const formatedText = `EmpresaId: ${context.empresaId} \n EmpresaType: ${context.empresaType} \n UserId: ${context.userId} \n Nombre de usuario: ${context.senderName} \n
-    CURRENT_TIME:${getCurrentDate()} CURRENT_EMPLEADOS:${JSON.stringify(services.clienteService.findUsersByEmpresa(context.empresaId) ?? "[]")} \n`;
-    // Copia profunda del historial de mensajes
-    let currentMessages = [...messages];
+    CURRENT_TIME:${getCurrentDate()}\n CURRENT_EMPLEADOS:${JSON.stringify(usersEmpresa ?? "[]")} \n`;
 
-    if (msg) {
-        currentMessages.push({ role: 'user', content: msg });
-    }
+  console.log("formatedText", formatedText)
+  let currentMessages = [...messages];
 
-    let maxIterations = 5;
-    let lastMessage = null;
+  if (msg) {
+    currentMessages.push({ role: 'user', content: msg });
+  }
 
-    while (maxIterations-- > 0) {
-        const chatMessages = [
-            { role: 'system', content: instructions },
-            { role: 'system', content: formatedText },
-            ...currentMessages
-        ];
+  let maxIterations = 5;
+  let lastMessage = null;
 
-        const response = await fetch('https://api.deepseek.com/chat/completions', {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${process.env.DEEPSEEK_TOKEN}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                model: 'deepseek-chat',
-                messages: chatMessages,
-                tools: [...Customtools],
-                tool_choice: "auto",
-                max_tokens: 4096,
-                temperature: 0.5,
-                stream: false
-            }),
+  while (maxIterations-- > 0) {
+    const chatMessages = [
+      { role: 'system', content: instructions },
+      { role: 'system', content: formatedText },
+      ...currentMessages
+    ];
+
+    console.log("[Iteración]", 5 - maxIterations);
+    console.log("[Enviando mensajes]");
+
+    const response = await fetch('https://api.deepseek.com/chat/completions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.DEEPSEEK_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'deepseek-chat',
+        messages: chatMessages,
+        tools: [...Customtools],
+        tool_choice: "auto",
+        max_tokens: 4096,
+        temperature: 0.5,
+        stream: false
+      }),
+    });
+
+    const data = await response.json();
+    console.log("[Respuesta API]", JSON.stringify(data, null, 2));
+
+    const message = data?.choices?.[0]?.message;
+    lastMessage = message;
+
+    if (message?.tool_calls?.length > 0) {
+      console.log("[Tool Calls detectadas]", message.tool_calls);
+
+      await services.messagesService.createToolCallsMessage({
+        tool_calls: message.tool_calls,
+        chat: context.originalChatId
+      });
+
+      // Primero se agrega el mensaje del assistant con tool_calls
+      currentMessages.push({
+        role: 'assistant',
+        content: null,
+        tool_calls: message.tool_calls
+      });
+
+      // Luego se agregan los mensajes de tool correspondientes
+      for (const toolCall of message.tool_calls) {
+        const { name, arguments: rawArgs } = toolCall.function;
+        let args = {};
+        try {
+          args = JSON.parse(rawArgs);
+        } catch (e) {
+          console.error('[Error al parsear argumentos de tool]', e);
+        }
+
+        console.log("[Ejecutando tool]", name, args);
+
+        const toolOutput = await executeToolByName(name, args, services, context);
+
+        const toolOutputString =
+          typeof toolOutput === 'string'
+            ? toolOutput
+            : typeof toolOutput === 'object'
+              ? JSON.stringify(toolOutput)
+              : String(toolOutput);
+
+        await services.messagesService.createToolMessage({
+          mensaje: toolOutputString,
+          toolCallId: toolCall.id,
+          chat: context.originalChatId
         });
 
-        const data = await response.json();
-        const message = data?.choices?.[0]?.message;
-        lastMessage = message;
+        console.log("[Tool output generado]", toolCall.id, toolOutputString);
 
-        if (message?.tool_calls?.length > 0) {
-            await services.messagesService.createToolCallsMessage({
-                tool_calls: message.tool_calls,
-                chat: context.originalChatId
-            });
+        currentMessages.push({
+          role: 'tool',
+          tool_call_id: toolCall.id,
+          content: toolOutputString
+        });
+      }
 
-            currentMessages.push({
-                role: 'assistant',
-                content: "envio de tools",
-                tool_calls: message.tool_calls
-            });
-
-            // Procesar cada herramienta
-            for (const toolCall of message.tool_calls) {
-                const { name, arguments: rawArgs } = toolCall.function;
-                let args = {};
-                try {
-                    args = JSON.parse(rawArgs);
-                } catch (e) {
-                    console.error('Error parsing tool call arguments', e);
-                }
-
-                console.log("executeToolByName", name, args)
-                const toolOutput = await executeToolByName(name, args, services, context);
-
-                const toolOutputString =
-                    typeof toolOutput === 'string' ? toolOutput :
-                        typeof toolOutput === 'object' ? JSON.stringify(toolOutput) :
-                            String(toolOutput);
-
-                await services.messagesService.createToolMessage({
-                    mensaje: toolOutputString,
-                    toolCallId: toolCall.id,
-                    chat: context.originalChatId
-                });
-
-                currentMessages.push({
-                    role: 'tool',
-                    tool_call_id: toolCall.id,
-                    content: toolOutputString
-                });
-            }
-
-            continue;
-        }
-
-        if (message?.content) {
-            return message.content;
-        }
+      continue; // Volver a iterar con las respuestas de tools
     }
 
-    return lastMessage?.content || "No pude generar una respuesta";
+    if (message?.content) {
+      console.log("[Respuesta final del asistente]", message.content);
+      return message.content;
+    }
+  }
+
+  console.log("[Fin sin respuesta clara]", lastMessage);
+  return lastMessage?.content || "No pude generar una respuesta";
 }
+

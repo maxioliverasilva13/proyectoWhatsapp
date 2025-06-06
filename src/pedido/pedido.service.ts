@@ -845,6 +845,8 @@ export class PedidoService implements OnModuleDestroy {
     const { intervaloTiempoCalendario, timeZone = "America/Montevideo" } = empresa;
     const diaSemana = moment(fecha).endOf("day").tz(timeZone).isoWeekday();
     const horariosDia = await this.horarioService.findByDay(diaSemana);
+    console.log("diaSemana", diaSemana)
+    console.log("horariosDia", horariosDia)
     if (!timeZone || !intervaloTiempoCalendario || !horariosDia) return [];
 
 
@@ -1012,7 +1014,7 @@ export class PedidoService implements OnModuleDestroy {
 
     const resultados: { fecha: string; cuposDisponibles: number, dayOfWeek: number }[] = [];
 
-    const inicioMes = moment.tz({ year: anio, month: mes - 1, day: 1 }, timeZone);
+    const inicioMes = moment.tz({ year: anio, month: mes, day: 1 }, timeZone);
     const finMes = inicioMes.clone().endOf('month');
     const now = moment.tz(timeZone);
 
@@ -1047,6 +1049,7 @@ export class PedidoService implements OnModuleDestroy {
 
       let cupos = 0;
 
+      const nowUtc = moment().utc();
       for (const horario of horariosDia) {
         const apertura = moment.tz(`${fechaStr} ${horario.hora_inicio}`, 'YYYY-MM-DD HH:mm', timeZone);
         let cierre = moment.tz(`${fechaStr} ${horario.hora_fin}`, 'YYYY-MM-DD HH:mm', timeZone);
@@ -1069,14 +1072,21 @@ export class PedidoService implements OnModuleDestroy {
             return actualUtc.isBetween(inicio, fin, undefined, '[)');
           });
 
+          console.log(actualUtc)
+          console.log(nowUtc)
+          console.log(actualUtc.isAfter(nowUtc), overlapping, enCierreProvisorio)
 
-          if (!actual.isSameOrBefore(now) && !overlapping && !enCierreProvisorio) {
+
+          if (actualUtc.isAfter(nowUtc) && !overlapping && !enCierreProvisorio) {
+            console.log("agrego cupo")
             cupos++;
           }
 
           actual.add(intervaloTiempoCalendario, 'minutes');
         }
       }
+
+      console.log("cupos", cupos)
 
       resultados.push({ fecha: fechaStr, cuposDisponibles: cupos, dayOfWeek: diaSemana });
     }
