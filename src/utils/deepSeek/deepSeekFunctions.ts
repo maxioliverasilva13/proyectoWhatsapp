@@ -108,7 +108,7 @@ async function executeToolByName(
             originalChatId,
             withIA: true,
             paymentMethodId: args?.paymentMethodId,
-            userId: args?.empleadoId,
+            userId: args?.info?.empleadoId,
         });
     } else if (name === 'getAvailability') {
         console.log('getAvailability');
