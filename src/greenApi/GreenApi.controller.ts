@@ -23,16 +23,44 @@ import { getLanguageFromTimezone } from 'src/lenguage/utils';
 import { HorarioService } from 'src/horario/horario.service';
 import { estaAbierto } from 'src/horario/utils';
 
-function parseDeep(input: any): any {
-  let result = input;
-  try {
-    while (typeof result === 'string') {
-      result = JSON.parse(result);
-    }
-  } catch (e) {}
-  return result;
-}
+function extractMessage(respText: any): { message: string | undefined } {
+  let info = { message: undefined };
 
+  try {
+    const rawMsg =
+      typeof respText === 'object' && respText !== null && 'message' in respText
+        ? respText.message
+        : respText;
+
+    if (typeof rawMsg !== 'string') {
+      info.message = rawMsg;
+      return info;
+    }
+
+    let parsed: any = rawMsg;
+    for (let i = 0; i < 2; i++) {
+      try {
+        const temp = JSON.parse(parsed);
+        parsed = temp;
+      } catch {
+        break;
+      }
+    }
+
+    if (parsed && typeof parsed === 'object' && 'message' in parsed) {
+      info.message = parsed.message;
+    } else if (typeof parsed === 'string') {
+      info.message = parsed;
+    } else {
+      info.message = rawMsg;
+    }
+  } catch (e) {
+    console.warn('Error procesando respText:', e);
+    info.message = typeof respText === 'string' ? respText : undefined;
+  }
+
+  return info;
+}
 @Controller()
 export class GrenApiController {
   constructor(
@@ -194,50 +222,7 @@ export class GrenApiController {
                     );
 
                     if (!respText?.isError) {
-                      let info = { message: undefined };
-
-                      try {
-                        if (
-                          typeof respText === 'object' &&
-                          respText !== null &&
-                          'message' in respText
-                        ) {
-                          const rawMsg = respText.message;
-
-                          if (typeof rawMsg === 'string') {
-                            try {
-                              const innerParsed = JSON.parse(rawMsg);
-                              if (
-                                innerParsed &&
-                                typeof innerParsed === 'object' &&
-                                'message' in innerParsed
-                              ) {
-                                console.log('xd1', innerParsed.message);
-                                info.message = innerParsed.message;
-                              } else {
-                                console.log('xd2', rawMsg);
-
-                                info.message = rawMsg;
-                              }
-                            } catch (e) {
-                              console.log('xd3', rawMsg);
-
-                              info.message = rawMsg;
-                            }
-                          } else {
-                            console.log('xd4', rawMsg);
-
-                            info.message = rawMsg;
-                          }
-                        } else {
-                          console.log('xd5', respText);
-
-                          info.message = respText;
-                        }
-                      } catch (e) {
-                        console.warn('Error procesando respText.message', e);
-                        info.message = respText;
-                      }
+                      let info = { message: extractMessage(respText) };
 
                       console.log('info =', info);
 
