@@ -9,6 +9,7 @@ import { Estado } from 'src/estado/entities/estado.entity';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { WebsocketGateway } from 'src/websocket/websocket.gatewat';
+import { TIPO_SERVICIO_RESERVA_ID } from 'src/database/seeders/app/tipopedido.seed';
 
 @Injectable()
 export class CambioestadopedidoService {
@@ -45,7 +46,7 @@ export class CambioestadopedidoService {
       })
 
       await this.messageQueue.add('send', {
-        message: estadoExist.mensaje || `Hemos echo el cambio de estado de su pedido de ${(pedidoExist?.estado?.nombre) ?? "Creado"} a ${estadoExist?.nombre}`,
+        message: estadoExist.mensaje || `Hemos echo el cambio de estado de su ${pedidoExist?.tipo_servicio_id === TIPO_SERVICIO_RESERVA_ID ? "Reserva" : "Orden"} de ${(pedidoExist?.estado?.nombre) ?? "Creado"} a ${estadoExist?.nombre}`,
         chatId: pedidoExist.chatIdWhatsapp
       }, {
         priority: 0,
