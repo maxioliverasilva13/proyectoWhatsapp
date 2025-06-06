@@ -46,7 +46,7 @@ export class PedidoService implements OnModuleDestroy {
   private empresaRepository: Repository<Empresa>;
   private cierreProvisorioRepo: Repository<CierreProvisorio>;
   private globalConnection: DataSource;
-  private reclamoRepo: Repository<Reclamo>
+  private reclamoRepo: Repository<Reclamo>;
 
   constructor(
     @InjectRepository(Pedido)
@@ -72,7 +72,7 @@ export class PedidoService implements OnModuleDestroy {
     private readonly messageQueue: Queue,
     private readonly deviceService: DeviceService,
     private readonly horarioService: HorarioService,
-  ) { }
+  ) {}
 
   async onModuleInit() {
     if (!this.globalConnection) {
@@ -83,7 +83,8 @@ export class PedidoService implements OnModuleDestroy {
     this.clienteRepository = this.globalConnection.getRepository(Cliente);
     this.empresaRepository = this.globalConnection.getRepository(Empresa);
     this.reclamoRepo = this.globalConnection.getRepository(Reclamo);
-    this.cierreProvisorioRepo = this.globalConnection.getRepository(CierreProvisorio)
+    this.cierreProvisorioRepo =
+      this.globalConnection.getRepository(CierreProvisorio);
   }
 
   async getStatistics(filterType: any) {
@@ -257,7 +258,7 @@ export class PedidoService implements OnModuleDestroy {
           ...pedido,
           estado: pedido?.estado?.nombre,
           estadoTexto: pedido?.estado?.mensaje,
-          paymentMethod: pedido?.paymentMethod?.name ?? "",
+          paymentMethod: pedido?.paymentMethod?.name ?? '',
           pedidosprod: pedido.pedidosprod.map((pedidoProd) => {
             return {
               ...pedidoProd,
@@ -284,11 +285,18 @@ export class PedidoService implements OnModuleDestroy {
       if (!query?.trim()) {
         return {
           ok: true,
-          data: []
+          data: [],
         };
       }
 
-      const allOrders = await this.pedidoRepository.find({ relations: ['pedidosprod', 'pedidosprod.producto', 'estado', 'paymentMethod'] })
+      const allOrders = await this.pedidoRepository.find({
+        relations: [
+          'pedidosprod',
+          'pedidosprod.producto',
+          'estado',
+          'paymentMethod',
+        ],
+      });
 
       const clienteIds = allOrders.map((pedido) => pedido.cliente_id);
       const clientes = await this.clienteRepository.findByIds(clienteIds);
@@ -296,16 +304,16 @@ export class PedidoService implements OnModuleDestroy {
       const clienteMap = new Map(
         clientes.map((cliente) => [cliente.id, cliente]),
       );
-      const reclamoIds = [...new Set(
-        allOrders
-          .map((p) => Number(p.reclamo))
-          .filter((id) => !isNaN(id))
-      )];
+      const reclamoIds = [
+        ...new Set(
+          allOrders.map((p) => Number(p.reclamo)).filter((id) => !isNaN(id)),
+        ),
+      ];
       const reclamos = await this.reclamoRepo.findBy({ id: In(reclamoIds) });
 
-      const reclamoMap = new Map(reclamos.map(r => [r.id, r]));
+      const reclamoMap = new Map(reclamos.map((r) => [r.id, r]));
 
-      const results = []
+      const results = [];
 
       await Promise.all(
         allOrders.map(async (order) => {
@@ -322,18 +330,25 @@ export class PedidoService implements OnModuleDestroy {
 
           const value = infoLineFormatedJson[key] ?? null;
 
-          if (value && typeof value === 'string' && value.toLowerCase().includes(query.toLowerCase())) {
-            const orderFormatedd = await this.getPedido(order, clienteMap, reclamoMap);
+          if (
+            value &&
+            typeof value === 'string' &&
+            value.toLowerCase().includes(query.toLowerCase())
+          ) {
+            const orderFormatedd = await this.getPedido(
+              order,
+              clienteMap,
+              reclamoMap,
+            );
             results.push(orderFormatedd);
           }
-        })
+        }),
       );
 
       return {
         ok: true,
-        data: results
-      }
-
+        data: results,
+      };
     } catch (error) {
       throw new BadRequestException({
         ok: false,
@@ -407,7 +422,6 @@ export class PedidoService implements OnModuleDestroy {
       let globalTotal = 0;
 
       const crearNuevoPedido = async (products) => {
-
         let total = 0;
         const infoLineToJson = createPedidoDto.infoLinesJson;
 
@@ -429,8 +443,13 @@ export class PedidoService implements OnModuleDestroy {
         }
         newPedido.detalle_pedido = createPedidoDto?.detalles ?? '';
 
-        if (createPedidoDto?.paymentMethodId && createPedidoDto?.paymentMethodId !== "") {
-          const paymentMethod = await this.paymentMethodRepo.findOne({ where: { id: Number(createPedidoDto?.paymentMethodId) } });
+        if (
+          createPedidoDto?.paymentMethodId &&
+          createPedidoDto?.paymentMethodId !== ''
+        ) {
+          const paymentMethod = await this.paymentMethodRepo.findOne({
+            where: { id: Number(createPedidoDto?.paymentMethodId) },
+          });
           if (paymentMethod?.id) {
             newPedido.paymentMethod = paymentMethod;
           }
@@ -458,7 +477,9 @@ export class PedidoService implements OnModuleDestroy {
 
         await this.cambioEstadoRepository.save(newStatusOrder);
 
-        const productIds = products.map((product) => parseInt(product.productoId));
+        const productIds = products.map((product) =>
+          parseInt(product.productoId),
+        );
         const existingProducts = await this.productoRespitory.find({
           where: { id: In(productIds) },
         });
@@ -466,7 +487,6 @@ export class PedidoService implements OnModuleDestroy {
         try {
           await Promise.all(
             products.map(async (product) => {
-
               const productExist = existingProducts.find(
                 (p) => p.id == parseInt(product.productoId),
               );
@@ -482,11 +502,10 @@ export class PedidoService implements OnModuleDestroy {
                 cantidad: product.cantidad,
                 productoId: parseInt(product.productoId),
                 pedidoId: savedPedido.id,
-                detalle: product.detalle ?? "No detalle",
+                detalle: product.detalle ?? 'No detalle',
               });
 
-              await this.productoPedidoRepository.save(newProdPedido)
-
+              await this.productoPedidoRepository.save(newProdPedido);
             }),
           );
         } catch (error) {
@@ -507,7 +526,7 @@ export class PedidoService implements OnModuleDestroy {
           fecha: savedPedido.fecha,
           status: savedPedido.confirmado,
           infoLinesJson: savedPedido.infoLinesJson,
-          createdAt: savedPedido.createdAt
+          createdAt: savedPedido.createdAt,
         };
 
         globalTotal += total;
@@ -768,16 +787,16 @@ export class PedidoService implements OnModuleDestroy {
         .createQueryBuilder('pedido')
         .leftJoinAndSelect('pedido.pedidosprod', 'pedidosprod')
         .leftJoinAndSelect('pedidosprod.producto', 'producto')
-        .innerJoinAndSelect('pedido.estado', 'estado')
+        .innerJoinAndSelect('pedido.estado', 'estado');
 
       if (filter === 'pending') {
-        query.andWhere('pedido.confirmado = :confirmado', {
-          confirmado: false,
-        })
-        .andWhere('pedido.finalizado = :finalizado', { finalizado: false });;
-      } else if (filter === 'finished') {
         query
-          .where('pedido.finalizado = :finalizado', { finalizado: true })
+          .andWhere('pedido.confirmado = :confirmado', {
+            confirmado: false,
+          })
+          .andWhere('pedido.finalizado = :finalizado', { finalizado: false });
+      } else if (filter === 'finished') {
+        query.where('pedido.finalizado = :finalizado', { finalizado: true });
       } else if (filter === 'active') {
         query
           .andWhere('pedido.confirmado = :confirmado', { confirmado: true })
@@ -789,7 +808,10 @@ export class PedidoService implements OnModuleDestroy {
       const totalItems = await query.getCount();
 
       query
-        .addSelect("CASE WHEN pedido.reclamo != '' THEN 0 ELSE 1 END", 'custom_order')
+        .addSelect(
+          "CASE WHEN pedido.reclamo != '' THEN 0 ELSE 1 END",
+          'custom_order',
+        )
         .orderBy('custom_order', 'ASC')
         .addOrderBy('pedido.createdAt', 'DESC')
         .take(limit)
@@ -797,23 +819,21 @@ export class PedidoService implements OnModuleDestroy {
 
       const pedidos = await query.getMany();
 
-      const clienteIds = [...new Set(pedidos.map(p => p.cliente_id))];
-      const reclamoIds = [...new Set(
-        pedidos
-          .map((p) => Number(p.reclamo))
-          .filter((id) => !isNaN(id))
-      )];
+      const clienteIds = [...new Set(pedidos.map((p) => p.cliente_id))];
+      const reclamoIds = [
+        ...new Set(
+          pedidos.map((p) => Number(p.reclamo)).filter((id) => !isNaN(id)),
+        ),
+      ];
 
       const clientes = await this.clienteRepository.findByIds(clienteIds);
       const reclamos = await this.reclamoRepo.findBy({ id: In(reclamoIds) });
 
-      const clienteMap = new Map(clientes.map(c => [c.id, c]));
-      const reclamoMap = new Map(reclamos.map(r => [r.id, r]));
+      const clienteMap = new Map(clientes.map((c) => [c.id, c]));
+      const reclamoMap = new Map(reclamos.map((r) => [r.id, r]));
 
       const pedidosFinal = await Promise.all(
-        pedidos.map((pedido) =>
-          this.getPedido(pedido, clienteMap, reclamoMap)
-        ),
+        pedidos.map((pedido) => this.getPedido(pedido, clienteMap, reclamoMap)),
       );
 
       return {
@@ -823,7 +843,7 @@ export class PedidoService implements OnModuleDestroy {
         totalItems,
       };
     } catch (error) {
-      console.log("aca xd", error);
+      console.log('aca xd', error);
       throw new BadRequestException({
         ok: false,
         statusCode: 400,
@@ -842,13 +862,13 @@ export class PedidoService implements OnModuleDestroy {
       where: { db_name: process.env.SUBDOMAIN },
     });
 
-    const { intervaloTiempoCalendario, timeZone = "America/Montevideo" } = empresa;
-    const diaSemana = moment(fecha).endOf("day").tz(timeZone).isoWeekday();
+    const { intervaloTiempoCalendario, timeZone = 'America/Montevideo' } =
+      empresa;
+    const diaSemana = moment(fecha).endOf('day').tz(timeZone).isoWeekday();
     const horariosDia = await this.horarioService.findByDay(diaSemana);
-    console.log("diaSemana", diaSemana)
-    console.log("horariosDia", horariosDia)
+    console.log('diaSemana', diaSemana);
+    console.log('horariosDia', horariosDia);
     if (!timeZone || !intervaloTiempoCalendario || !horariosDia) return [];
-
 
     if (horariosDia.length === 0) return [];
 
@@ -861,22 +881,29 @@ export class PedidoService implements OnModuleDestroy {
         owner_user_id: userId,
         fecha: Between(
           moment.tz(`${fecha} 00:00`, timeZone).utc().toDate(),
-          moment.tz(`${fecha} 23:59:59`, timeZone).utc().toDate()
+          moment.tz(`${fecha} 23:59:59`, timeZone).utc().toDate(),
         ),
       },
     });
 
-
     const cierresProvisorios = await this.cierreProvisorioRepo.find({
       where: {
         empresa: { id: empresa.id },
-        final: MoreThan(now.clone().subtract("3", "hours").toDate()),
+        final: MoreThan(now.clone().subtract('3', 'hours').toDate()),
       },
     });
 
     for (const horario of horariosDia) {
-      const apertura = moment.tz(`${fecha} ${horario.hora_inicio}`, 'YYYY-MM-DD HH:mm', timeZone);
-      let cierre = moment.tz(`${fecha} ${horario.hora_fin}`, 'YYYY-MM-DD HH:mm', timeZone);
+      const apertura = moment.tz(
+        `${fecha} ${horario.hora_inicio}`,
+        'YYYY-MM-DD HH:mm',
+        timeZone,
+      );
+      let cierre = moment.tz(
+        `${fecha} ${horario.hora_fin}`,
+        'YYYY-MM-DD HH:mm',
+        timeZone,
+      );
 
       // Si cierra después de medianoche
       if (cierre.isBefore(apertura)) {
@@ -895,7 +922,7 @@ export class PedidoService implements OnModuleDestroy {
           return actualUtc.isBetween(inicio, fin, undefined, '[)');
         });
 
-        const enCierreProvisorio = cierresProvisorios.some(cierre => {
+        const enCierreProvisorio = cierresProvisorios.some((cierre) => {
           const inicio = moment.tz(cierre.inicio, timeZone).utc();
           const fin = moment.tz(cierre.final, timeZone).utc();
           return actualUtc.isBetween(inicio, fin, undefined, '[)');
@@ -925,7 +952,8 @@ export class PedidoService implements OnModuleDestroy {
       where: { db_name: process.env.SUBDOMAIN },
     });
 
-    const { intervaloTiempoCalendario, timeZone = "America/Montevideo" } = empresa;
+    const { intervaloTiempoCalendario, timeZone = 'America/Montevideo' } =
+      empresa;
 
     if (!intervaloTiempoCalendario || !timeZone) return [];
 
@@ -948,7 +976,7 @@ export class PedidoService implements OnModuleDestroy {
           owner_user_id: userId,
           fecha: Between(
             moment.tz(`${fecha} 00:00`, timeZone).utc().toDate(),
-            moment.tz(`${fecha} 23:59:59`, timeZone).utc().toDate()
+            moment.tz(`${fecha} 23:59:59`, timeZone).utc().toDate(),
           ),
         },
       });
@@ -956,13 +984,21 @@ export class PedidoService implements OnModuleDestroy {
       const cierresProvisorios = await this.cierreProvisorioRepo.find({
         where: {
           empresa: { id: empresa.id },
-          final: MoreThan(now.clone().subtract("3", "hours").toDate()),
+          final: MoreThan(now.clone().subtract('3', 'hours').toDate()),
         },
       });
 
       for (const horario of horariosDia) {
-        const apertura = moment.tz(`${fecha} ${horario.hora_inicio}`, 'YYYY-MM-DD HH:mm', timeZone);
-        let cierre = moment.tz(`${fecha} ${horario.hora_fin}`, 'YYYY-MM-DD HH:mm', timeZone);
+        const apertura = moment.tz(
+          `${fecha} ${horario.hora_inicio}`,
+          'YYYY-MM-DD HH:mm',
+          timeZone,
+        );
+        let cierre = moment.tz(
+          `${fecha} ${horario.hora_fin}`,
+          'YYYY-MM-DD HH:mm',
+          timeZone,
+        );
 
         if (cierre.isBefore(apertura)) {
           cierre.add(1, 'day');
@@ -976,11 +1012,13 @@ export class PedidoService implements OnModuleDestroy {
 
           const overlapping = pedidosDelDia.some((pedido) => {
             const inicio = moment.utc(pedido.fecha);
-            const fin = inicio.clone().add(intervaloTiempoCalendario, 'minutes');
+            const fin = inicio
+              .clone()
+              .add(intervaloTiempoCalendario, 'minutes');
             return actualUtc.isBetween(inicio, fin, undefined, '[)');
           });
 
-          const enCierreProvisorio = cierresProvisorios.some(cierre => {
+          const enCierreProvisorio = cierresProvisorios.some((cierre) => {
             const inicio = moment.tz(cierre.inicio, timeZone).utc();
             const fin = moment.tz(cierre.final, timeZone).utc();
             return actualUtc.isBetween(inicio, fin, undefined, '[)');
@@ -1009,22 +1047,38 @@ export class PedidoService implements OnModuleDestroy {
       where: { db_name: process.env.SUBDOMAIN },
     });
 
-    const { intervaloTiempoCalendario, timeZone = "America/Montevideo" } = empresa;
+    const { intervaloTiempoCalendario, timeZone = 'America/Montevideo' } =
+      empresa;
     if (!intervaloTiempoCalendario || !timeZone) return [];
 
-    const resultados: { fecha: string; cuposDisponibles: number, dayOfWeek: number }[] = [];
+    const resultados: {
+      fecha: string;
+      cuposDisponibles: number;
+      dayOfWeek: number;
+    }[] = [];
 
-    const inicioMes = moment.tz({ year: anio, month: mes, day: 1 }, timeZone);
+    const inicioMes = moment.tz(
+      { year: anio, month: mes - 1, day: 1 },
+      timeZone,
+    );
     const finMes = inicioMes.clone().endOf('month');
     const now = moment.tz(timeZone);
 
-    for (let dia = inicioMes.clone(); dia.isSameOrBefore(finMes); dia.add(1, 'day')) {
+    for (
+      let dia = inicioMes.clone();
+      dia.isSameOrBefore(finMes);
+      dia.add(1, 'day')
+    ) {
       const fechaStr = dia.format('YYYY-MM-DD');
       const diaSemana = dia.isoWeekday();
       const horariosDia = await this.horarioService.findByDay(diaSemana);
 
       if (!horariosDia || horariosDia.length === 0) {
-        resultados.push({ fecha: fechaStr, cuposDisponibles: 0, dayOfWeek: diaSemana });
+        resultados.push({
+          fecha: fechaStr,
+          cuposDisponibles: 0,
+          dayOfWeek: diaSemana,
+        });
         continue;
       }
 
@@ -1035,7 +1089,7 @@ export class PedidoService implements OnModuleDestroy {
           owner_user_id: userId,
           fecha: Between(
             moment.tz(`${fechaStr} 00:00`, timeZone).utc().toDate(),
-            moment.tz(`${fechaStr} 23:59:59`, timeZone).utc().toDate()
+            moment.tz(`${fechaStr} 23:59:59`, timeZone).utc().toDate(),
           ),
         },
       });
@@ -1043,7 +1097,7 @@ export class PedidoService implements OnModuleDestroy {
       const cierresProvisorios = await this.cierreProvisorioRepo.find({
         where: {
           empresa: { id: empresa.id },
-          final: MoreThan(now.clone().subtract("3", "hours").toDate()),
+          final: MoreThan(now.clone().subtract('3', 'hours').toDate()),
         },
       });
 
@@ -1051,8 +1105,16 @@ export class PedidoService implements OnModuleDestroy {
 
       const nowUtc = moment().utc();
       for (const horario of horariosDia) {
-        const apertura = moment.tz(`${fechaStr} ${horario.hora_inicio}`, 'YYYY-MM-DD HH:mm', timeZone);
-        let cierre = moment.tz(`${fechaStr} ${horario.hora_fin}`, 'YYYY-MM-DD HH:mm', timeZone);
+        const apertura = moment.tz(
+          `${fechaStr} ${horario.hora_inicio}`,
+          'YYYY-MM-DD HH:mm',
+          timeZone,
+        );
+        let cierre = moment.tz(
+          `${fechaStr} ${horario.hora_fin}`,
+          'YYYY-MM-DD HH:mm',
+          timeZone,
+        );
         if (cierre.isBefore(apertura)) cierre.add(1, 'day');
 
         let actual = apertura.clone();
@@ -1062,23 +1124,24 @@ export class PedidoService implements OnModuleDestroy {
 
           const overlapping = pedidos.some((pedido) => {
             const inicio = moment.utc(pedido.fecha);
-            const fin = inicio.clone().add(intervaloTiempoCalendario, 'minutes');
+            const fin = inicio
+              .clone()
+              .add(intervaloTiempoCalendario, 'minutes');
             return actualUtc.isBetween(inicio, fin, undefined, '[)');
           });
 
-          const enCierreProvisorio = cierresProvisorios.some(cierre => {
+          const enCierreProvisorio = cierresProvisorios.some((cierre) => {
             const inicio = moment.tz(cierre.inicio, timeZone).utc();
             const fin = moment.tz(cierre.final, timeZone).utc();
             return actualUtc.isBetween(inicio, fin, undefined, '[)');
           });
 
-          console.log(actualUtc)
-          console.log(nowUtc)
-          console.log(actualUtc.isAfter(nowUtc), overlapping, enCierreProvisorio)
-
-
-          if (actualUtc.isAfter(nowUtc) && !overlapping && !enCierreProvisorio) {
-            console.log("agrego cupo")
+          if (
+            actualUtc.isAfter(nowUtc) &&
+            !overlapping &&
+            !enCierreProvisorio
+          ) {
+            console.log('agrego cupo');
             cupos++;
           }
 
@@ -1086,15 +1149,17 @@ export class PedidoService implements OnModuleDestroy {
         }
       }
 
-      console.log("cupos", cupos)
+      console.log('cupos', cupos);
 
-      resultados.push({ fecha: fechaStr, cuposDisponibles: cupos, dayOfWeek: diaSemana });
+      resultados.push({
+        fecha: fechaStr,
+        cuposDisponibles: cupos,
+        dayOfWeek: diaSemana,
+      });
     }
 
     return resultados;
   }
-
-
 
   async getNextDateTimeAvailable(timeZone: string, userId?: any): Promise<any> {
     try {
@@ -1212,27 +1277,46 @@ export class PedidoService implements OnModuleDestroy {
 
   async confirmOrder(id) {
     try {
-      const pedido = await this.pedidoRepository.findOne({ where: { id } });
+      const pedido = await this.pedidoRepository.findOne({
+        where: { id },
+        relations: ['pedidosprod', 'pedidosprod.producto'],
+      });
 
       if (!pedido) {
         throw new BadRequestException('There is no order with that ID');
       }
 
       const clientId = pedido?.cliente_id;
-
       const client = await this.clienteRepository.findOne({
         where: { id: clientId },
       });
 
       pedido.confirmado = true;
-
       await this.pedidoRepository.save(pedido);
 
       if (client) {
+        const esDelivery =
+          pedido.tipo_servicio_id === TIPO_SERVICIO_DELIVERY_ID;
+        const tipo = esDelivery ? 'Orden' : 'Reserva';
+
+        const productosList = pedido.pedidosprod
+          .map(
+            (pp) =>
+              `• ${pp.cantidad} x ${pp.producto?.nombre}${pp.detalle ? ` (${pp.detalle})` : ''}`,
+          )
+          .join('\n');
+
+        const mensaje = `✅ Su ${tipo.toLowerCase()} número *#${pedido.id}* fue confirmada exitosamente 🎉
+
+🧾 Detalle de ${tipo.toLowerCase()}:
+${productosList}
+
+¡Gracias por elegirnos! 💚`;
+
         await this.messageQueue.add(
           'send',
           {
-            message: `Su ${pedido?.tipo_servicio_id === TIPO_SERVICIO_DELIVERY_ID ? 'Orden' : 'Reserva'} numero #${pedido?.id} fue confirmado exitosamente 🎉`,
+            message: mensaje,
             chatId: pedido?.chatIdWhatsapp,
           },
           {
@@ -1241,6 +1325,7 @@ export class PedidoService implements OnModuleDestroy {
           },
         );
       }
+
       return {
         ok: true,
         statusCode: 200,
@@ -1250,7 +1335,7 @@ export class PedidoService implements OnModuleDestroy {
       throw new BadRequestException({
         ok: false,
         statusCode: 400,
-        message: error?.message || 'Error al crear el pedido',
+        message: error?.message || 'Error al confirmar el pedido',
         error: 'Bad Request',
       });
     }
@@ -1304,7 +1389,7 @@ export class PedidoService implements OnModuleDestroy {
   }
 
   async createReclamo(pedidoId: number, text: string) {
-    console.log("creo reclamo con", pedidoId, text)
+    console.log('creo reclamo con', pedidoId, text);
     try {
       const pedido = await this.pedidoRepository.findOne({
         where: { id: pedidoId },
@@ -1327,9 +1412,9 @@ export class PedidoService implements OnModuleDestroy {
       let reclamo: any = null;
 
       if (pedido.reclamo && !isNaN(Number(pedido.reclamo))) {
-        reclamo = await this.reclamoRepo.findOne({
+        reclamo = (await this.reclamoRepo.findOne({
           where: { id: Number(pedido.reclamo) },
-        }) as any;
+        })) as any;
       }
 
       if (reclamo) {
@@ -1343,7 +1428,7 @@ export class PedidoService implements OnModuleDestroy {
 
       const newReclamo = await this.reclamoRepo.save(reclamo);
       pedido.reclamo = `${newReclamo?.id}`;
-      await this.pedidoRepository.save(pedido)
+      await this.pedidoRepository.save(pedido);
 
       const messagePushTitle = 'Nuevo reclamo recibido⚠️';
       const messagePush = `El cliente #${client.nombre} realizó un reclamo sobre el pedido #${pedido.id}`;
@@ -1351,7 +1436,6 @@ export class PedidoService implements OnModuleDestroy {
       const empresa = await this.empresaRepository.findOne({
         where: { db_name: process.env.SUBDOMAIN },
       });
-
 
       await this.deviceService.sendNotificationEmpresa(
         empresa.id,
@@ -1365,7 +1449,7 @@ export class PedidoService implements OnModuleDestroy {
         statusCode: 200,
       };
     } catch (error) {
-      console.log("error", error)
+      console.log('error', error);
       throw new BadRequestException({
         ok: false,
         statusCode: 400,
@@ -1379,7 +1463,13 @@ export class PedidoService implements OnModuleDestroy {
     try {
       const pedidoExist = await this.pedidoRepository.findOne({
         where: { id: id },
-        relations: ['cambioEstados', 'chat', 'chat.mensajes', 'pedidosprod'],
+        relations: [
+          'cambioEstados',
+          'chat',
+          'chat.mensajes',
+          'pedidosprod',
+          'pedidosprod.producto',
+        ],
       });
 
       pedidoExist.available = false;
@@ -1388,14 +1478,32 @@ export class PedidoService implements OnModuleDestroy {
         where: { id: pedidoExist.cliente_id },
       });
       if (client) {
-        let message = `Lamentamos informarte que tu ${pedidoExist?.tipo_servicio_id === TIPO_SERVICIO_DELIVERY_ID ? 'orden' : 'reserva'} número #${pedidoExist?.id} ha sido cancelada por la empresa. Para más información, por favor contáctanos.\n`;
+        const esDelivery =
+          pedidoExist?.tipo_servicio_id === TIPO_SERVICIO_DELIVERY_ID;
+        const tipo = esDelivery ? 'orden' : 'reserva';
+
+        const productosList = pedidoExist.pedidosprod
+          .map(
+            (pp) =>
+              `• ${pp.cantidad} x ${pp.producto?.nombre}${pp.detalle ? ` (${pp.detalle})` : ''}`,
+          )
+          .join('\n');
+
+        let message = `⚠️ Tu ${tipo} número *#${pedidoExist.id}* ha sido cancelada por la empresa.
+
+🧾 Detalle de ${tipo}:
+${productosList}
+
+Para más información, por favor contactanos.`;
+
         if (text) {
-          message += text;
+          message += `\n\n📌 Nota: ${text}`;
         }
+
         await this.messageQueue.add(
           'send',
           {
-            message: message,
+            message,
             chatId: pedidoExist?.chatIdWhatsapp,
           },
           {
@@ -1516,7 +1624,6 @@ export class PedidoService implements OnModuleDestroy {
     }
   }
 
-
   async getOrdersOfTimePeriods() {
     try {
       const now = moment();
@@ -1529,7 +1636,11 @@ export class PedidoService implements OnModuleDestroy {
       };
 
       const orders = await this.pedidoRepository.find({
-        where: { fecha: MoreThan(periods.yearly.toDate()), available: true, confirmado: true },
+        where: {
+          fecha: MoreThan(periods.yearly.toDate()),
+          available: true,
+          confirmado: true,
+        },
         relations: ['pedidosprod', 'pedidosprod.producto'],
       });
 
