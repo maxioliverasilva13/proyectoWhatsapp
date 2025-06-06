@@ -16,7 +16,7 @@ import { EmailModuleResend } from 'src/emailServiceResend/email.module';
     PassportModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET_KEY,
-      signOptions: { expiresIn: '2h' },
+      signOptions: { expiresIn: '365d' }, // use refresh token
     }),
     EmailModule,
     EmailModuleResend
