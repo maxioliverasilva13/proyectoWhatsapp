@@ -132,10 +132,11 @@ export class GreenApiService {
 
     try {
       const openAIResponseRaw = openAIResponse;
-      console.log('openAIResponseRaw', openAIResponseRaw);
 
       try {
-        openAIResponseFormatted = JSON.parse(cleanJSON(openAIResponseRaw));
+      const cleaned = openAIResponseRaw.replace(/\\"/g, '"');
+
+        openAIResponseFormatted = JSON.parse(cleaned);
       } catch (error) {
         openAIResponseFormatted = { message: openAIResponseRaw };
       }
@@ -146,6 +147,7 @@ export class GreenApiService {
     let textError;
     await this.chatGptThreadsService.updateThreadStatus(threadId, timeZone);
 
+    console.log("openAIResponseFormatted", openAIResponseFormatted)
     const respToUser = textError ? textError : openAIResponseFormatted;
 
     console.log('devolvere respToUser', respToUser);

@@ -222,9 +222,7 @@ export class GrenApiController {
                     );
 
                     if (!respText?.isError) {
-                      let info = { message: extractMessage(respText) };
-
-                      console.log('info =', info);
+                      let info = { message: respText?.message ?? respText };
 
                       await this.messageQueue.add(
                         'send',
