@@ -42,3 +42,4 @@ export class CategoryController {
     return this.categoryService.update(parseInt(id), data)
   }
 }
+1
