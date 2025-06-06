@@ -1071,7 +1071,7 @@ export class PedidoService implements OnModuleDestroy {
             return actualUtc.isBetween(inicio, fin, undefined, '[)');
           });
 
-          console.log(actual, overlapping, enCierreProvisorio)
+          console.log(actual, now, !actual.isSameOrBefore(now), overlapping, enCierreProvisorio)
 
 
           if (!actual.isSameOrBefore(now) && !overlapping && !enCierreProvisorio) {
