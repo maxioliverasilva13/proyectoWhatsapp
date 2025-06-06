@@ -64,6 +64,7 @@ async function executeToolByName(
 
     console.log("intentando llamar a funcion", name)
 
+    console.log("args", args)
     if (name === 'getProductsByEmpresa') {
         console.log('getProductsByEmpresa');
         toolResult = await productoService.findAllInText();
@@ -111,10 +112,10 @@ async function executeToolByName(
         });
     } else if (name === 'getAvailability') {
         console.log('getAvailability');
-        toolResult = await pedidoService.obtenerDisponibilidadActivasByFecha(args.date, false, args.userId);
+        toolResult = await pedidoService.obtenerDisponibilidadActivasByFecha(args.date, false, args.empleadoId);
     } else if (name === 'getNextAvailability') {
         console.log('getNextAvailability');
-        toolResult = await pedidoService.getNextDateTimeAvailable(timeZone, args.userId);
+        toolResult = await pedidoService.getNextDateTimeAvailable(timeZone, args.empleadoId);
     } else {
         toolResult = { error: `Tool ${name} no implementada` };
     }

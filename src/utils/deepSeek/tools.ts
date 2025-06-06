@@ -63,7 +63,7 @@ export const Customtools = [
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "userId": {
+                    "empleadoId": {
                         "type": "string",
                         "description": "Id del empleado (solo si la empresa es de tipo reserva)"
                     }
@@ -85,7 +85,7 @@ export const Customtools = [
                         "type": "string",
                         "description": "fecha a chequear la disponibilidad"
                     },
-                    "userId": {
+                    "empleadoId": {
                         "type": "string",
                         "description": "Id del empleado (solo si la empresa es de tipo reserva)"
                     }
