@@ -26,12 +26,20 @@ export class ClienteController {
   findAll(
     @Query('query') query: string,
     @Query('empresaId') empresaId: string,
+  ) {
+    return this.clienteService.findAll({
+      query: query,
+      empresaId: empresaId,
+    });
+  }
+
+
+  @Get('allWithOrders')
+  findAllWithOrders(
     @Query('offset') offset?: string,
     @Query('limit') limit?: string,
   ) {
-    return this.clienteService.findAll({
-      query,
-      empresaId,
+    return this.clienteService.findAllWithOrders({
       offset: offset ? parseInt(offset) : 0,
       limit: limit ? parseInt(limit) : 10,
     });

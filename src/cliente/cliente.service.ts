@@ -101,16 +101,26 @@ export class ClienteService implements OnModuleDestroy {
     }
   }
 
-  async findAll(data: GetEmpresaDTO & { limit?: number; offset?: number }) {
-    const { empresaId, query, limit = 10, offset = 0 } = data;
+  async findAll(data: GetEmpresaDTO) {
+    const { empresaId, query } = data;
 
     const whereCondition: any = { empresa_id: empresaId };
     if (query) {
       whereCondition.nombre = ILike(`%${query}%`);
     }
 
-    const [clientes, total] = await this.clienteRepository.findAndCount({
+    const clientes = await this.clienteRepository.find({
       where: whereCondition,
+    });
+
+    clientes
+  }
+
+  async findAllWithOrders(data: { limit?: number; offset?: number }) {
+    const { limit = 10, offset = 0 } = data;
+
+
+    const [clientes, total] = await this.clienteRepository.findAndCount({
       relations: ['pedido', 'pedido.pedidosprod'],
       skip: offset,
       take: limit,

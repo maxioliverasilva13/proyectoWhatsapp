@@ -76,7 +76,7 @@ export class Pedido extends BaseEntity {
 
   @Column({ nullable: true, length: 99999 })
   infoLinesJson: string;
-  
+
   @Column({ nullable: true })
   owner_user_id: string;
 

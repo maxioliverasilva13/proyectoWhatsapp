@@ -1296,6 +1296,10 @@ export class PedidoService implements OnModuleDestroy {
         throw new BadRequestException('There is no order with that ID');
       }
 
+      if(pedido.pedidosprod.length === 0) {
+        throw new BadRequestException("No hay productos pedido ")
+      }
+
       const clientId = pedido?.cliente_id;
       const client = await this.clienteRepository.findOne({
         where: { id: clientId },
