@@ -191,6 +191,7 @@ export class PedidoService implements OnModuleDestroy {
   }
 
   async getSalesByCategory(filter: any) {
+    console.log("me llega", filter)
     const now = moment();
     let fromDate: Date;
 

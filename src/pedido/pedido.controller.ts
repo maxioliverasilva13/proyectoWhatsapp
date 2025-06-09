@@ -136,7 +136,7 @@ export class PedidoController {
   }
 
   @Get('/stats/salesForCategory/')
-  getSalesByCategory(@Query('filter') filter: SalesByCategoryDto) {
+  getSalesByCategory(@Query('filter') filter: any) {
     return this.pedidoService.getSalesByCategory(filter);
   }
 
