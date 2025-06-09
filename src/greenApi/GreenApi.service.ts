@@ -48,7 +48,7 @@ export class GreenApiService {
     chatId,
   ) {
     let originalChatId = '';
-
+    let chatIdWhatsapp = '';
     const {
       threadId,
       chatId: chatIdExist,
@@ -56,6 +56,10 @@ export class GreenApiService {
     } = await this.chatGptThreadsService.getLastThreads(numberSender);
     if (originalChatFromThread) {
       originalChatId = originalChatFromThread;
+    }
+
+    if (chatIdExist) {
+      chatIdWhatsapp = chatIdExist
     }
 
     const { clienteId, clientName } =
@@ -80,6 +84,9 @@ export class GreenApiService {
       }
       if (resp?.thread?.originalChatId) {
         originalChatId = resp?.thread?.originalChatId;
+      }
+      if (resp.thread.chatId) {
+        chatIdWhatsapp = resp.thread.chatId
       }
     }
 
@@ -106,7 +113,7 @@ export class GreenApiService {
         empresaType,
         clientName,
         numberSender,
-        chatIdExist,
+        chatIdExist: chatIdWhatsapp,
         originalChatId,
         timeZone,
         senderName: senderName,
@@ -134,7 +141,7 @@ export class GreenApiService {
       const openAIResponseRaw = openAIResponse;
 
       try {
-      const cleaned = openAIResponseRaw.replace(/\\"/g, '"');
+        const cleaned = openAIResponseRaw.replace(/\\"/g, '"');
 
         openAIResponseFormatted = JSON.parse(cleaned);
       } catch (error) {
@@ -164,7 +171,7 @@ export class GreenApiService {
     clientName,
     numberSender,
     detalles,
-    chatIdExist,
+    chatIdWhatsapp,
     messagePushTitle = 'Test 1',
     messagePush = 'Test',
     originalChatId,
@@ -187,7 +194,7 @@ export class GreenApiService {
         infoLinesJson: openAIResponse.infoLines,
         fecha: openAIResponse.fecha,
         messageToUser: openAIResponse?.messageToUser,
-        chatId: chatIdExist,
+        chatId: chatIdWhatsapp,
         originalChatId: originalChatId,
         withIA: withIA,
         paymentMethodId: paymentMethodId,
