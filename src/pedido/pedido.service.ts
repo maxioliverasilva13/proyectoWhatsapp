@@ -75,7 +75,7 @@ export class PedidoService implements OnModuleDestroy {
     private readonly messageQueue: Queue,
     private readonly deviceService: DeviceService,
     private readonly horarioService: HorarioService,
-  ) { }
+  ) {}
 
   async onModuleInit() {
     if (!this.globalConnection) {
@@ -221,7 +221,7 @@ export class PedidoService implements OnModuleDestroy {
       .andWhere('pedido.finalizado = :finalizado', { finalizado: false })
       .groupBy('category.id')
       .addGroupBy('category.name')
-      .orderBy('totalVentas', 'DESC')
+      .orderBy('SUM(pp.cantidad)', 'DESC')
       .limit(10);
 
     const result = await query.getRawMany();
@@ -274,9 +274,10 @@ export class PedidoService implements OnModuleDestroy {
 
     const average = totalValue / now.getDate();
 
-    const variation = previousValue > 0
-      ? ((totalValue - previousValue) / previousValue) * 100
-      : 0;
+    const variation =
+      previousValue > 0
+        ? ((totalValue - previousValue) / previousValue) * 100
+        : 0;
 
     return {
       total: totalValue,
