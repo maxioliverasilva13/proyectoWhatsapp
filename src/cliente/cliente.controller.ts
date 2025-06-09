@@ -15,7 +15,7 @@ import { UpdateClienteDto } from './dto/update-cliente.dto';
 
 @Controller('cliente')
 export class ClienteController {
-  constructor(private readonly clienteService: ClienteService) {}
+  constructor(private readonly clienteService: ClienteService) { }
 
   @Post()
   create(@Body() createClienteDto: CreateClienteDto) {
@@ -26,10 +26,14 @@ export class ClienteController {
   findAll(
     @Query('query') query: string,
     @Query('empresaId') empresaId: string,
+    @Query('offset') offset?: string,
+    @Query('limit') limit?: string,
   ) {
     return this.clienteService.findAll({
-      query: query,
-      empresaId: empresaId,
+      query,
+      empresaId,
+      offset: offset ? parseInt(offset) : 0,
+      limit: limit ? parseInt(limit) : 10,
     });
   }
 

@@ -10,52 +10,41 @@ export class EstadoSeed implements Seeder {
   ): Promise<void> {
     const estadoRepository = dataSource.getRepository(Estado);
 
-    await Promise.all(
-      [1, 2].map(async (itm) => {
+    const estadoExiste = await estadoRepository.findOne({
+      where: { nombre: EstadoDefecto.CREADO },
+    });
 
-        const estados = [
-          {
-            id: EstadoDefectoIds.CREADO,
-            nombre: EstadoDefecto.CREADO,
-            es_defecto: true,
-            tipoServicioId: itm,
-            order:1
-          },
-          {
-            id: EstadoDefectoIds.PENDIENTE,
-            nombre: EstadoDefecto.PENDIENTE,
-            tipoServicioId: itm,
-            es_defecto: true,
-            order:2
-          },
-          {
-            id: EstadoDefectoIds.FINALIZADO,
-            nombre: EstadoDefecto.FINALIZADO,
-            tipoServicioId: itm,
-            es_defecto: true,
-            finalizador: true,
-            order:3
-          },
-          {
-            id: EstadoDefectoIds.CANCELADO,
-            nombre: EstadoDefecto.CANCELADO,
-            tipoServicioId: itm,
-            finalizador: true,
-            es_defecto: true,
-            order:4
-          },
-        ];
+    if (estadoExiste) return;
 
-        const estadoExists = await estadoRepository.findOne({ where: { nombre: EstadoDefecto.CREADO }});
-        if (estadoExists && estadoExists?.id) {
-          return;
-        }
+    const estados = [
+      {
+        id: EstadoDefectoIds.CREADO,
+        nombre: EstadoDefecto.CREADO,
+        es_defecto: true,
+        order: 1,
+      },
+      {
+        id: EstadoDefectoIds.PENDIENTE,
+        nombre: EstadoDefecto.PENDIENTE,
+        es_defecto: true,
+        order: 2,
+      },
+      {
+        id: EstadoDefectoIds.FINALIZADO,
+        nombre: EstadoDefecto.FINALIZADO,
+        es_defecto: true,
+        finalizador: true,
+        order: 3,
+      },
+      {
+        id: EstadoDefectoIds.CANCELADO,
+        nombre: EstadoDefecto.CANCELADO,
+        finalizador: true,
+        es_defecto: true,
+        order: 4,
+      },
+    ];
 
-        return await Promise.all(estados.map(async (user) => {
-            const promise = await estadoRepository.upsert(user, ['id']);
-            return promise;
-        }))
-      }),
-    );
+    await estadoRepository.upsert(estados, ['id']);
   }
 }

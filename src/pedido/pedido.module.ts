@@ -37,6 +37,7 @@ import { HorarioModule } from 'src/horario/horario.module';
       Cambioestadopedido,
       Mensaje,
       Cliente,
+      Reclamo
     ]),
     ProductopedidoModule,
     DeviceModule,
@@ -57,4 +58,4 @@ import { HorarioModule } from 'src/horario/horario.module';
   providers: [PedidoService],
   exports: [PedidoService],
 })
-export class PedidoModule {}
+export class PedidoModule { }

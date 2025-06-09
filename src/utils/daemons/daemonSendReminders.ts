@@ -21,7 +21,7 @@ export const SendRemainders = async (
     const globalConnection = await handleGetGlobalConnection();
 
     const pedidoRepo = connection.getRepository(Pedido);
-    const clienteRepo = globalConnection.getRepository(Cliente);
+    const clienteRepo = connection.getRepository(Cliente);
     const prodPedido = connection.getRepository(ProductoPedido);
     const empresaRepo = globalConnection.getRepository(Empresa);
     const usuarioRepo = globalConnection.getRepository(Usuario);

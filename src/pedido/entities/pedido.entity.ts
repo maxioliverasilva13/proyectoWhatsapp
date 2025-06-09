@@ -1,5 +1,6 @@
 import { Cambioestadopedido } from 'src/cambioestadopedido/entities/cambioestadopedido.entity';
 import { Chat } from 'src/chat/entities/chat.entity';
+import { Cliente } from 'src/cliente/entities/cliente.entity';
 import { Estado } from 'src/estado/entities/estado.entity';
 import { PaymentMethod } from 'src/paymentMethod/entities/paymentMethod.entity';
 import { ProductoPedido } from 'src/productopedido/entities/productopedido.entity';
@@ -77,5 +78,11 @@ export class Pedido extends BaseEntity {
   infoLinesJson: string;
 
   @Column({ nullable: true })
+  total: number;
+
+  @Column({ nullable: true })
   owner_user_id: string;
+
+  @ManyToOne(() => Cliente, (client) => client.pedido)
+  client: Cliente;
 }

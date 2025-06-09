@@ -9,22 +9,24 @@ import { Cliente } from './entities/cliente.entity';
 import { DataSource, ILike, Repository } from 'typeorm';
 import { handleGetGlobalConnection } from 'src/utils/dbConnection';
 import { GetEmpresaDTO } from './dto/get-empresa-.dto';
-import { Empresa } from 'src/empresa/entities/empresa.entity';
 import { Usuario } from 'src/usuario/entities/usuario.entity';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class ClienteService implements OnModuleDestroy {
-  private clienteRepository: Repository<Cliente>;
-  private empresaRepository: Repository<Empresa>;
   private usuarioRepository: Repository<Usuario>;
   private globalConnection: DataSource;
+
+
+  constructor(
+    @InjectRepository(Cliente)
+    private readonly clienteRepository: Repository<Cliente>,
+  ) { }
 
   async onModuleInit() {
     if (!this.globalConnection) {
       this.globalConnection = await handleGetGlobalConnection();
     }
-    this.clienteRepository = this.globalConnection.getRepository(Cliente);
-    this.empresaRepository = this.globalConnection.getRepository(Empresa);
     this.usuarioRepository = this.globalConnection.getRepository(Usuario);
   }
 
@@ -58,7 +60,7 @@ export class ClienteService implements OnModuleDestroy {
   async createOrReturnExistClient(createClienteDto: CreateClienteDto) {
     try {
       const existClient = await this.clienteRepository.findOne({
-        where: { telefono: createClienteDto.telefono },
+        where: { telefono: createClienteDto.telefono, empresa_id: createClienteDto.empresaId },
       });
 
       if (existClient) {
@@ -99,18 +101,41 @@ export class ClienteService implements OnModuleDestroy {
     }
   }
 
-  async findAll(data: GetEmpresaDTO) {
-    const { empresaId, query } = data;
+  async findAll(data: GetEmpresaDTO & { limit?: number; offset?: number }) {
+    const { empresaId, query, limit = 10, offset = 0 } = data;
 
     const whereCondition: any = { empresa_id: empresaId };
     if (query) {
       whereCondition.nombre = ILike(`%${query}%`);
     }
 
-    const clientes = await this.clienteRepository.find({
+    const [clientes, total] = await this.clienteRepository.findAndCount({
       where: whereCondition,
+      relations: ['pedido'],
+      skip: offset,
+      take: limit,
     });
-    return clientes;
+
+    const dataResponse = clientes.map((client) => {
+      let totalMoney = 0;
+      client.pedido.forEach((pedido) => {
+        totalMoney += pedido.total;
+      });
+
+      return {
+        ...client,
+        totalGenerated: totalMoney,
+      };
+    });
+
+    return {
+      ok: true,
+      data: dataResponse,
+      totalItems: total,
+      limit,
+      offset,
+
+    };
   }
 
   findOne(id: number) {

@@ -17,18 +17,15 @@ export class Estado extends BaseEntity {
     @Column({ default: false })
     finalizador: boolean;
 
-    @Column({nullable: true})
+    @Column({ nullable: true })
     mensaje: string;
 
-    @Column({nullable: true})
+    @Column({ nullable: true })
     order: number;
 
-    @OneToMany(() => Cambioestadopedido, (cmbe) => cmbe.estado, {onDelete:'CASCADE'})
+    @OneToMany(() => Cambioestadopedido, (cmbe) => cmbe.estado, { onDelete: 'CASCADE' })
     cambioEstados: Cambioestadopedido[];
 
-    @OneToMany(() => Pedido, (pedido) => pedido.estado, {onDelete:'CASCADE'})
+    @OneToMany(() => Pedido, (pedido) => pedido.estado, { onDelete: 'CASCADE' })
     pedidos: Pedido[];
-
-    @Column()
-    tipoServicioId: number;
 }

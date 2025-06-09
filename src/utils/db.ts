@@ -31,8 +31,6 @@ export const ENTITIES_TO_MAP_GLOBAL_DB = [
   CierreProvisorio,
   Tiposervicio,
   Role,
-  Cliente,
-  Reclamo,
   Usuario,
   NumeroConfianza,
   Device,
@@ -51,7 +49,9 @@ export const ENTITIES_TO_MAP_EMPRESA_DB = [
   Horario,
   ChatGptThreads,
   Infoline,
-  Category
+  Category,
+  Cliente,
+  Reclamo
 ];
 
 export const SEEDERS_TO_MAP_GLOBAL_DB = 'src/database/seeders/app/*{.ts,.js}'

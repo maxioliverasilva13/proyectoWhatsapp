@@ -57,6 +57,7 @@ import { PaymentMethodModule } from './paymentMethod/paymentMethod.module';
 import { PaymentMethodController } from './paymentMethod/paymentMethod.controller';
 import { HorarioController } from './horario/horario.controller';
 import { HorarioModule } from './horario/horario.module';
+import { ClienteController } from './cliente/cliente.controller';
 
 ConfigModule.forRoot();
 
@@ -155,6 +156,7 @@ export class AppModule {
         MensajeController,
         CategoryController,
         PaymentMethodController,
+        ClienteController
       );
 
     //JWT MIDDLEWARE
