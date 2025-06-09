@@ -111,7 +111,7 @@ export class ClienteService implements OnModuleDestroy {
 
     const [clientes, total] = await this.clienteRepository.findAndCount({
       where: whereCondition,
-      relations: ['pedido'],
+      relations: ['pedido', 'pedido.pedidosprod'],
       skip: offset,
       take: limit,
     });
@@ -119,7 +119,9 @@ export class ClienteService implements OnModuleDestroy {
     const dataResponse = clientes.map((client) => {
       let totalMoney = 0;
       client.pedido.forEach((pedido) => {
-        totalMoney += pedido.total;
+        pedido.pedidosprod.forEach(element => {
+          totalMoney += element.cantidad * element.precio;
+        });
       });
 
       return {

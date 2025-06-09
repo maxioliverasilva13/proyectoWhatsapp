@@ -130,7 +130,12 @@ export class PedidoService implements OnModuleDestroy {
       if (pedido.cliente_id) {
         clientIds.add(pedido.cliente_id);
       }
-      revenue += pedido.total
+
+      for (const prod of pedido.pedidosprod || []) {
+        const precio = (prod as any)?.precio || 0;
+        const cantidad = (prod as any).cantidad || 1;
+        revenue += precio * cantidad;
+      }
     }
 
     return {
@@ -500,6 +505,7 @@ export class PedidoService implements OnModuleDestroy {
               total += productExist.precio * product.cantidad;
 
               const newProdPedido = await this.productoPedidoRepository.create({
+                precio: productExist.precio,
                 cantidad: product.cantidad,
                 productoId: parseInt(product.productoId),
                 pedidoId: savedPedido.id,
@@ -512,9 +518,6 @@ export class PedidoService implements OnModuleDestroy {
         } catch (error) {
           console.error('Error al crear productos:', error);
         }
-
-        newPedido.total = total
-        await this.pedidoRepository.save(newPedido);
 
         const formatToSendFrontend = {
           ...savedPedido,
@@ -639,12 +642,14 @@ export class PedidoService implements OnModuleDestroy {
         where: { id: Number(pedidoExist?.reclamo) as any },
       });
 
+      let total = 0;
       let estimateTime = 0;
       const pedidosProdFormated = await Promise.all(
         pedidoExist.pedidosprod.map(async (data) => {
           const productoInfo = await this.productoRespitory.findOne({
             where: { id: data.productoId },
           });
+          total += productoInfo.precio * data.precio;
           estimateTime += productoInfo.plazoDuracionEstimadoMinutos;
 
           return {
@@ -652,6 +657,7 @@ export class PedidoService implements OnModuleDestroy {
             pedidoId: data.pedidoId,
             detalle: data.detalle,
             cantidad: data.cantidad,
+            precio:data.precio
           };
         }),
       );
@@ -677,7 +683,7 @@ export class PedidoService implements OnModuleDestroy {
           estadoActual: pedidoExist.estado,
           cambiosEstado: pedidoExist.cambioEstados,
           detalle_pedido: pedidoExist?.detalle_pedido,
-          total: pedidoExist.total,
+          total,
           infoLines: JSON.parse(pedidoExist.infoLinesJson),
         },
       };
@@ -749,13 +755,18 @@ export class PedidoService implements OnModuleDestroy {
       infoLinesJson?.Direccion ||
       'No hay direccion';
 
+    let total = 0;
+    pedido.pedidosprod.forEach((producto) => {
+      total += producto.precio * producto.cantidad;
+    });
+
     const clienteData = clienteMap.get(pedido.cliente_id);
 
     return {
       clientName: clienteData?.nombre || 'Desconocido',
       direccion: direcciones,
       numberSender: clienteData?.telefono || 'N/A',
-      total: pedido.total,
+      total,
       reclamo: currentReclamo ?? undefined,
       estado: pedido?.estado,
       confirmado: pedido?.confirmado,
@@ -1244,7 +1255,7 @@ export class PedidoService implements OnModuleDestroy {
             numberSender: clientData?.telefono || 'N/A',
             orderId: pedido.id,
             productName: pedidoProd?.producto?.nombre,
-            total: pedido.total,
+            total: pedidoProd?.cantidad * pedidoProd?.precio,
             date: isOlder ? pedidoDate.format('LT') : pedidoDate.fromNow(),
             fecha: pedido.fecha,
             status: pedido.confirmado,
@@ -1566,7 +1577,7 @@ Para más información, por favor contactanos.`;
       ordersDay.map((order) => {
         if (order.pedidosprod.length > 0) {
           order.pedidosprod.map((pedidoProd) => {
-            ganancia += pedidoProd.cantidad * pedidoProd.producto.precio;
+            ganancia += pedidoProd.cantidad * pedidoProd.precio;
           });
         }
       });
@@ -1594,10 +1605,22 @@ Para más información, por favor contactanos.`;
         relations: ['pedidosprod', 'pedidosprod.producto'],
       });
 
+      const ordersWithTotal = lastOrders.map((element) => {
+        let total = 0;
+
+        element.pedidosprod.forEach((pedidoProd) => {
+          total += pedidoProd.cantidad * pedidoProd.precio;
+        });
+
+        return {
+          ...element,
+          total,
+        };
+      });
 
       return {
         ok: true,
-        data: lastOrders,
+        data: ordersWithTotal,
       };
     } catch (error) {
       throw new BadRequestException({
@@ -1663,7 +1686,9 @@ Para más información, por favor contactanos.`;
 const getTotalOfPeriod = (orders) => {
   let total = 0;
   orders.map((order) => {
-    order.total += total
+    order.pedidosprod.map((pedidoProd) => {
+      total += pedidoProd.cantidad * pedidoProd.precio;
+    });
   });
 
   return total;

@@ -7,12 +7,15 @@ import { Column, Entity, ManyToOne, PrimaryColumn } from "typeorm";
 export class ProductoPedido extends BaseEntity {
     @PrimaryColumn()
     productoId: number;
-  
+
     @PrimaryColumn()
     pedidoId: number;
 
     @Column()
-    cantidad : number;
+    cantidad: number;
+
+    @Column()
+    precio: number;
 
     @Column({ nullable: true, default: null })
     detalle: string | null;
