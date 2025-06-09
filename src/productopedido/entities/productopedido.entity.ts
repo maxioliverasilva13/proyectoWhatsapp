@@ -14,7 +14,7 @@ export class ProductoPedido extends BaseEntity {
     @Column()
     cantidad: number;
 
-    @Column()
+    @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true, default: 0 })
     precio: number;
 
     @Column({ nullable: true, default: null })

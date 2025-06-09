@@ -505,7 +505,7 @@ export class PedidoService implements OnModuleDestroy {
               total += productExist.precio * product.cantidad;
 
               const newProdPedido = await this.productoPedidoRepository.create({
-                precio: Number(productExist.precio),
+                precio: productExist.precio,
                 cantidad: product.cantidad,
                 productoId: parseInt(product.productoId),
                 pedidoId: savedPedido.id,
