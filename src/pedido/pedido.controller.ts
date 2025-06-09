@@ -13,6 +13,7 @@ import {
 import { PedidoService } from './pedido.service';
 import { CreatePedidoDto } from './dto/create-pedido.dto';
 import { UpdatePedidoDto } from './dto/update-pedido.dto';
+import { SalesByCategoryDto } from './dto/sales-by-category.dto';
 
 enum OrderStatus {
   ACTIVE = 'active',
@@ -124,8 +125,8 @@ export class PedidoController {
   }
 
   @Get('/stats/salesForCategory/')
-  getSalesForCategory() {
-    return this.pedidoService.getSalesForCategory();
+  getSalesForCategory(@Query('filter') filter: SalesByCategoryDto) {
+    return this.pedidoService.getSalesByCategory(filter);
   }
 
   @Get('/stats/momeyInDay/:date')

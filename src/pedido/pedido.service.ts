@@ -38,6 +38,7 @@ import { Reclamo } from './entities/reclamo.entity';
 import { PaymentMethod } from 'src/paymentMethod/entities/paymentMethod.entity';
 import { HorarioService } from 'src/horario/horario.service';
 import { CierreProvisorio } from 'src/cierreProvisorio/entities/cierreProvisorio.entitty';
+import { SalesByCategoryDto } from './dto/sales-by-category.dto';
 
 @Injectable()
 export class PedidoService implements OnModuleDestroy {
@@ -74,7 +75,7 @@ export class PedidoService implements OnModuleDestroy {
     private readonly messageQueue: Queue,
     private readonly deviceService: DeviceService,
     private readonly horarioService: HorarioService,
-  ) { }
+  ) {}
 
   async onModuleInit() {
     if (!this.globalConnection) {
@@ -189,26 +190,54 @@ export class PedidoService implements OnModuleDestroy {
     }
   }
 
-  async getSalesForCategory() {
-    try {
-      const resultados = await this.productoPedidoRepository
-        .createQueryBuilder('pp')
-        .leftJoin('pp.pedido', 'pedido')
-        .leftJoin('pp.producto', 'producto')
-        .leftJoin('producto.category', 'categoria')
-        .select('categoria.name', 'categoria')
-        .addSelect('COUNT(pp.productoId)', 'cantidadVendida')
-        .groupBy('categoria.id')
-        .addGroupBy('categoria.name')
-        .getRawMany();
+  async getSalesByCategory({ filter }: SalesByCategoryDto) {
+    const now = moment();
+    let fromDate: Date;
 
-      return {
-        ok: true,
-        data: resultados,
-      };
-    } catch (error) {
-      console.log(error);
+    switch (filter) {
+      case 'lastDay':
+        fromDate = now.clone().subtract(1, 'day').toDate();
+        break;
+      case 'lastWeek':
+        fromDate = now.clone().subtract(7, 'days').toDate();
+        break;
+      case 'lastMonth':
+        fromDate = now.clone().subtract(1, 'month').toDate();
+        break;
+      default:
+        throw new BadRequestException('Invalid filter');
     }
+
+    const query = this.productoPedidoRepository
+      .createQueryBuilder('pp')
+      .innerJoin('pp.producto', 'producto')
+      .innerJoin('producto.category', 'category')
+      .innerJoin('pp.pedido', 'pedido')
+      .select('category.id', 'categoryId')
+      .addSelect('category.name', 'categoryName')
+      .addSelect('SUM(pp.cantidad)', 'totalVentas')
+      .where('pedido.createdAt >= :fromDate', { fromDate })
+      .groupBy('category.id')
+      .addGroupBy('category.name')
+      .orderBy('totalVentas', 'DESC')
+      .limit(10);
+
+    const result = await query.getRawMany();
+
+    const totalVentasGlobal = result.reduce(
+      (acc, curr) => acc + parseInt(curr.totalVentas, 10),
+      0,
+    );
+
+    return result.map((r) => ({
+      categoryId: r.categoryId,
+      categoryName: r.categoryName,
+      totalVentas: parseInt(r.totalVentas, 10),
+      porcentaje:
+        totalVentasGlobal === 0
+          ? 0
+          : parseFloat(((r.totalVentas / totalVentasGlobal) * 100).toFixed(2)),
+    }));
   }
 
   async getMyOrders(client_id: any) {
@@ -383,7 +412,9 @@ export class PedidoService implements OnModuleDestroy {
         );
       }
 
-      const clientExist = await this.clienteRepository.findOne({ where: { id: createPedidoDto.clienteId } })
+      const clientExist = await this.clienteRepository.findOne({
+        where: { id: createPedidoDto.clienteId },
+      });
 
       const [firstStatus] = await this.estadoRepository.find({
         order: { order: 'ASC' },
@@ -446,7 +477,7 @@ export class PedidoService implements OnModuleDestroy {
         newPedido.detalle_pedido = createPedidoDto?.detalles ?? '';
 
         if (clientExist) {
-          newPedido.client = clientExist
+          newPedido.client = clientExist;
         }
 
         if (
@@ -659,7 +690,7 @@ export class PedidoService implements OnModuleDestroy {
             pedidoId: data.pedidoId,
             detalle: data.detalle,
             cantidad: data.cantidad,
-            precio: data.precio
+            precio: data.precio,
           };
         }),
       );
@@ -808,7 +839,9 @@ export class PedidoService implements OnModuleDestroy {
           .andWhere('pedido.finalizado = :finalizado', { finalizado: false })
           .andWhere('pedido.available = :available', { available: true });
       } else if (filter === 'finished') {
-        query.where('pedido.finalizado = :finalizado', { finalizado: true }).andWhere('pedido.available = :available', { available: true });
+        query
+          .where('pedido.finalizado = :finalizado', { finalizado: true })
+          .andWhere('pedido.available = :available', { available: true });
       } else if (filter === 'active') {
         query
           .andWhere('pedido.confirmado = :confirmado', { confirmado: true })
@@ -1296,7 +1329,7 @@ export class PedidoService implements OnModuleDestroy {
       if (!pedido) {
         throw new BadRequestException('There is no order with that ID');
       }
-      
+
       const clientId = pedido?.cliente_id;
       const client = await this.clienteRepository.findOne({
         where: { id: clientId },
@@ -1306,8 +1339,8 @@ export class PedidoService implements OnModuleDestroy {
 
       const pedidosProd = await this.productoPedidoRepository.find({
         where: { pedidoId: pedido.id },
-        relations: ['producto']
-      })
+        relations: ['producto'],
+      });
 
       if (client) {
         const esDelivery =
@@ -1350,7 +1383,8 @@ ${productosList}
       throw new BadRequestException({
         ok: false,
         statusCode: 400,
-        message: "Lo siento, " + error?.message || 'Error al confirmar el pedido',
+        message:
+          'Lo siento, ' + error?.message || 'Error al confirmar el pedido',
         error: 'Bad Request',
       });
     }
@@ -1526,7 +1560,7 @@ Para más información, por favor contactanos.`;
         );
       }
 
-      await this.pedidoRepository.update(id, { available: false })
+      await this.pedidoRepository.update(id, { available: false });
 
       return {
         ok: true,
