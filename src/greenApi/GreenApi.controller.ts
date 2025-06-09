@@ -98,10 +98,10 @@ export class GrenApiController {
         const { typeWebhook, messageData } = body;
 
         if (typeWebhook === 'incomingMessageReceived') {
-          const orderPlanStatus = await this.pedidoService.orderPlanStatus();
-          if (orderPlanStatus?.slotsToCreate <= 0) {
-            return;
-          }
+          // const orderPlanStatus = await this.pedidoService.orderPlanStatus();
+          // if (orderPlanStatus?.slotsToCreate <= 0) {
+          //   return;
+          // }
 
           const senderData = body?.senderData;
           const sender = senderData?.sender;
@@ -306,3 +306,4 @@ export class GrenApiController {
     }
   }
 }
+

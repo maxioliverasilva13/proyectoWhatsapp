@@ -509,6 +509,8 @@ export class PedidoService implements OnModuleDestroy {
                 cantidad: product.cantidad,
                 productoId: parseInt(product.productoId),
                 pedidoId: savedPedido.id,
+                producto: productExist,
+                pedido: savedPedido,
                 detalle: product.detalle ?? 'No detalle',
               });
 
@@ -1289,31 +1291,30 @@ export class PedidoService implements OnModuleDestroy {
     try {
       const pedido = await this.pedidoRepository.findOne({
         where: { id: id },
-        relations: ['pedidosprod', 'pedidosprod.producto'],
       });
 
       if (!pedido) {
         throw new BadRequestException('There is no order with that ID');
       }
-
-      if(pedido.pedidosprod.length === 0) {
-        throw new BadRequestException("No hay productos pedido ")
-      }
-
+      
       const clientId = pedido?.cliente_id;
       const client = await this.clienteRepository.findOne({
         where: { id: clientId },
       });
-
       pedido.confirmado = true;
       await this.pedidoRepository.save(pedido);
+
+      const pedidosProd = await this.productoPedidoRepository.find({
+        where: { pedidoId: pedido.id },
+        relations: ['producto']
+      })
 
       if (client) {
         const esDelivery =
           pedido.tipo_servicio_id === TIPO_SERVICIO_DELIVERY_ID;
         const tipo = esDelivery ? 'Orden' : 'Reserva';
 
-        const productosList = pedido.pedidosprod
+        const productosList = pedidosProd
           .map(
             (pp) =>
               `• ${pp.cantidad} x ${pp.producto?.nombre}${pp.detalle ? ` (${pp.detalle})` : ''}`,
