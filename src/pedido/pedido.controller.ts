@@ -23,7 +23,7 @@ enum OrderStatus {
 
 @Controller('pedido')
 export class PedidoController {
-  constructor(private readonly pedidoService: PedidoService) { }
+  constructor(private readonly pedidoService: PedidoService) {}
 
   @Post()
   create(@Body() createPedidoDto: CreatePedidoDto) {
@@ -43,7 +43,8 @@ export class PedidoController {
 
   @Get('/:orderStatus')
   findAllFinish(
-    @Param('orderStatus', new ParseEnumPipe(OrderStatus)) orderStatus: OrderStatus,
+    @Param('orderStatus', new ParseEnumPipe(OrderStatus))
+    orderStatus: OrderStatus,
     @Query('offset') offset: number,
     @Query('limit') limit: number,
   ) {
@@ -51,13 +52,20 @@ export class PedidoController {
   }
 
   @Get('/calendar/formatCalendar/:date')
-  getOrdersForCalendar(@Param('date') date: string, @Req() request: Request, @Query('userId') userId: number) {
+  getOrdersForCalendar(
+    @Param('date') date: string,
+    @Req() request: Request,
+    @Query('userId') userId: number,
+  ) {
     const timeZone = request['timeZone'];
     return this.pedidoService.getOrdersForCalendar(date, timeZone, userId);
   }
 
   @Get('/calendar/next-date-avaiable')
-  getNextDateAvailable(@Req() request: Request, @Query('userId') userId: number) {
+  getNextDateAvailable(
+    @Req() request: Request,
+    @Query('userId') userId: number,
+  ) {
     const timeZone = request['timeZone'];
 
     return this.pedidoService.getNextDateTimeAvailable(timeZone);
@@ -75,13 +83,16 @@ export class PedidoController {
   }
 
   @Get('/calendar/dates-avaiable-by-month')
-  obtenerCuposDisponiblesPorDiaDelMes(@Req() request: any, @Query('userId') userId: number) {
+  obtenerCuposDisponiblesPorDiaDelMes(
+    @Req() request: any,
+    @Query('userId') userId: number,
+  ) {
     const anio = request.query['anio'];
     const mes = request.query['mes'];
     return this.pedidoService.obtenerCuposDisponiblesPorDiaDelMes(
       anio,
       mes,
-      userId
+      userId,
     );
   }
 
@@ -125,8 +136,13 @@ export class PedidoController {
   }
 
   @Get('/stats/salesForCategory/')
-  getSalesForCategory(@Query('filter') filter: SalesByCategoryDto) {
+  getSalesByCategory(@Query('filter') filter: SalesByCategoryDto) {
     return this.pedidoService.getSalesByCategory(filter);
+  }
+
+  @Get('/stats/salesOverview/')
+  getSalesOverview() {
+    return this.pedidoService.getSalesOverview();
   }
 
   @Get('/stats/momeyInDay/:date')
@@ -149,7 +165,7 @@ export class PedidoController {
   @Get('/filter/searchWIthQuery')
   searchOrdersWithQuery(
     @Query('query') query: string,
-    @Query('keyInfoline') keyInfoline: string
+    @Query('keyInfoline') keyInfoline: string,
   ) {
     return this.pedidoService.filtertOrdersWithQuery(query, keyInfoline);
   }

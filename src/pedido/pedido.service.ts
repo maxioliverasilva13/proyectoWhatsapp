@@ -75,7 +75,7 @@ export class PedidoService implements OnModuleDestroy {
     private readonly messageQueue: Queue,
     private readonly deviceService: DeviceService,
     private readonly horarioService: HorarioService,
-  ) {}
+  ) { }
 
   async onModuleInit() {
     if (!this.globalConnection) {
@@ -240,6 +240,50 @@ export class PedidoService implements OnModuleDestroy {
           ? 0
           : parseFloat(((r.totalVentas / totalVentasGlobal) * 100).toFixed(2)),
     }));
+  }
+
+  async getSalesOverview() {
+    const now = new Date();
+    const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+
+    const total = await this.productoPedidoRepository
+      .createQueryBuilder('pp')
+      .innerJoin('pp.pedido', 'pedido')
+      .select('SUM(pp.cantidad * pp.precio)', 'total')
+      .where('pedido.createdAt >= :startOfThisMonth', { startOfThisMonth })
+      .andWhere('pedido.available = true')
+      .andWhere('pedido.finalizado = false')
+      .getRawOne();
+
+    const previous = await this.productoPedidoRepository
+      .createQueryBuilder('pp')
+      .innerJoin('pp.pedido', 'pedido')
+      .select('SUM(pp.cantidad * pp.precio)', 'total')
+      .where('pedido.createdAt BETWEEN :startOfLastMonth AND :endOfLastMonth', {
+        startOfLastMonth,
+        endOfLastMonth,
+      })
+      .andWhere('pedido.available = true')
+      .andWhere('pedido.finalizado = false')
+      .getRawOne();
+
+    const totalValue = Number(total?.total || 0);
+    const previousValue = Number(previous?.total || 0);
+
+    const average = totalValue / now.getDate();
+
+    const variation = previousValue > 0
+      ? ((totalValue - previousValue) / previousValue) * 100
+      : 0;
+
+    return {
+      total: totalValue,
+      previous: previousValue,
+      average: Math.round(average),
+      variation: parseFloat(variation.toFixed(1)),
+    };
   }
 
   async getMyOrders(client_id: any) {
