@@ -130,12 +130,7 @@ export class PedidoService implements OnModuleDestroy {
       if (pedido.cliente_id) {
         clientIds.add(pedido.cliente_id);
       }
-
-      for (const prod of pedido.pedidosprod || []) {
-        const precio = (prod as any)?.producto?.precio || 0;
-        const cantidad = (prod as any).cantidad || 1;
-        revenue += precio * cantidad;
-      }
+      revenue += pedido.total
     }
 
     return {
