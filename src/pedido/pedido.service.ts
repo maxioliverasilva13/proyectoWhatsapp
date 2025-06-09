@@ -1285,10 +1285,10 @@ export class PedidoService implements OnModuleDestroy {
     }
   }
 
-  async confirmOrder(id) {
+  async confirmOrder(id: number) {
     try {
       const pedido = await this.pedidoRepository.findOne({
-        where: { id },
+        where: { id: id },
         relations: ['pedidosprod', 'pedidosprod.producto'],
       });
 
@@ -1345,7 +1345,7 @@ ${productosList}
       throw new BadRequestException({
         ok: false,
         statusCode: 400,
-        message: error?.message || 'Error al confirmar el pedido',
+        message: "Lo siento, " + error?.message || 'Error al confirmar el pedido',
         error: 'Bad Request',
       });
     }

@@ -103,7 +103,7 @@ export class PedidoController {
 
   @Get('/confirm/:id')
   confirmOrder(@Param('id') id: number) {
-    return this.pedidoService.confirmOrder(id);
+    return this.pedidoService.confirmOrder(+id);
   }
 
   @Get('/details/:id')
