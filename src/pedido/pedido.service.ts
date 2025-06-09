@@ -190,7 +190,7 @@ export class PedidoService implements OnModuleDestroy {
     }
   }
 
-  async getSalesByCategory(filter: SalesByCategoryDto) {
+  async getSalesByCategory(filter: any) {
     const now = moment();
     let fromDate: Date;
 

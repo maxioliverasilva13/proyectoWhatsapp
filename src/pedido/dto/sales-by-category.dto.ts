@@ -1,3 +1,1 @@
-export class SalesByCategoryDto {
-  filter: 'lastDay' | 'lastWeek' | 'lastMonth';
-}
+export type SalesByCategoryDto = 'lastDay' | 'lastWeek' | 'lastMonth';
