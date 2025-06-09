@@ -505,7 +505,7 @@ export class PedidoService implements OnModuleDestroy {
               total += productExist.precio * product.cantidad;
 
               const newProdPedido = await this.productoPedidoRepository.create({
-                precio: productExist.precio,
+                precio: Number(productExist.precio),
                 cantidad: product.cantidad,
                 productoId: parseInt(product.productoId),
                 pedidoId: savedPedido.id,
@@ -649,7 +649,7 @@ export class PedidoService implements OnModuleDestroy {
           const productoInfo = await this.productoRespitory.findOne({
             where: { id: data.productoId },
           });
-          total += productoInfo.precio * data.precio;
+          total += data.cantidad * data.precio;
           estimateTime += productoInfo.plazoDuracionEstimadoMinutos;
 
           return {
@@ -657,7 +657,7 @@ export class PedidoService implements OnModuleDestroy {
             pedidoId: data.pedidoId,
             detalle: data.detalle,
             cantidad: data.cantidad,
-            precio:data.precio
+            precio: data.precio
           };
         }),
       );
