@@ -58,8 +58,15 @@ export class GreenApiService {
       originalChatId = originalChatFromThread;
     }
 
+    console.log('obtengo el ultimo thread');
+    
+
     if (chatIdExist) {
+      console.log('ya hay un chat creado, es', chatId);
+      
       chatIdWhatsapp = chatIdExist
+    } else {
+      console.log('no hay un chat creado');
     }
 
     const { clienteId, clientName } =
@@ -79,6 +86,9 @@ export class GreenApiService {
         originalChatId: originalChatId,
       });
 
+      console.log('se creo el thrad');
+      
+
       if (resp.thread.id) {
         currentThreadId = resp.thread.id
       }
@@ -86,9 +96,11 @@ export class GreenApiService {
         originalChatId = resp?.thread?.originalChatId;
       }
       if (resp.thread.chatId) {
+        console.log('se creo el thrad bien, asignare chat id');
         chatIdWhatsapp = resp.thread.chatId
       }
     }
+
 
     const messages = await this.chatGptThreadsService.createMessageByThrad(
       textMessage,
@@ -96,6 +108,8 @@ export class GreenApiService {
       false,
     );
 
+    console.log('el hcat idddddddd esssss', chatIdWhatsapp);
+    
     const openAIResponse = await sendMessageWithTools(textMessage, messages,
       {
         productoService: this.productoService,
@@ -171,7 +185,7 @@ export class GreenApiService {
     clientName,
     numberSender,
     detalles,
-    chatIdWhatsapp,
+    chatIdExist,
     messagePushTitle = 'Test 1',
     messagePush = 'Test',
     originalChatId,
@@ -180,6 +194,8 @@ export class GreenApiService {
     transferUrl = "",
     userId = ""
   }: any) {
+    
+    
     try {
       const newOrder = await this.pedidoService.create({
         clienteId: clienteId,
@@ -194,7 +210,7 @@ export class GreenApiService {
         infoLinesJson: openAIResponse.infoLines,
         fecha: openAIResponse.fecha,
         messageToUser: openAIResponse?.messageToUser,
-        chatId: chatIdWhatsapp,
+        chatId: chatIdExist,
         originalChatId: originalChatId,
         withIA: withIA,
         paymentMethodId: paymentMethodId,

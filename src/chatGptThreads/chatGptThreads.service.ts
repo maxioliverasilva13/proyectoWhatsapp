@@ -110,8 +110,6 @@ export class ChatGptThreadsService {
         where: { id: Number(lastThread.originalChatId) }, relations: ['mensajes'],
       });
 
-      console.log('la cantidad de menasjes son ', chatOfThread.mensajes.length);
-
 
       if (chatOfThread?.mensajes && chatOfThread?.mensajes?.length > 0) {
         allMessages = chatOfThread?.mensajes?.map((m) => {
