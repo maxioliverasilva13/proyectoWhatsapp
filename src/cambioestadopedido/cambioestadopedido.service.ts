@@ -52,6 +52,9 @@ export class CambioestadopedidoService {
         priority: 0,
         attempts: 5,
       });
+      if (estadoExist.finalizador) {
+        pedidoExist.finalizado = true;
+      }
 
       await this.cambioEstadoRepository.save(newStatusOrder)
 

@@ -932,13 +932,16 @@ export class PedidoService implements OnModuleDestroy {
           .andWhere('pedido.available = :available', { available: true });
       } else if (filter === 'finished') {
         query
-          .where('pedido.finalizado = :finalizado', { finalizado: true })
+          .where('estado.finalizador = :finalizador', { finalizador: true })
           .andWhere('pedido.available = :available', { available: true });
       } else if (filter === 'active') {
         query
           .andWhere('pedido.confirmado = :confirmado', { confirmado: true })
           .andWhere('estado.finalizador = :finalizador', {
             finalizador: false,
+          })
+          .andWhere('estado.available = :available', {
+            available: true,
           });
       }
 
