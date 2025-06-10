@@ -191,7 +191,6 @@ export class PedidoService implements OnModuleDestroy {
   }
 
   async getSalesByCategory(filter: any) {
-    console.log("me llega", filter)
     const now = moment();
     let fromDate: Date;
 
@@ -219,7 +218,7 @@ export class PedidoService implements OnModuleDestroy {
       .addSelect('SUM(pp.cantidad)', 'totalVentas')
       .where('pedido.createdAt >= :fromDate', { fromDate })
       .andWhere('pedido.available = :available', { available: true })
-      .andWhere('pedido.finalizado = :finalizado', { finalizado: false })
+      .andWhere('pedido.confirmado = :confirmado', { confirmado: true })
       .groupBy('category.id')
       .addGroupBy('category.name')
       .orderBy('SUM(pp.cantidad)', 'DESC')
@@ -267,7 +266,7 @@ export class PedidoService implements OnModuleDestroy {
         endOfLastMonth,
       })
       .andWhere('pedido.available = true')
-      .andWhere('pedido.finalizado = false')
+      .andWhere('pedido.confirmado = true')
       .getRawOne();
 
     const totalValue = Number(total?.total || 0);
@@ -285,6 +284,47 @@ export class PedidoService implements OnModuleDestroy {
       previous: previousValue,
       average: Math.round(average),
       variation: parseFloat(variation.toFixed(1)),
+    };
+  }
+
+  async getSalesLastSixMonths() {
+    const endDate = moment().endOf('day').toDate();
+    const startDate = moment().subtract(6, 'months').startOf('month').toDate();
+
+    const pedidos = await this.pedidoRepository.find({
+      where: {
+        confirmado: true,
+        finalizado: false,
+        available: true,
+        fecha: Between(startDate, endDate),
+      },
+      select: ['fecha'],
+    });
+
+    const grouped = new Map<string, number>();
+
+    pedidos.forEach((pedido) => {
+      const date = moment(pedido.fecha);
+      const key = date.format('YYYY-MM');
+      grouped.set(key, (grouped.get(key) || 0) + 1);
+    });
+
+    const labels: string[] = [];
+    const monthlySales: number[] = [];
+
+    for (let i = 0; i < 6; i++) {
+      const m = moment(startDate).add(i, 'months');
+      const key = m.format('YYYY-MM');
+      labels.push(
+        m.format('MMM').charAt(0).toUpperCase() + m.format('MMM').slice(1),
+      );
+      monthlySales.push(grouped.get(key) || 0);
+    }
+
+    return {
+      monthlySales,
+      labels,
+      period: 'mensual',
     };
   }
 

@@ -140,6 +140,11 @@ export class PedidoController {
     return this.pedidoService.getSalesByCategory(filter);
   }
 
+  @Get('/stats/salesLastSixMonths/')
+  getSalesLastSixMonths() {
+    return this.pedidoService.getSalesLastSixMonths();
+  }
+
   @Get('/stats/salesOverview/')
   getSalesOverview() {
     return this.pedidoService.getSalesOverview();
