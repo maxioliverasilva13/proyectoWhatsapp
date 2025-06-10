@@ -216,7 +216,7 @@ export class PedidoService implements OnModuleDestroy {
       .select('category.id', 'categoryId')
       .addSelect('category.name', 'categoryName')
       .addSelect('SUM(pp.cantidad)', 'totalVentas')
-      .where('pedido.createdAt >= :fromDate', { fromDate })
+      .where('pedido.fecha >= :fromDate', { fromDate })
       .andWhere('pedido.available = :available', { available: true })
       .andWhere('pedido.confirmado = :confirmado', { confirmado: true })
       .groupBy('category.id')
