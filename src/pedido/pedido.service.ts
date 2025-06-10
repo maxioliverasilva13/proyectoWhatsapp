@@ -32,7 +32,7 @@ import * as moment from 'moment-timezone';
 import { Category } from 'src/category/entities/category.entity';
 import { Queue } from 'bullmq';
 import { InjectQueue } from '@nestjs/bullmq';
-import { TIPO_SERVICIO_DELIVERY_ID, TIPO_SERVICIO_RESERVA_ID } from 'src/database/seeders/app/tipopedido.seed';
+import { TIPO_SERVICIO_DELIVERY_ID } from 'src/database/seeders/app/tipopedido.seed';
 import { DeviceService } from 'src/device/device.service';
 import { Reclamo } from './entities/reclamo.entity';
 import { PaymentMethod } from 'src/paymentMethod/entities/paymentMethod.entity';
@@ -216,7 +216,7 @@ export class PedidoService implements OnModuleDestroy {
       .select('category.id', 'categoryId')
       .addSelect('category.name', 'categoryName')
       .addSelect('SUM(pp.cantidad)', 'totalVentas')
-      .where(`(CASE WHEN pedido.tipo_servicio_id = :idTipoServicioReserva THEN pedido.fecha ELSE pedido.createdAt END) >= :fromDate`, { fromDate, idTipoServicioReserva: TIPO_SERVICIO_RESERVA_ID })
+      .where('pedido.createdAt >= :fromDate', { fromDate })
       .andWhere('pedido.available = :available', { available: true })
       .andWhere('pedido.confirmado = :confirmado', { confirmado: true })
       .groupBy('category.id')
@@ -252,10 +252,7 @@ export class PedidoService implements OnModuleDestroy {
       .createQueryBuilder('pp')
       .innerJoin('pp.pedido', 'pedido')
       .select('SUM(pp.cantidad * pp.precio)', 'total')
-      .where(
-        `(CASE WHEN pedido.tipo_servicio_id = :idTipoServicioReserva THEN pedido.fecha ELSE pedido.createdAt END) >= :startOfThisMonth`,
-        { startOfThisMonth, idTipoServicioReserva: TIPO_SERVICIO_RESERVA_ID },
-      )
+      .where('pedido.fecha >= :startOfThisMonth', { startOfThisMonth })
       .andWhere('pedido.available = true')
       .andWhere('pedido.finalizado = false')
       .getRawOne();
@@ -264,14 +261,10 @@ export class PedidoService implements OnModuleDestroy {
       .createQueryBuilder('pp')
       .innerJoin('pp.pedido', 'pedido')
       .select('SUM(pp.cantidad * pp.precio)', 'total')
-      .where(
-        `(CASE WHEN pedido.tipo_servicio_id = :idTipoServicioReserva THEN pedido.fecha ELSE pedido.createdAt END) BETWEEN :startOfLastMonth AND :endOfLastMonth`,
-        {
-          startOfLastMonth,
-          endOfLastMonth,
-          idTipoServicioReserva: TIPO_SERVICIO_RESERVA_ID
-        },
-      )
+      .where('pedido.fecha BETWEEN :startOfLastMonth AND :endOfLastMonth', {
+        startOfLastMonth,
+        endOfLastMonth,
+      })
       .andWhere('pedido.available = true')
       .andWhere('pedido.confirmado = true')
       .getRawOne();
@@ -846,7 +839,7 @@ export class PedidoService implements OnModuleDestroy {
       const currentMonthPedidos = await this.pedidoRepository
         .createQueryBuilder('pedido')
         .where('pedido.withIA = :withIA', { withIA: true })
-        .andWhere('pedido.created_at BETWEEN :start AND :end', {
+        .andWhere('pedido.fecha BETWEEN :start AND :end', {
           start: startOfMonth,
           end: endOfMonth,
         })
