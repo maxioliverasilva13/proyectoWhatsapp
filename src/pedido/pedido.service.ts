@@ -254,7 +254,7 @@ export class PedidoService implements OnModuleDestroy {
       .select('SUM(pp.cantidad * pp.precio)', 'total')
       .where('pedido.fecha >= :startOfThisMonth', { startOfThisMonth })
       .andWhere('pedido.available = true')
-      .andWhere('pedido.finalizado = false')
+      .andWhere('pedido.confirmado = true')
       .getRawOne();
 
     const previous = await this.productoPedidoRepository
@@ -297,7 +297,7 @@ export class PedidoService implements OnModuleDestroy {
       available: true,
       fecha: Between(startDate, endDate),
     },
-    relations: ['productoPedidos'],
+    relations: ['pedidosprod'],
   });
 
   const grouped = new Map<string, number>();
