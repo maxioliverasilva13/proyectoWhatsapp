@@ -287,45 +287,50 @@ export class PedidoService implements OnModuleDestroy {
     };
   }
 
-  async getSalesLastSixMonths() {
-    const endDate = moment().endOf('day').toDate();
-    const startDate = moment().subtract(6, 'months').startOf('month').toDate();
+ async getSalesLastSixMonths() {
+  const endDate = moment().endOf('day').toDate();
+  const startDate = moment().subtract(6, 'months').startOf('month').toDate();
 
-    const pedidos = await this.pedidoRepository.find({
-      where: {
-        confirmado: true,
-        available: true,
-        fecha: Between(startDate, endDate),
-      },
-      select: ['fecha'],
-    });
+  const pedidos = await this.pedidoRepository.find({
+    where: {
+      confirmado: true,
+      available: true,
+      fecha: Between(startDate, endDate),
+    },
+    relations: ['productoPedidos'],
+  });
 
-    const grouped = new Map<string, number>();
+  const grouped = new Map<string, number>();
 
-    pedidos.forEach((pedido) => {
-      const date = moment(pedido.fecha);
-      const key = date.format('YYYY-MM');
-      grouped.set(key, (grouped.get(key) || 0) + 1);
-    });
+  pedidos.forEach((pedido) => {
+    const date = moment(pedido.fecha);
+    const key = date.format('YYYY-MM');
 
-    const labels: string[] = [];
-    const monthlySales: number[] = [];
+    const total = pedido.pedidosprod.reduce((acc, pp) => {
+      return acc + (pp.cantidad ?? 1) * (pp.precio ?? 0);
+    }, 0);
 
-    for (let i = 0; i < 6; i++) {
-      const m = moment(startDate).add(i, 'months');
-      const key = m.format('YYYY-MM');
-      labels.push(
-        m.format('MMM').charAt(0).toUpperCase() + m.format('MMM').slice(1),
-      );
-      monthlySales.push(grouped.get(key) || 0);
-    }
+    grouped.set(key, (grouped.get(key) || 0) + total);
+  });
 
-    return {
-      monthlySales,
-      labels,
-      period: 'mensual',
-    };
+  const labels: string[] = [];
+  const monthlySales: number[] = [];
+
+  for (let i = 0; i < 6; i++) {
+    const m = moment(startDate).add(i, 'months');
+    const key = m.format('YYYY-MM');
+    labels.push(
+      m.format('MMM').charAt(0).toUpperCase() + m.format('MMM').slice(1),
+    );
+    monthlySales.push(grouped.get(key) || 0);
   }
+
+  return {
+    monthlySales,
+    labels,
+    period: 'mensual',
+  };
+}
 
   async getMyOrders(client_id: any) {
     if (!client_id) {
