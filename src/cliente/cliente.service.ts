@@ -113,12 +113,11 @@ export class ClienteService implements OnModuleDestroy {
       where: whereCondition,
     });
 
-    clientes
+    return clientes
   }
 
   async findAllWithOrders(data: { limit?: number; offset?: number }) {
     const { limit = 10, offset = 0 } = data;
-
 
     const [clientes, total] = await this.clienteRepository.findAndCount({
       relations: ['pedido', 'pedido.pedidosprod'],
