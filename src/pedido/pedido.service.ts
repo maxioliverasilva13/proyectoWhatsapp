@@ -216,7 +216,7 @@ export class PedidoService implements OnModuleDestroy {
       .select('category.id', 'categoryId')
       .addSelect('category.name', 'categoryName')
       .addSelect('SUM(pp.cantidad)', 'totalVentas')
-      .where(`(CASE WHEN pedido.tipo_servicio_id = :idTipoServicioReserva THEN pedido.fecha ELSE pedido.createdAt END) >= :fromDate`, { fromDate, dTipoServicioReserva: TIPO_SERVICIO_RESERVA_ID })
+      .where(`(CASE WHEN pedido.tipo_servicio_id = :idTipoServicioReserva THEN pedido.fecha ELSE pedido.createdAt END) >= :fromDate`, { fromDate, idTipoServicioReserva: TIPO_SERVICIO_RESERVA_ID })
       .andWhere('pedido.available = :available', { available: true })
       .andWhere('pedido.confirmado = :confirmado', { confirmado: true })
       .groupBy('category.id')
