@@ -294,7 +294,6 @@ export class PedidoService implements OnModuleDestroy {
     const pedidos = await this.pedidoRepository.find({
       where: {
         confirmado: true,
-        finalizado: false,
         available: true,
         fecha: Between(startDate, endDate),
       },
