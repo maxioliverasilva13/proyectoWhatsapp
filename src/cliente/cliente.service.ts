@@ -125,28 +125,43 @@ export class ClienteService implements OnModuleDestroy {
 
     const [clientes, total] = await this.clienteRepository.findAndCount({
       where: whereClause,
-      relations: ['pedido', 'pedido.pedidosprod'],
+      relations: ['pedido', 'pedido.pedidosprod', 'pedido.estado', 'pedido.client'],
       skip: offset,
       take: limit,
       order: { nombre: 'ASC' },
     });
 
     const dataResponse = clientes.map((client) => {
-      let totalMoney = 0;
-      client.pedido.forEach((pedido) => {
+
+      const resp = client.pedido.map((pedido) => {
+        let totalOrder = 0;
+        const jsonFormatedInfoLine = JSON.parse(pedido?.infoLinesJson ?? "")
+
         pedido.pedidosprod.forEach((element) => {
-          totalMoney += element.cantidad * element.precio;
+          totalOrder += element.cantidad * element.precio;
         });
+
+        return {
+          ...pedido,
+          clientName: pedido?.client?.nombre ?? "No name",
+          numberSender: pedido?.client?.telefono ?? "No phone",
+          orderId: pedido.id,
+          direccion: jsonFormatedInfoLine?.direccion || jsonFormatedInfoLine?.Direccion,
+          total: totalOrder
+        }
       });
+
+      const totalMoney = resp.reduce((acc, pedido) => acc + pedido.total, 0);
 
       return {
         ...client,
+        pedido: resp,
         totalGenerated: totalMoney,
       };
     });
 
     return {
-      ok:true,
+      ok: true,
       offset: offset,
       limit: limit,
       data: dataResponse,
