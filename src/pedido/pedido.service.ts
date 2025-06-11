@@ -940,7 +940,7 @@ export class PedidoService implements OnModuleDestroy {
           .andWhere('estado.finalizador = :finalizador', {
             finalizador: false,
           })
-          .andWhere('estado.pedido = :available', {
+          .andWhere('pedido.available = :available', {
             available: true,
           });
       }
