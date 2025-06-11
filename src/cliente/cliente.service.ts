@@ -116,19 +116,25 @@ export class ClienteService implements OnModuleDestroy {
     return clientes
   }
 
-  async findAllWithOrders(data: { limit?: number; offset?: number }) {
-    const { limit = 10, offset = 0 } = data;
+  async findWithOrders(data: { offset: number, limit: number, query?: string }) {
+    const { offset, limit, query } = data;
+
+    const whereClause = query
+      ? { nombre: ILike(`%${query}%`) }
+      : {};
 
     const [clientes, total] = await this.clienteRepository.findAndCount({
+      where: whereClause,
       relations: ['pedido', 'pedido.pedidosprod'],
       skip: offset,
       take: limit,
+      order: { nombre: 'ASC' },
     });
 
     const dataResponse = clientes.map((client) => {
       let totalMoney = 0;
       client.pedido.forEach((pedido) => {
-        pedido.pedidosprod.forEach(element => {
+        pedido.pedidosprod.forEach((element) => {
           totalMoney += element.cantidad * element.precio;
         });
       });
@@ -140,14 +146,11 @@ export class ClienteService implements OnModuleDestroy {
     });
 
     return {
-      ok: true,
       data: dataResponse,
       totalItems: total,
-      limit,
-      offset,
-
     };
   }
+
 
   findOne(id: number) {
     return `This action returns a #${id} cliente`;

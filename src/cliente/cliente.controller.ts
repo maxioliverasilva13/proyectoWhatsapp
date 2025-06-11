@@ -33,15 +33,17 @@ export class ClienteController {
     });
   }
 
-
   @Get('allWithOrders')
   findAllWithOrders(
     @Query('offset') offset?: string,
     @Query('limit') limit?: string,
+    @Query('query') query?: string,
+
   ) {
     return this.clienteService.findAllWithOrders({
       offset: offset ? parseInt(offset) : 0,
       limit: limit ? parseInt(limit) : 10,
+      query: query?? ""
     });
   }
 
