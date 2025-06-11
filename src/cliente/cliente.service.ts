@@ -146,6 +146,9 @@ export class ClienteService implements OnModuleDestroy {
     });
 
     return {
+      ok:true,
+      offset: offset,
+      limit: limit,
       data: dataResponse,
       totalItems: total,
     };
