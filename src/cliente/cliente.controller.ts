@@ -40,10 +40,10 @@ export class ClienteController {
     @Query('query') query?: string,
 
   ) {
-    return this.clienteService.findAllWithOrders({
+    return this.clienteService.findWithOrders({
       offset: offset ? parseInt(offset) : 0,
       limit: limit ? parseInt(limit) : 10,
-      query: query?? ""
+      query: query ?? ""
     });
   }
 
