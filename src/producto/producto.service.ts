@@ -14,6 +14,7 @@ import { GetProductsDTO } from './dto/get-product-search.dto';
 import { handleGetGlobalConnection } from 'src/utils/dbConnection';
 import { Currency } from 'src/currencies/entities/currency.entity';
 import { Category } from 'src/category/entities/category.entity';
+import { UpdatePricesDto } from './dto/update-price-product.dto';
 
 @Injectable()
 export class ProductoService implements OnModuleDestroy {
@@ -118,16 +119,16 @@ export class ProductoService implements OnModuleDestroy {
   async findAllWithQuery(data: GetProductsDTO): Promise<Producto[]> {
     const whereCondition: any = { disponible: true };
     console.log('recibo', data.query);
-    
+
     if (data.query?.trim()) {
       whereCondition.nombre = ILike(`%${data.query.trim()}%`);
     }
-  
+
     const products = await this.productoRepository.find({
       where: whereCondition,
       relations: ['category'],
     });
-  
+
     return products;
   }
 
@@ -273,5 +274,47 @@ export class ProductoService implements OnModuleDestroy {
         error: 'Bad Request',
       });
     }
+  }
+
+  async actualizarPrecios(dto: UpdatePricesDto) {
+    const {
+      tipoActualizacion,
+      valor,
+      categoriaId,
+      soloDisponibles = false,
+    } = dto;
+
+    if (tipoActualizacion === 'porcentaje' && (valor < 0 || valor > 100)) {
+      throw new BadRequestException('El porcentaje debe estar entre 0 y 100');
+    }
+
+    const query = this.productoRepository
+      .createQueryBuilder('producto')
+      .leftJoinAndSelect('producto.category', 'category');
+
+    if (categoriaId) {
+      query.where('category.id = :categoriaId', { categoriaId });
+    }
+
+    if (soloDisponibles) {
+      query.andWhere('producto.disponible = true');
+    }
+
+    const productos = await query.getMany();
+
+    for (const producto of productos) {
+      if (tipoActualizacion === 'porcentaje') {
+        producto.precio += producto.precio * (valor / 100);
+      } else {
+        producto.precio += valor;
+      }
+
+      await this.productoRepository.save(producto);
+    }
+
+    return {
+      mensaje: 'Precios actualizados correctamente',
+      ok: true,
+    };
   }
 }

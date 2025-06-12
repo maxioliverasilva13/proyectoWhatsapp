@@ -1,12 +1,23 @@
-import { Controller, Get, Post, Body, Req, Put, Delete, Param, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Req,
+  Put,
+  Delete,
+  Param,
+  Query,
+} from '@nestjs/common';
 import { ProductoService } from './producto.service';
 import { CreateProductoDto } from './dto/create-producto.dto';
 import { Request } from 'express';
 import { UpdateProductoDto } from './dto/update-producto.dto';
+import { UpdatePricesDto } from './dto/update-price-product.dto';
 
 @Controller('producto')
 export class ProductoController {
-  constructor(private readonly productoService: ProductoService) { }
+  constructor(private readonly productoService: ProductoService) {}
 
   @Get()
   findAll(@Req() request: Request) {
@@ -25,7 +36,7 @@ export class ProductoController {
     return this.productoService.findOne(id);
   }
 
-  @Get("formatedText")
+  @Get('formatedText')
   findAllInText(@Req() request: Request) {
     return this.productoService.findAllInText();
   }
@@ -41,12 +52,20 @@ export class ProductoController {
   }
 
   @Put(':id')
-  async updateProducto(@Param('id') id: number, @Body() UpdateProductoDto: UpdateProductoDto) {
-    return this.productoService.updateProducto(id, UpdateProductoDto)
+  async updateProducto(
+    @Param('id') id: number,
+    @Body() UpdateProductoDto: UpdateProductoDto,
+  ) {
+    return this.productoService.updateProducto(id, UpdateProductoDto);
   }
 
   @Delete(':id')
   async deleteProducto(@Param('id') id: number) {
-    return this.productoService.deleteProducto(id)
+    return this.productoService.deleteProducto(id);
+  }
+
+  @Post('/actualizar-precios')
+  actualizarPrecios(@Body() dto: UpdatePricesDto) {
+    return this.productoService.actualizarPrecios(dto);
   }
 }
