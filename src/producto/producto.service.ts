@@ -113,23 +113,7 @@ export class ProductoService implements OnModuleDestroy {
   }
 
   async findAll(): Promise<Producto[]> {
-    return this.categoryRepo
-      .createQueryBuilder('category')
-      .leftJoin('category.producto', 'producto')
-      .select([
-        'category.id',
-        'category.name',
-        'category.description',
-        'category.image',
-        'category.enabled',
-      ])
-      .addSelect('COUNT(producto.id)', 'productCount')
-      .groupBy('category.id')
-      .addGroupBy('category.name')
-      .addGroupBy('category.description')
-      .addGroupBy('category.image')
-      .addGroupBy('category.enabled')
-      .getRawMany();
+    return this.productoRepository.find({ relations: ['category'] });
   }
 
   async findAllWithQuery(data: GetProductsDTO): Promise<Producto[]> {
@@ -319,10 +303,17 @@ export class ProductoService implements OnModuleDestroy {
     const productos = await query.getMany();
 
     for (const producto of productos) {
+      const precioActual = Number(producto.precio);
+      const valorNumerico = Number(valor);
+
+      if (isNaN(precioActual) || isNaN(valorNumerico)) {
+        throw new BadRequestException('Precio o valor inválido');
+      }
+
       if (tipoActualizacion === 'porcentaje') {
-        producto.precio += producto.precio * (valor / 100);
+        producto.precio = precioActual + precioActual * (valorNumerico / 100);
       } else {
-        producto.precio += valor;
+        producto.precio = precioActual + valorNumerico;
       }
 
       await this.productoRepository.save(producto);

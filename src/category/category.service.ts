@@ -53,7 +53,12 @@ export class CategoryService {
 
       return {
         ok: true,
-        data: allCategories
+        data: allCategories.map((cat) => {
+          return {
+            ...cat,
+            productosCount: cat?.producto?.length,
+          }
+        })
       }
 
     } catch (error) {
