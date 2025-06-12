@@ -113,7 +113,23 @@ export class ProductoService implements OnModuleDestroy {
   }
 
   async findAll(): Promise<Producto[]> {
-    return this.productoRepository.find({ relations: ['category'] });
+    return this.categoryRepo
+      .createQueryBuilder('category')
+      .leftJoin('category.producto', 'producto')
+      .select([
+        'category.id',
+        'category.name',
+        'category.description',
+        'category.image',
+        'category.enabled',
+      ])
+      .addSelect('COUNT(producto.id)', 'productCount')
+      .groupBy('category.id')
+      .addGroupBy('category.name')
+      .addGroupBy('category.description')
+      .addGroupBy('category.image')
+      .addGroupBy('category.enabled')
+      .getRawMany();
   }
 
   async findAllWithQuery(data: GetProductsDTO): Promise<Producto[]> {
