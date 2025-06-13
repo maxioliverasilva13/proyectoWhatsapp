@@ -168,10 +168,11 @@ export async function sendMessageWithTools(
   let lastMessage = null;
 
   while (maxIterations-- > 0) {
+    const currentMessagesSlices = currentMessages.slice(-10);
     const chatMessages = sanitizeMessages([
       { role: 'system', content: instructions },
       { role: 'system', content: formatedText },
-      ...currentMessages,
+      ...currentMessagesSlices,
     ]);
 
     console.log('[Iteración]', 5 - maxIterations);
@@ -214,7 +215,6 @@ export async function sendMessageWithTools(
         ...(message.content && { content: message.content }),
       });
 
-      // Luego se agregan los mensajes de tool correspondientes
       for (const toolCall of message.tool_calls) {
         const { name, arguments: rawArgs } = toolCall.function;
         let args = {};
