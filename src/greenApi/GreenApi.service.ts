@@ -140,19 +140,23 @@ export class GreenApiService {
     }
 
     const cleanJSON = (jsonString: string) => {
-      return jsonString
-        .replace(/```json/g, '')
-        .replace(/```/g, '')
-        .replace(/[\u2028\u2029]/g, '')
-        .replace(/[“”]/g, '"')
-        .trim();
+      try {
+        return jsonString
+          .replace(/```json/g, '')
+          .replace(/```/g, '')
+          .replace(/[\u2028\u2029]/g, '')
+          .replace(/[“”]/g, '"')
+          .trim();
+      } catch (error) {
+        return jsonString;
+      }
     };
 
     let openAIResponseFormatted;
 
 
     try {
-      const openAIResponseRaw = openAIResponse;
+      const openAIResponseRaw = cleanJSON(openAIResponseFormatted);
 
       try {
         const cleaned = openAIResponseRaw.replace(/\\"/g, '"');
