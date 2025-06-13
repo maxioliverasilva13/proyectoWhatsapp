@@ -161,8 +161,10 @@ export class GreenApiService {
       try {
         const cleaned = openAIResponseRaw.replace(/\\"/g, '"');
 
+        console.log("xd1", cleaned)
         openAIResponseFormatted = JSON.parse(cleaned);
       } catch (error) {
+        console.log("xd2",openAIResponseRaw )
         openAIResponseFormatted = { message: openAIResponseRaw };
       }
     } catch (error) {
