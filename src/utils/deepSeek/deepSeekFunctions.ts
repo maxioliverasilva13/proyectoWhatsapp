@@ -32,6 +32,18 @@ interface Context {
   userId: any;
 }
 
+function sanitizeMessages(messages: any[]) {
+  return messages.filter((msg) => {
+    if (msg.role === 'assistant') {
+      return msg.content || (msg.tool_calls && msg.tool_calls.length > 0);
+    }
+    if (msg.role === 'tool') {
+      return msg.content && msg.tool_call_id;
+    }
+    return msg.content;
+  });
+}
+
 async function executeToolByName(
   name: string,
   args: any,
@@ -156,23 +168,14 @@ export async function sendMessageWithTools(
   let lastMessage = null;
 
   while (maxIterations-- > 0) {
-    const chatMessages = [
+    const chatMessages = sanitizeMessages([
       { role: 'system', content: instructions },
       { role: 'system', content: formatedText },
       ...currentMessages,
-    ];
+    ]);
 
     console.log('[Iteración]', 5 - maxIterations);
     console.log('[Enviando mensajes]');
-    console.log("el body es", JSON.stringify({
-        model: 'deepseek-chat',
-        messages: chatMessages,
-        tools: [...Customtools],
-        tool_choice: 'auto',
-        max_tokens: 4096,
-        temperature: 0.5,
-        stream: false,
-      }))
 
     const response = await fetch('https://api.deepseek.com/chat/completions', {
       method: 'POST',
