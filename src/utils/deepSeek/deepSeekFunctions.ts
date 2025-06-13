@@ -164,6 +164,15 @@ export async function sendMessageWithTools(
 
     console.log('[Iteración]', 5 - maxIterations);
     console.log('[Enviando mensajes]');
+    console.log("el body es", JSON.stringify({
+        model: 'deepseek-chat',
+        messages: chatMessages,
+        tools: [...Customtools],
+        tool_choice: 'auto',
+        max_tokens: 4096,
+        temperature: 0.5,
+        stream: false,
+      }))
 
     const response = await fetch('https://api.deepseek.com/chat/completions', {
       method: 'POST',
