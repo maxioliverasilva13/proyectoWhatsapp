@@ -268,9 +268,12 @@ export class PedidoService implements OnModuleDestroy {
       .andWhere('pedido.available = true')
       .andWhere('pedido.confirmado = true')
       .getRawOne();
+    console.log("startOfLastMonth", startOfLastMonth)
+    console.log("endOfLastMonth", endOfLastMonth)
 
     const totalValue = Number(total?.total || 0);
     const previousValue = Number(previous?.total || 0);
+    console.log("previousValue", previousValue)
 
     const average = totalValue / now.getDate();
 
