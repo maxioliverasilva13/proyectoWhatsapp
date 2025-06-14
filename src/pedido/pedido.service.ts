@@ -245,8 +245,10 @@ export class PedidoService implements OnModuleDestroy {
   async getSalesOverview() {
     const now = new Date();
     const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
     const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+    endOfLastMonth.setHours(23, 59, 59, 999);
 
     const total = await this.productoPedidoRepository
       .createQueryBuilder('pp')
@@ -268,12 +270,9 @@ export class PedidoService implements OnModuleDestroy {
       .andWhere('pedido.available = true')
       .andWhere('pedido.confirmado = true')
       .getRawOne();
-    console.log("startOfLastMonth", startOfLastMonth)
-    console.log("endOfLastMonth", endOfLastMonth)
 
     const totalValue = Number(total?.total || 0);
     const previousValue = Number(previous?.total || 0);
-    console.log("previousValue", previousValue)
 
     const average = totalValue / now.getDate();
 
