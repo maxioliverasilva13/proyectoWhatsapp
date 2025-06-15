@@ -289,50 +289,50 @@ export class PedidoService implements OnModuleDestroy {
     };
   }
 
- async getSalesLastSixMonths() {
-  const endDate = moment().endOf('day').toDate();
-  const startDate = moment().subtract(6, 'months').startOf('month').toDate();
+  async getSalesLastSixMonths() {
+    const endDate = moment().endOf('day').toDate();
+    const startDate = moment().subtract(6, 'months').startOf('month').toDate();
 
-  const pedidos = await this.pedidoRepository.find({
-    where: {
-      confirmado: true,
-      available: true,
-      fecha: Between(startDate, endDate),
-    },
-    relations: ['pedidosprod'],
-  });
+    const pedidos = await this.pedidoRepository.find({
+      where: {
+        confirmado: true,
+        available: true,
+        fecha: Between(startDate, endDate),
+      },
+      relations: ['pedidosprod'],
+    });
 
-  const grouped = new Map<string, number>();
+    const grouped = new Map<string, number>();
 
-  pedidos.forEach((pedido) => {
-    const date = moment(pedido.fecha);
-    const key = date.format('YYYY-MM');
+    pedidos.forEach((pedido) => {
+      const date = moment(pedido.fecha);
+      const key = date.format('YYYY-MM');
 
-    const total = pedido.pedidosprod.reduce((acc, pp) => {
-      return acc + (pp.cantidad ?? 1) * (pp.precio ?? 0);
-    }, 0);
+      const total = pedido.pedidosprod.reduce((acc, pp) => {
+        return acc + (pp.cantidad ?? 1) * (pp.precio ?? 0);
+      }, 0);
 
-    grouped.set(key, (grouped.get(key) || 0) + total);
-  });
+      grouped.set(key, (grouped.get(key) || 0) + total);
+    });
 
-  const labels: string[] = [];
-  const monthlySales: number[] = [];
+    const labels: string[] = [];
+    const monthlySales: number[] = [];
 
-  for (let i = 0; i < 6; i++) {
-    const m = moment(startDate).add(i, 'months');
-    const key = m.format('YYYY-MM');
-    labels.push(
-      m.format('MMM').charAt(0).toUpperCase() + m.format('MMM').slice(1),
-    );
-    monthlySales.push(grouped.get(key) || 0);
+    for (let i = 0; i < 6; i++) {
+      const m = moment(startDate).add(i, 'months');
+      const key = m.format('YYYY-MM');
+      labels.push(
+        m.format('MMM').charAt(0).toUpperCase() + m.format('MMM').slice(1),
+      );
+      monthlySales.push(grouped.get(key) || 0);
+    }
+
+    return {
+      monthlySales,
+      labels,
+      period: 'mensual',
+    };
   }
-
-  return {
-    monthlySales,
-    labels,
-    period: 'mensual',
-  };
-}
 
   async getMyOrders(client_id: any) {
     if (!client_id) {
@@ -765,9 +765,12 @@ export class PedidoService implements OnModuleDestroy {
         where: { id: pedidoExist.cliente_id },
       });
 
-      const currentReclamo = await this.reclamoRepo.findOne({
-        where: { id: Number(pedidoExist?.reclamo) as any },
-      });
+      let currentReclamo = null;
+      if (pedidoExist?.reclamo) {
+        currentReclamo = await this.reclamoRepo.findOne({
+          where: { id: Number(pedidoExist?.reclamo) as any },
+        });
+      }
 
       let total = 0;
       let estimateTime = 0;
