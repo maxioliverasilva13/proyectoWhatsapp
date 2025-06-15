@@ -58,6 +58,7 @@ import { PaymentMethodController } from './paymentMethod/paymentMethod.controlle
 import { HorarioController } from './horario/horario.controller';
 import { HorarioModule } from './horario/horario.module';
 import { ClienteController } from './cliente/cliente.controller';
+import { SeedModule } from './fakeseed/fakeseed.module';
 
 ConfigModule.forRoot();
 

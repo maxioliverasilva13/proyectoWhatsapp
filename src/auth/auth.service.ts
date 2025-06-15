@@ -111,11 +111,9 @@ export class AuthService implements OnModuleDestroy {
       let greenApiConfigured = false;
       let tipo_servicio = 0;
       let tipo_servicioNombre = '';
-      let hora_apertura;
       let empresaName = '';
       ``;
       let maxPedidos = 0;
-      let hora_cierre;
       let abierto;
       let timeZone;
       let logo;
@@ -139,8 +137,6 @@ export class AuthService implements OnModuleDestroy {
         if (empresa) {
 
           logo = empresa.logo ?? 'No logo';
-          hora_apertura = empresa.hora_apertura;
-          hora_cierre = empresa.hora_cierre;
           assistentEnabled = empresa?.assistentEnabled;
           abierto = empresa.abierto;
           maxPedidos = empresa?.payment?.plan?.maxPedidos ?? 0;
@@ -198,9 +194,7 @@ export class AuthService implements OnModuleDestroy {
           greenApiConfigured && userConfigured && paymentMade && apiConfigured,
         intervaloTiempoCalendario,
         notificarReservaHoras,
-        hora_apertura,
         isAdmin: user.isAdmin,
-        hora_cierre,
         abierto,
         empresaName: empresaName,
         remaindersHorsRemainder,

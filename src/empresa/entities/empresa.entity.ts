@@ -44,12 +44,6 @@ export class Empresa extends BaseEntity {
   @Column({ default: true, nullable: false })
   assistentEnabled: boolean;
 
-  @Column({ type: 'time', nullable: true, default: null })
-  hora_cierre: string;
-
-  @Column({ type: 'time', nullable: true, default: null })
-  hora_apertura: string;
-
   @Column({ default: false })
   notificarReservaHoras: boolean;
 

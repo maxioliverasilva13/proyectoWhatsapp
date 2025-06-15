@@ -10,6 +10,10 @@ async function bootstrap() {
     allowedHeaders: 'Content-Type, Authorization',
   });
 
+  if (process.env.SUBDOMAIN !== "app") {
+    
+  }
+
   await app.listen(3000);
 }
 
