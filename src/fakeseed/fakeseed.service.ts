@@ -11,6 +11,7 @@ import { faker } from '@faker-js/faker';
 import * as moment from 'moment-timezone';
 import { handleGetGlobalConnection } from 'src/utils/dbConnection';
 import { Empresa } from 'src/empresa/entities/empresa.entity';
+import { Estado } from 'src/estado/entities/estado.entity';
 
 @Injectable()
 export class SeedService {
@@ -22,6 +23,8 @@ export class SeedService {
     @InjectRepository(Category) private categoryRepo: Repository<Category>,
     @InjectRepository(Chat) private chatRepo: Repository<Chat>,
     @InjectRepository(Cliente) private clienteRepo: Repository<Cliente>,
+    @InjectRepository(Estado) private estadoRepo: Repository<Estado>,
+
   ) {}
 
   async run() {
@@ -106,6 +109,8 @@ export class SeedService {
     const start = moment().subtract(1, 'month').startOf('month');
     const end = moment().add(1, 'month').endOf('month');
 
+    const estados = await this.estadoRepo.find();
+
     for (let i = 0; i < 1000; i++) {
       const cliente = faker.helpers.arrayElement(clientes);
       const random = faker.date.between({
@@ -118,6 +123,7 @@ export class SeedService {
       m.minutes(roundedMinutes).seconds(0).milliseconds(0);
 
       const formatted = m.utc().format('YYYY-MM-DD HH:mm:ssZ');
+      const estadoRandom = faker.helpers.arrayElement(estados);
 
       const pedido = this.pedidoRepo.create({
         confirmado: faker.datatype.boolean(),
@@ -135,6 +141,7 @@ export class SeedService {
         infoLinesJson: JSON.stringify({
           Direccion: `${faker.location.direction()}`,
         }),
+        estado: estadoRandom,
         client: cliente,
         fecha: formatted,
       });

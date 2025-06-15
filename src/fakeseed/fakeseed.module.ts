@@ -8,13 +8,14 @@ import { Chat } from 'src/chat/entities/chat.entity';
 import { Cliente } from 'src/cliente/entities/cliente.entity';
 import { SeedService } from './fakeseed.service';
 import { handleGetConnection } from 'src/utils/dbConnection';
+import { Estado } from 'src/estado/entities/estado.entity';
 
 const connection = handleGetConnection();
 
 @Module({
   imports: [
     connection,
-    TypeOrmModule.forFeature([Pedido, Producto, ProductoPedido, Category, Chat, Cliente]),
+    TypeOrmModule.forFeature([Pedido, Producto, ProductoPedido, Category, Estado, Chat, Cliente]),
   ],
   providers: [SeedService],
 })
