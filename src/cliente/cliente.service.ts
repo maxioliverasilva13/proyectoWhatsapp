@@ -17,11 +17,10 @@ export class ClienteService implements OnModuleDestroy {
   private usuarioRepository: Repository<Usuario>;
   private globalConnection: DataSource;
 
-
   constructor(
     @InjectRepository(Cliente)
     private readonly clienteRepository: Repository<Cliente>,
-  ) { }
+  ) {}
 
   async onModuleInit() {
     if (!this.globalConnection) {
@@ -60,7 +59,10 @@ export class ClienteService implements OnModuleDestroy {
   async createOrReturnExistClient(createClienteDto: CreateClienteDto) {
     try {
       const existClient = await this.clienteRepository.findOne({
-        where: { telefono: createClienteDto.telefono, empresa_id: createClienteDto.empresaId },
+        where: {
+          telefono: createClienteDto.telefono,
+          empresa_id: createClienteDto.empresaId,
+        },
       });
 
       if (existClient) {
@@ -113,29 +115,27 @@ export class ClienteService implements OnModuleDestroy {
       where: whereCondition,
     });
 
-    return clientes
+    return clientes;
   }
 
-  async findWithOrders(data: { offset: number, limit: number, query?: string }) {
-    const { offset, limit, query } = data;
+  async oneWithOrders(data: { clientId: number }) {
+    const { clientId } = data;
 
-    const whereClause = query
-      ? { nombre: ILike(`%${query}%`) }
-      : {};
+    const client = await this.clienteRepository.findOne({
+      where: { id: clientId },
 
-    const [clientes, total] = await this.clienteRepository.findAndCount({
-      where: whereClause,
-      relations: ['pedido', 'pedido.pedidosprod', 'pedido.estado', 'pedido.client'],
-      skip: offset,
-      take: limit,
-      order: { nombre: 'ASC' },
+      relations: [
+        'pedido',
+        'pedido.pedidosprod',
+        'pedido.estado',
+        'pedido.client',
+      ],
     });
 
-    const dataResponse = clientes.map((client) => {
-
+    const getClientInfo = () => {
       const resp = client.pedido.map((pedido) => {
         let totalOrder = 0;
-        const jsonFormatedInfoLine = JSON.parse(pedido?.infoLinesJson ?? "")
+        const jsonFormatedInfoLine = JSON.parse(pedido?.infoLinesJson ?? '');
 
         pedido.pedidosprod.forEach((element) => {
           totalOrder += element.cantidad * element.precio;
@@ -143,12 +143,71 @@ export class ClienteService implements OnModuleDestroy {
 
         return {
           ...pedido,
-          clientName: pedido?.client?.nombre ?? "No name",
-          numberSender: pedido?.client?.telefono ?? "No phone",
+          clientName: pedido?.client?.nombre ?? 'No name',
+          numberSender: pedido?.client?.telefono ?? 'No phone',
           orderId: pedido.id,
-          direccion: jsonFormatedInfoLine?.direccion || jsonFormatedInfoLine?.Direccion,
-          total: totalOrder
-        }
+          direccion:
+            jsonFormatedInfoLine?.direccion || jsonFormatedInfoLine?.Direccion,
+          total: totalOrder,
+        };
+      });
+
+      const totalMoney = resp.reduce((acc, pedido) => acc + pedido.total, 0);
+
+      return {
+        ...client,
+        pedido: resp,
+        totalGenerated: totalMoney,
+      };
+    };
+    const clientInfo = getClientInfo();
+
+    return {
+      ok: true,
+      data: clientInfo,
+    };
+  }
+
+  async findWithOrders(data: {
+    offset: number;
+    limit: number;
+    query?: string;
+  }) {
+    const { offset, limit, query } = data;
+
+    const whereClause = query ? { nombre: ILike(`%${query}%`) } : {};
+
+    const [clientes, total] = await this.clienteRepository.findAndCount({
+      where: whereClause,
+      relations: [
+        'pedido',
+        'pedido.pedidosprod',
+        'pedido.estado',
+        'pedido.client',
+      ],
+      skip: offset,
+      take: limit,
+      order: { nombre: 'ASC' },
+    });
+
+    const dataResponse = clientes.map((client) => {
+      const resp = client.pedido.map((pedido) => {
+        let totalOrder = 0;
+        const jsonFormatedInfoLine = JSON.parse(pedido?.infoLinesJson ?? '');
+
+        pedido.pedidosprod.forEach((element) => {
+          totalOrder += element.cantidad * element.precio;
+        });
+
+        return {
+          ...pedido,
+          clientName: pedido?.client?.nombre ?? 'No name',
+          numberSender: pedido?.client?.telefono ?? 'No phone',
+          orderId: pedido.id,
+          direccion:
+            jsonFormatedInfoLine?.direccion || jsonFormatedInfoLine?.Direccion,
+          total: totalOrder,
+        };
       });
 
       const totalMoney = resp.reduce((acc, pedido) => acc + pedido.total, 0);
@@ -168,7 +227,6 @@ export class ClienteService implements OnModuleDestroy {
       totalItems: total,
     };
   }
-
 
   findOne(id: number) {
     return `This action returns a #${id} cliente`;

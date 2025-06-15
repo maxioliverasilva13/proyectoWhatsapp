@@ -47,6 +47,16 @@ export class ClienteController {
     });
   }
 
+  @Get('oneWithOrders')
+  oneWithOrders(
+    @Query('clientId') clientId?: number,
+
+  ) {
+    return this.clienteService.oneWithOrders({
+      clientId: clientId
+    });
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.clienteService.findOne(+id);
