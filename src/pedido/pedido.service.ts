@@ -779,7 +779,7 @@ export class PedidoService implements OnModuleDestroy {
           const productoInfo = await this.productoRespitory.findOne({
             where: { id: data.productoId },
           });
-          total += data.cantidad * data.precio;
+          total += (data.cantidad ?? 0) * (data.precio ?? 0);
           estimateTime += productoInfo.plazoDuracionEstimadoMinutos;
 
           return {
@@ -797,9 +797,9 @@ export class PedidoService implements OnModuleDestroy {
         statusCode: 200,
         data: {
           client: {
-            name: getClient?.nombre ?? 'No name',
-            phone: getClient?.telefono ?? 'No phone',
-            id: getClient?.id ?? 'No id',
+            name: getClient?.nombre ?? 'Sin nombre',
+            phone: getClient?.telefono ?? 'Sin teléfono',
+            id: getClient?.id ?? 'Sin ID',
           },
           reclamo: currentReclamo ?? undefined,
           products: pedidosProdFormated,
@@ -818,10 +818,11 @@ export class PedidoService implements OnModuleDestroy {
         },
       };
     } catch (error) {
+      console.log("error", error)
       throw new BadRequestException({
         ok: false,
         statusCode: 400,
-        message: error?.message || 'Error al crear el pedido',
+        message: error?.message || 'Error al obtener orden',
         error: 'Bad Request',
       });
     }
