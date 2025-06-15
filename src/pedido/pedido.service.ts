@@ -769,7 +769,7 @@ export class PedidoService implements OnModuleDestroy {
       if (pedidoExist?.reclamo) {
         try {
           currentReclamo = await this.reclamoRepo.findOne({
-          where: { id: Number(pedidoExist?.reclamo) as any },
+          where: { id: pedidoExist?.reclamo as any },
         });
         } catch (error) {
           console.log("error", error)
