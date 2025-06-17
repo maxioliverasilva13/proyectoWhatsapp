@@ -66,6 +66,7 @@ function createEnvFileApp() {
       POSTGRES_DB=${process.env.POSTGRES_DB_GLOBAL}
       VIRTUAL_HOST=app.whatsproy.com
       EMAIL_USER=${process.env.EMAIL_USER}
+      DIGITALOCEAN_ACCESS_TOKEN=${process.env.DIGITALOCEAN_ACCESS_TOKEN}
       SUPABASE_URL=${process.env.SUPABASE_URL}
       FIREBASE_PROJECT_ID=${process.env.FIREBASE_PROJECT_ID}
       FIREBASE_PRIVATE_KEY=${process.env.FIREBASE_PRIVATE_KEY}
