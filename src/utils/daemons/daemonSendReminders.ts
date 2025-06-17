@@ -10,6 +10,7 @@ import * as moment from 'moment';
 import { ProductoPedido } from 'src/productopedido/entities/productopedido.entity';
 import { DeviceService } from 'src/device/device.service';
 import { Usuario } from 'src/usuario/entities/usuario.entity';
+import { TIPO_SERVICIO_RESERVA_ID } from 'src/database/seeders/app/tipopedido.seed';
 
 export const SendRemainders = async (
   deviceService: DeviceService,
@@ -28,8 +29,9 @@ export const SendRemainders = async (
 
     const currentEmpresa = await empresaRepo.findOne({
       where: { db_name: process.env.SUBDOMAIN },
+      relations: ['tipoServicioId']
     });
-    if (!currentEmpresa || !currentEmpresa.notificarReservaHoras) {
+    if (!currentEmpresa || !currentEmpresa.notificarReservaHoras || currentEmpresa?.tipoServicioId?.id === TIPO_SERVICIO_RESERVA_ID) {
       return;
     }
 
