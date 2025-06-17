@@ -14,7 +14,7 @@ export class EmailServiceResend {
   async sendVerificationCodeEmail(email: string, token: any) {
     try {
       const { data, error } = await this.resend.emails.send({
-        from: 'noreply@whatsproy.com',
+        from: 'noreply@measyapp.com',
         to: [email],
         subject: 'Your reset autorization',
         html: `
@@ -27,7 +27,7 @@ export class EmailServiceResend {
     </p>
 
 <a
-  href="https://app.whatsproy.com/auth/open-reset-link?token=${token}
+  href="https://${process.env.VIRTUAL_HOST}/auth/open-reset-link?token=${token}
   style="display: inline-block; background-color: #128c7e; color: #fff;
         text-decoration: none; font-size: 16px; padding: 12px 25px; 
         border-radius: 5px; font-weight: bold;"

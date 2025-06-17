@@ -1,7 +1,12 @@
-name: Deploy to PROD
+name: Deploy Single Company to PROD
 
 on:
   workflow_dispatch:
+    inputs:
+      empresa_db_name:
+        description: 'Nombre de subdominio de la empresa a deployar'
+        required: true
+        type: string
 
 jobs:
   deploy:
@@ -10,6 +15,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
+      with:
+        ref: prod
 
     - name: Set up Node.js
       uses: actions/setup-node@v3
@@ -19,14 +26,7 @@ jobs:
     - name: Install dependencies
       run: npm install
 
-    # - name: Add IP address to trusted source (managed database)
-    #   uses: GarreauArthur/manage-digital-ocean-managed-database-trusted-sources-gh-action@main
-    #   with:
-    #     action: "add"
-    #     database_id: ${{ secrets.DO_DB_ID }}
-    #     digitalocean_token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-
-    - name: Deploy to DigitalOcean
+    - name: Connect to Droplet
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         DROPLET_IP: ${{ secrets.DROPLET_IP }}
@@ -36,8 +36,9 @@ jobs:
         chmod 600 private_key
         ssh -i private_key -o StrictHostKeyChecking=no "${DROPLET_USER}@${DROPLET_IP}" 'mkdir -p /projects'
 
-    - name: Execute Deployment Script
+    - name: Execute Deployment Script for Single Company
       env:
+        EMPRESA_DB_NAME: ${{ github.event.inputs.empresa_db_name }}
         POSTGRES_USER_GLOBAL: ${{ secrets.POSTGRES_USER_GLOBAL }}
         POSTGRES_PASSWORD_GLOBAL: ${{ secrets.POSTGRES_PASSWORD_GLOBAL }}
         POSTGRES_DB_GLOBAL: ${{ secrets.POSTGRES_DB_GLOBAL }}
@@ -49,9 +50,9 @@ jobs:
         GOOGLE_PRIVATE_KEY: ${{ secrets.GOOGLE_PRIVATE_KEY }}
         ASSISTANT_ID: ${{ secrets.ASSISTANT_ID }}
         DROPLET_IP: ${{ secrets.DROPLET_IP }}
+        TOKEN_CONNECT_GIT: ${{ secrets.TOKEN_CONNECT_GIT }}
         EMAIL_USER: ${{ secrets.EMAIL_USER }}
         EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
-        TOKEN_CONNECT_GIT: ${{ secrets.TOKEN_CONNECT_GIT }}
         EMAIL_PORT: ${{ secrets.EMAIL_PORT }}
         EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
         REDIS_HOST: ${{ secrets.REDIS_HOST }}
@@ -64,17 +65,6 @@ jobs:
         FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
         FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
         RESEND_KEY: ${{ secrets.RESEND_KEY}}
-        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        DROPLET_USER: ${{ secrets.DROPLET_USER }}
         DEEPSEEK_TOKEN: ${{ secrets.DEEPSEEK_TOKEN }}
-        
 
-      run: node deployCompaniesProd.js
-
-    # - name: Remove IP address to trusted source (managed database)
-    #   uses: GarreauArthur/manage-digital-ocean-managed-database-trusted-sources-gh-action@main
-    #   with:
-    #     action: "remove"
-    #     database_id: ${{ secrets.DO_DB_ID }}
-    #     digitalocean_token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-
+      run: node deploySingleCompany.js "$EMPRESA_DB_NAME"
