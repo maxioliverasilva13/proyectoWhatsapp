@@ -182,7 +182,7 @@ export class AppModule {
         { path: "/horario", method: RequestMethod.GET },
         { path: "/usuario/workers/:empresaId", method: RequestMethod.GET },
         { path: "/usuario/workers", method: RequestMethod.GET },
-
+        { path: "/payment-methods", method: RequestMethod.GET },
       )
       .forRoutes('*');
   }
