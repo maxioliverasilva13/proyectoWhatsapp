@@ -523,7 +523,7 @@ export class PedidoService implements OnModuleDestroy {
 
       if (tipoServicio.id === TIPO_SERVICIO_RESERVA_ID) {
         const existsPedido = await this.pedidoRepository.findOne({
-          where: { fecha: createPedidoDto.fecha, available: true },
+          where: { fecha: createPedidoDto.fecha, available: true, owner_user_id: createPedidoDto.userId },
         });
         if (existsPedido) {
           throw new BadRequestException(
