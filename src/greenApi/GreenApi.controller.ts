@@ -94,6 +94,7 @@ export class GrenApiController {
       } else {
         const timeZone = request['timeZone'];
         const empresaId = request['empresaId'];
+        console.log("me llaman con", empresaId)
         const empresaType = request['empresaType'];
         const { typeWebhook, messageData } = body;
 

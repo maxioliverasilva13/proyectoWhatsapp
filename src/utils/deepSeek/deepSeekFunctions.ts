@@ -168,7 +168,7 @@ export async function sendMessageWithTools(
   let lastMessage = null;
 
   while (maxIterations-- > 0) {
-    const currentMessagesSlices = currentMessages.slice(-10);
+    const currentMessagesSlices = currentMessages;
     const chatMessages = sanitizeMessages([
       { role: 'system', content: instructions },
       { role: 'system', content: formatedText },
@@ -177,6 +177,8 @@ export async function sendMessageWithTools(
 
     console.log('[Iteración]', 5 - maxIterations);
     console.log('[Enviando mensajes]');
+
+    console.log("chatMessages", chatMessages)
 
     const response = await fetch('https://api.deepseek.com/chat/completions', {
       method: 'POST',
