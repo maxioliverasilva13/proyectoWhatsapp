@@ -107,8 +107,6 @@ export class GreenApiService {
       numberSender,
       false,
     );
-
-    console.log('el hcat idddddddd esssss', chatIdWhatsapp);
     
     const openAIResponse = await sendMessageWithTools(textMessage, messages,
       {
@@ -225,7 +223,10 @@ export class GreenApiService {
       return newOrder?.ok;
     } catch (error) {
       console.log('error haciendo pedido', error);
-      return false;
+      return {
+        ok: false,
+        message: error?.message ?? "Erro inesperado creando orden"
+      };
     }
   }
 }

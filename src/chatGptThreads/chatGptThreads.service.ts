@@ -16,7 +16,7 @@ export class ChatGptThreadsService {
     private chatRepository: Repository<Chat>,
     @InjectRepository(Mensaje)
     private messageRepository: Repository<Mensaje>,
-  ) { }
+  ) {}
 
   async getLastThreads(numberPhone) {
     try {
@@ -100,39 +100,45 @@ export class ChatGptThreadsService {
   ) {
     const lastThread = await this.threadsRepository.findOne({
       where: { numberPhone: numberPhone },
-      order: { id: 'DESC' }
+      order: { id: 'DESC' },
     });
 
-    let allMessages = []
+    let allMessages = [];
 
     if (lastThread) {
       const chatOfThread = await this.chatRepository.findOne({
-        where: { id: Number(lastThread.originalChatId) }, relations: ['mensajes'],
+        where: { id: Number(lastThread.originalChatId) },
+        relations: ['mensajes'],
       });
 
+      let mensajesOrdenados = chatOfThread?.mensajes || [];
+      mensajesOrdenados.sort((a, b) => {
+        return (
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        );
+      });
 
-      if (chatOfThread?.mensajes && chatOfThread?.mensajes?.length > 0) {
-        allMessages = chatOfThread?.mensajes?.map((m) => {
+      if (mensajesOrdenados.length > 0) {
+        allMessages = mensajesOrdenados.map((m) => {
           if (m.isTool === true) {
             if (m.tool_calls) {
               return {
-                role: "assistant",
-                content: m.mensaje ?? "Tool calls",
-                tool_calls: m.tool_calls
-              }
-
+                role: 'assistant',
+                content: m.mensaje ?? 'Tool calls',
+                tool_calls: m.tool_calls,
+              };
             } else {
               return {
                 role: 'tool',
                 tool_call_id: m.tool_call_id,
-                content: m.mensaje ?? "Tool call",
-              }
+                content: m.mensaje ?? 'Tool call',
+              };
             }
           } else {
             return {
               role: m.isClient === true ? 'user' : 'assistant',
               content: m.mensaje,
-            }
+            };
           }
         });
       }
@@ -146,7 +152,7 @@ export class ChatGptThreadsService {
       }
     }
 
-    return allMessages
+    return allMessages;
   }
 
   async updateThreadStatus(threadId: number, timeZone: string) {

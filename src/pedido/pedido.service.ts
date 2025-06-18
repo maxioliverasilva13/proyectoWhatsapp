@@ -32,7 +32,10 @@ import * as moment from 'moment-timezone';
 import { Category } from 'src/category/entities/category.entity';
 import { Queue } from 'bullmq';
 import { InjectQueue } from '@nestjs/bullmq';
-import { TIPO_SERVICIO_DELIVERY_ID } from 'src/database/seeders/app/tipopedido.seed';
+import {
+  TIPO_SERVICIO_DELIVERY_ID,
+  TIPO_SERVICIO_RESERVA_ID,
+} from 'src/database/seeders/app/tipopedido.seed';
 import { DeviceService } from 'src/device/device.service';
 import { Reclamo } from './entities/reclamo.entity';
 import { PaymentMethod } from 'src/paymentMethod/entities/paymentMethod.entity';
@@ -518,6 +521,17 @@ export class PedidoService implements OnModuleDestroy {
         where: { tipo: createPedidoDto.empresaType },
       });
 
+      if (tipoServicio.id === TIPO_SERVICIO_RESERVA_ID) {
+        const existsPedido = await this.pedidoRepository.findOne({
+          where: { fecha: createPedidoDto.fecha, available: true },
+        });
+        if (existsPedido) {
+          throw new BadRequestException(
+            'El horario seleccionado esta ocupado.',
+          );
+        }
+      }
+
       let existChatPreview = undefined;
 
       if (createPedidoDto.chatId) {
@@ -769,10 +783,10 @@ export class PedidoService implements OnModuleDestroy {
       if (pedidoExist?.reclamo) {
         try {
           currentReclamo = await this.reclamoRepo.findOne({
-          where: { id: pedidoExist?.reclamo as any },
-        });
+            where: { id: pedidoExist?.reclamo as any },
+          });
         } catch (error) {
-          console.log("error", error)
+          console.log('error', error);
         }
       }
 
@@ -822,7 +836,7 @@ export class PedidoService implements OnModuleDestroy {
         },
       };
     } catch (error) {
-      console.log("error", error)
+      console.log('error', error);
       throw new BadRequestException({
         ok: false,
         statusCode: 400,
