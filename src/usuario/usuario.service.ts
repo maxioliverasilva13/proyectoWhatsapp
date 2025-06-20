@@ -182,6 +182,7 @@ export class UsuarioService {
       ...updateUsuarioDto,
       isSuperAdmin: false,
       isAdmin: usuario?.isAdmin,
+      image: updateUsuarioDto?.image ?? updateUsuarioDto?.imagen ?? usuario?.image,
     });
 
     return this.usuarioRepository.save(usuarioActualizado);

@@ -7,9 +7,10 @@ export const SUPABASE_INSTRUCTIONS_FILE_PATH_RESERVA =
 
 export async function getInstructions(empresaType: any): Promise<string> {
   console.log("me llega", empresaType, TIPO_SERVICIO_DELIVERY_ID)
+  const isDelivery = empresaType === "DELIVERY"
   try {
     const storageFIle =
-      `${empresaType}` === `${TIPO_SERVICIO_DELIVERY_ID}`
+      isDelivery
         ? SUPABASE_INSTRUCTIONS_FILE_PATH_DELIVERY
         : SUPABASE_INSTRUCTIONS_FILE_PATH_RESERVA;
     const res = await fetch(storageFIle);
