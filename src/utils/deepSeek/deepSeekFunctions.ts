@@ -1,6 +1,6 @@
 import { toolresults } from 'googleapis/build/src/apis/toolresults';
 import getCurrentDate from '../getCurrentDate';
-import { instructions } from './instructions';
+import { getInstructions } from './instructions';
 import { Customtools } from './tools';
 
 type ToolCallFunction = {
@@ -168,6 +168,7 @@ export async function sendMessageWithTools(
 
   while (maxIterations-- > 0) {
     const currentMessagesSlices = currentMessages;
+    const instructions = await getInstructions(context.empresaType)
     const chatMessages = sanitizeMessages([
       { role: 'system', content: instructions },
       { role: 'system', content: formatedText },
