@@ -6,9 +6,10 @@ export const SUPABASE_INSTRUCTIONS_FILE_PATH_RESERVA =
   'https://fpswkddofgehbyiujiuo.supabase.co/storage/v1/object/public/WhatsProyImaages/Instructions/deepSeekInstructionsReserva.txt';
 
 export async function getInstructions(empresaType: any): Promise<string> {
+  console.log("me llega", empresaType, TIPO_SERVICIO_DELIVERY_ID)
   try {
     const storageFIle =
-      empresaType === TIPO_SERVICIO_DELIVERY_ID
+      `${empresaType}` === `${TIPO_SERVICIO_DELIVERY_ID}`
         ? SUPABASE_INSTRUCTIONS_FILE_PATH_DELIVERY
         : SUPABASE_INSTRUCTIONS_FILE_PATH_RESERVA;
     const res = await fetch(storageFIle);
