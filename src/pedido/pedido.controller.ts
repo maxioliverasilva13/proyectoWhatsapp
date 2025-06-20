@@ -13,7 +13,6 @@ import {
 import { PedidoService } from './pedido.service';
 import { CreatePedidoDto } from './dto/create-pedido.dto';
 import { UpdatePedidoDto } from './dto/update-pedido.dto';
-import { SalesByCategoryDto } from './dto/sales-by-category.dto';
 
 enum OrderStatus {
   ACTIVE = 'active',

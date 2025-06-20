@@ -107,6 +107,7 @@ async function executeToolByName(
     toolResult = await productoService.getCurrencies();
   } else if (name === 'confirmOrder') {
     console.log('confirmOrder');
+    console.log("intentando crear orden con", args)
     toolResult = await greenApiService.hacerPedido({
       currentThreadId: threadId,
       transferUrl: args?.transferUrl ?? '',
