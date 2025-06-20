@@ -163,7 +163,8 @@ export const Customtools = [
                         "required": [
                             "fecha",
                             "messageToUser",
-                            "infoLines"
+                            "infoLines",
+                            "data"
                         ]
                     },
                     "messagePushTitle": {
@@ -189,7 +190,8 @@ export const Customtools = [
                 },
                 "required": [
                     "info",
-                    "data"
+                    "messagePushTitle",
+                    "messagePush"
                 ]
             }
         }
