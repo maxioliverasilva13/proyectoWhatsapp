@@ -31,6 +31,13 @@ export class ProductoController {
     });
   }
 
+  @Get('findAllDailyMenu')
+  findAllDailyMenu(@Query('query') query: string) {
+    return this.productoService.findAllDailyMenu({
+      query: query,
+    });
+  }
+
   @Get(':id')
   findOne(@Param('id') id: number) {
     return this.productoService.findOne(id);

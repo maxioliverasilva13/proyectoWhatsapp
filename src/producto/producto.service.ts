@@ -132,6 +132,21 @@ export class ProductoService implements OnModuleDestroy {
     return products;
   }
 
+  async findAllDailyMenu(data: GetProductsDTO): Promise<Producto[]> {
+    const whereCondition: any = { disponible: true, isMenuDiario: true };
+
+    if (data.query?.trim()) {
+      whereCondition.nombre = ILike(`%${data.query.trim()}%`);
+    }
+
+    const products = await this.productoRepository.find({
+      where: whereCondition,
+      relations: ['category'],
+    });
+
+    return products;
+  }
+
   async findOne(id: number) {
     try {
       const producto = await this.productoRepository.findOne({
