@@ -12,6 +12,7 @@ export class CreatePedidoDto {
     userId?: string;
     fecha?: any;
     transferUrl?: any;
+    isDomicilio?: boolean;
     paymentMethodId?: string;
     withIA?: boolean;
     originalChatId?: string;

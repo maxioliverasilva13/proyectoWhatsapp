@@ -574,6 +574,7 @@ export class PedidoService implements OnModuleDestroy {
         newPedido.withIA = createPedidoDto?.withIA ?? false;
         newPedido.tipo_servicio_id = tipoServicio.id;
         newPedido.available = true;
+        newPedido.isDomicilio = createPedidoDto.isDomicilio;
         newPedido.fecha =
           createPedidoDto.empresaType === 'RESERVA'
             ? createPedidoDto.fecha || products[0].fecha

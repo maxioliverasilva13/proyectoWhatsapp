@@ -80,6 +80,7 @@ export class ProductoService implements OnModuleDestroy {
       const product = new Producto();
       product.nombre = createProduct.nombre;
       product.precio = createProduct.precio;
+      product.isMenuDiario = createProduct?.isMenuDiario ?? false;
       product.empresa_id = empresaId;
       product.descripcion = createProduct.descripcion;
       product.disponible = true;
@@ -113,12 +114,11 @@ export class ProductoService implements OnModuleDestroy {
   }
 
   async findAll(): Promise<Producto[]> {
-    return this.productoRepository.find({ relations: ['category'] });
+    return this.productoRepository.find({ relations: ['category'], where: { isMenuDiario: true } });
   }
 
   async findAllWithQuery(data: GetProductsDTO): Promise<Producto[]> {
-    const whereCondition: any = { disponible: true };
-    console.log('recibo', data.query);
+    const whereCondition: any = { disponible: true, isMenuDiario: false };
 
     if (data.query?.trim()) {
       whereCondition.nombre = ILike(`%${data.query.trim()}%`);
@@ -158,7 +158,7 @@ export class ProductoService implements OnModuleDestroy {
 
   async findAllInText() {
     const productsAll = await this.productoRepository.find({
-      where: { disponible: true },
+      where: { disponible: true, isMenuDiario: false },
       relations: ['category'],
     });
 

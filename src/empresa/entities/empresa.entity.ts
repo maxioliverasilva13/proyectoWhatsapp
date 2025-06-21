@@ -60,6 +60,9 @@ export class Empresa extends BaseEntity {
   apiConfigured: boolean;
 
   @Column({ default: false })
+  retiroSucursal: boolean;
+
+  @Column({ default: false })
   deploy: boolean;
 
   @Column({ default: false })
@@ -89,13 +92,16 @@ export class Empresa extends BaseEntity {
   @Column({ default: 'America/Montevideo' })
   timeZone: string;
 
-  @Column({ nullable: true, default: "" })
+  @Column({ nullable: true, default: '' })
   transferText: string;
 
   @OneToMany(() => Currency, (curr) => curr.empresa)
   currencies: Currency[];
 
-  @OneToOne(() => Payment, (emp) => emp.empresa, { onDelete: 'SET NULL', nullable: true })
+  @OneToOne(() => Payment, (emp) => emp.empresa, {
+    onDelete: 'SET NULL',
+    nullable: true,
+  })
   @JoinColumn()
   payment: Payment;
 }

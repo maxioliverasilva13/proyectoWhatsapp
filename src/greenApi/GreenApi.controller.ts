@@ -220,6 +220,7 @@ export class GrenApiController {
                       senderName,
                       timeZone,
                       chatId,
+                      InfoCompany.retiroSucursal
                     );
 
                     if (!respText?.isError) {

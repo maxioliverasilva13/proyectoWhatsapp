@@ -46,6 +46,7 @@ export class GreenApiService {
     senderName,
     timeZone,
     chatId,
+    retiroSucursalEnabled,
   ) {
     let originalChatId = '';
     let chatIdWhatsapp = '';
@@ -127,6 +128,7 @@ export class GreenApiService {
         numberSender,
         chatIdExist: chatIdWhatsapp,
         originalChatId,
+        retiroSucursalEnabled: retiroSucursalEnabled,
         timeZone,
         senderName: senderName,
         userId: clienteId
@@ -190,7 +192,8 @@ export class GreenApiService {
     withIA = false,
     paymentMethodId = "",
     transferUrl = "",
-    userId = ""
+    userId = "",
+    isDomicilio = false
   }: any) {
     
     
@@ -213,6 +216,7 @@ export class GreenApiService {
         withIA: withIA,
         paymentMethodId: paymentMethodId,
         userId: userId,
+        isDomicilio: isDomicilio,
       });
       // await this.chatGptThreadsService.deleteThread(currentThreadId);
       await this.deviceService.sendNotificationEmpresa(
