@@ -99,6 +99,7 @@ export class AuthService implements OnModuleDestroy {
       let currencies = [];
       let remaindersHorsRemainder;
       let notificarReservaHoras;
+      let notificarMenuDiario = false;
       let intervaloTiempoCalendario;
       let userConfigured = !!user.nombre?.trim() && !!user.apellido?.trim();
       let apiConfigured;
@@ -149,6 +150,7 @@ export class AuthService implements OnModuleDestroy {
           empresaName = empresa?.nombre;
           intervaloTiempoCalendario = empresa.intervaloTiempoCalendario;
           notificarReservaHoras = empresa.notificarReservaHoras;
+          notificarMenuDiario = empresa.notificarMenuDiario;
           remaindersHorsRemainder = empresa.remaindersHorsRemainder;
           payment = empresa.payment;
           retiroEnSucursal = empresa.retiroEnSucursal ?? false;
@@ -198,6 +200,7 @@ export class AuthService implements OnModuleDestroy {
           greenApiConfigured && userConfigured && paymentMade && apiConfigured,
         intervaloTiempoCalendario,
         notificarReservaHoras,
+        notificarMenuDiario: notificarMenuDiario,
         isAdmin: user.isAdmin,
         abierto,
         retiroEnSucursal: retiroEnSucursal,
