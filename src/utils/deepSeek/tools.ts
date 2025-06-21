@@ -72,6 +72,24 @@ export const Customtools = [
             }
         }
     },
+     {
+        "type": "function",
+        "function": {
+            "name": "getDailyMenu",
+            "description": "Devuelve el menu diario (lista de productos) en base al dia enviado por el usuario",
+
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "dayOfWeek": {
+                        "type": "number",
+                        "description": "Numero del dia desde lunes=1 y domingo=7"
+                    }
+                },
+                "required": ['dayOfWeek']
+            }
+        }
+    },
     {
         "type": "function",
         "function": {

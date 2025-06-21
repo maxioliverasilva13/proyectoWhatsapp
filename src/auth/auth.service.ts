@@ -28,7 +28,6 @@ export class AuthService implements OnModuleDestroy {
     }
     this.empresaRepository = this.globalConnection.getRepository(Empresa);
     this.empresaRepository = this.globalConnection.getRepository(Empresa);
-
   }
 
   async onModuleDestroy() {
@@ -42,8 +41,8 @@ export class AuthService implements OnModuleDestroy {
     @InjectRepository(Usuario)
     private usuarioRepository: Repository<Usuario>,
     private readonly emailService: EmailService,
-    private readonly emailServiceResend: EmailServiceResend
-  ) { }
+    private readonly emailServiceResend: EmailServiceResend,
+  ) {}
 
   async validateUser(correo: string, password: string): Promise<any> {
     const user = await this.usuarioRepository.findOne({ where: { correo } });
@@ -133,10 +132,14 @@ export class AuthService implements OnModuleDestroy {
 
         const empresa = await this.empresaRepository.findOne({
           where: { id: user.id_empresa },
-          relations: ['tipoServicioId', 'currencies', 'payment', 'payment.plan'],
+          relations: [
+            'tipoServicioId',
+            'currencies',
+            'payment',
+            'payment.plan',
+          ],
         });
         if (empresa) {
-
           logo = empresa.logo ?? 'No logo';
           assistentEnabled = empresa?.assistentEnabled;
           abierto = empresa.abierto;
@@ -157,11 +160,10 @@ export class AuthService implements OnModuleDestroy {
           )}`;
 
           if (empresa.greenApiInstance && empresa.greenApiInstanceToken) {
-           
             try {
-               const res = await fetch(
-              `https://api.green-api.com/waInstance${empresa.greenApiInstance}/getStateInstance/${empresa.greenApiInstanceToken}`,
-            );
+              const res = await fetch(
+                `https://api.green-api.com/waInstance${empresa.greenApiInstance}/getStateInstance/${empresa.greenApiInstanceToken}`,
+              );
               const resFormated = await res.json();
 
               greenApiConfigured = resFormated.stateInstance === 'authorized';
@@ -221,12 +223,13 @@ export class AuthService implements OnModuleDestroy {
   }
 
   async sendLinkToResetPassword(userEmail: string) {
-
     try {
       const globalConnection = await handleGetGlobalConnection();
       const userRepository = globalConnection.getRepository(Usuario);
 
-      const user = await userRepository.findOne({ where: { correo: userEmail } });
+      const user = await userRepository.findOne({
+        where: { correo: userEmail },
+      });
       if (!user) {
         throw new HttpException('Invalid user', 400);
       }
@@ -238,14 +241,16 @@ export class AuthService implements OnModuleDestroy {
         sub: user.id,
       };
 
-      const access_token = this.jwtService.sign(payload)
-      await this.emailServiceResend.sendVerificationCodeEmail(user.correo, access_token)
- 
+      const access_token = this.jwtService.sign(payload);
+      await this.emailServiceResend.sendVerificationCodeEmail(
+        user.correo,
+        access_token,
+      );
+
       return {
         ok: true,
         message: 'Hemos enviado un correo para recuperar tu cuenta!',
       };
-
     } catch (error) {
       throw new BadRequestException({
         ok: false,
@@ -266,15 +271,14 @@ export class AuthService implements OnModuleDestroy {
         throw new HttpException('Invalid user', 400);
       }
       const hashedPassword = await bcrypt.hash(newPassword, 10);
-      user.password = hashedPassword
+      user.password = hashedPassword;
 
-      await this.usuarioRepository.save(user)
+      await this.usuarioRepository.save(user);
 
       return {
         ok: true,
         message: 'La password se restablecio correctamente',
       };
-
     } catch (error) {
       throw new BadRequestException({
         ok: false,
