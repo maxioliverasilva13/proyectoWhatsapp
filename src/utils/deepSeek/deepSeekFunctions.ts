@@ -103,6 +103,9 @@ async function executeToolByName(
   } else if (name === 'cancelOrder') {
     console.log('cancelOrder');
     toolResult = await pedidoService.remove(args.orderId);
+  } else if (name === 'getDailyMenu') {
+    console.log('getDailyMenu');
+    toolResult = await productoService.findAllInTextDailyMenu(args.dayOfWeek);
   } else if (name === 'getCurrencies') {
     console.log('getCurrencies');
     toolResult = await productoService.getCurrencies();

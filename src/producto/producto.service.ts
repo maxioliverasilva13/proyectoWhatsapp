@@ -178,6 +178,29 @@ export class ProductoService implements OnModuleDestroy {
     }
   }
 
+  async findAllInTextDailyMenu(dayOfWeeK: number) {
+    const productsAll = await this.productoRepository.find({
+      where: {
+        disponible: true,
+        isMenuDiario: true,
+        diaSemana: dayOfWeeK ?? 0,
+      },
+    });
+
+    return productsAll.map((prod) => {
+      return {
+        name: prod?.nombre,
+        id: prod?.id,
+        disponible: prod?.disponible,
+        price: prod?.precio,
+        dayOfWeeK: dayOfWeeK,
+        description: prod?.descripcion,
+        plazoDuracionEstimado: prod?.plazoDuracionEstimadoMinutos,
+        currency_id: prod?.currency_id,
+      };
+    });
+  }
+
   async findAllInText() {
     const productsAll = await this.productoRepository.find({
       where: { disponible: true, isMenuDiario: false },
