@@ -46,7 +46,7 @@ export class GreenApiService {
     senderName,
     timeZone,
     chatId,
-    retiroSucursalEnabled,
+    retiroEnSucursalEnabled,
   ) {
     let originalChatId = '';
     let chatIdWhatsapp = '';
@@ -128,7 +128,7 @@ export class GreenApiService {
         numberSender,
         chatIdExist: chatIdWhatsapp,
         originalChatId,
-        retiroSucursalEnabled: retiroSucursalEnabled,
+        retiroEnSucursalEnabled: retiroEnSucursalEnabled,
         timeZone,
         senderName: senderName,
         userId: clienteId

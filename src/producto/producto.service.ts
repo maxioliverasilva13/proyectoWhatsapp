@@ -69,12 +69,14 @@ export class ProductoService implements OnModuleDestroy {
         createProduct.categoryIds &&
         categories.length !== createProduct.categoryIds.length
       ) {
-        throw new BadRequestException({
-          ok: false,
-          statusCode: 400,
-          message: 'Una o más categorías no fueron encontradas',
-          error: 'Bad Request',
-        });
+        if (!createProduct?.isMenuDiario) {
+          throw new BadRequestException({
+            ok: false,
+            statusCode: 400,
+            message: 'Una o más categorías no fueron encontradas',
+            error: 'Bad Request',
+          });
+        }
       }
 
       const product = new Producto();
@@ -116,7 +118,10 @@ export class ProductoService implements OnModuleDestroy {
   }
 
   async findAll(): Promise<Producto[]> {
-    return this.productoRepository.find({ relations: ['category'], where: { isMenuDiario: true } });
+    return this.productoRepository.find({
+      relations: ['category'],
+      where: { isMenuDiario: true },
+    });
   }
 
   async findAllWithQuery(data: GetProductsDTO): Promise<Producto[]> {
