@@ -84,6 +84,8 @@ export class ProductoService implements OnModuleDestroy {
       product.empresa_id = empresaId;
       product.descripcion = createProduct.descripcion;
       product.disponible = true;
+      product.diaSemana = createProduct?.diaSemana ?? 1;
+      product.orderMenuDiario = createProduct?.orderMenuDiario ?? 0;
       product.currency_id = currencyExist?.id;
       product.plazoDuracionEstimadoMinutos =
         createProduct.plazoDuracionEstimadoMinutos;
