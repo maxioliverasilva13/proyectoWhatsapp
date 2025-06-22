@@ -20,6 +20,7 @@ interface Services {
 
 interface Context {
   threadId: number;
+  direccion?: string;
   clienteId: any;
   retiroEnSucursalEnabled?: boolean;
   empresaId: any;
@@ -160,7 +161,7 @@ export async function sendMessageWithTools(
   const usersEmpresa = await services.clienteService.findUsersByEmpresa(
     context.empresaId,
   );
-  const formatedText = `RETIRO_SUCURSAL_ENABLED: ${context?.retiroEnSucursalEnabled ? "true" : "false"} \n EmpresaId: ${context.empresaId} \n EmpresaType: ${context.empresaType} \n UserId: ${context.userId} \n Nombre de usuario: ${context.senderName} \n
+  const formatedText = `DIRECCION_EMPRESA: ${context?.direccion} \n RETIRO_SUCURSAL_ENABLED: ${context?.retiroEnSucursalEnabled ? "true" : "false"} \n EmpresaId: ${context.empresaId} \n EmpresaType: ${context.empresaType} \n UserId: ${context.userId} \n Nombre de usuario: ${context.senderName} \n
     CURRENT_TIME:${getCurrentDate()}\n CURRENT_EMPLEADOS:${JSON.stringify(usersEmpresa ?? '[]')} \n`;
 
   let currentMessages = [...messages];

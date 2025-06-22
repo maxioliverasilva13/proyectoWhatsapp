@@ -113,6 +113,7 @@ export class AuthService implements OnModuleDestroy {
       let tipo_servicio = 0;
       let tipo_servicioNombre = '';
       let empresaName = '';
+      let direccion = '';
       ``;
       let maxPedidos = 0;
       let abierto;
@@ -153,6 +154,7 @@ export class AuthService implements OnModuleDestroy {
           notificarMenuDiario = empresa.notificarMenuDiario;
           remaindersHorsRemainder = empresa.remaindersHorsRemainder;
           payment = empresa.payment;
+          direccion = empresa.direccion;
           retiroEnSucursal = empresa.retiroEnSucursal ?? false;
           timeZone = empresa.timeZone;
           apiConfigured = empresa.apiConfigured;
@@ -195,6 +197,7 @@ export class AuthService implements OnModuleDestroy {
         maxPedidos: maxPedidos,
         currentPedidos: currentPedidos,
         payment: payment,
+        direccion,
         greenApiConfigured,
         globalConfig:
           greenApiConfigured && userConfigured && paymentMade && apiConfigured,
