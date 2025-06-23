@@ -112,7 +112,7 @@ async function executeToolByName(
     toolResult = await productoService.getCurrencies();
   } else if (name === 'confirmOrder') {
     console.log('confirmOrder');
-    console.log("intentando crear orden con", args)
+    console.log('intentando crear orden con', args, args?.info?.data);
     toolResult = await greenApiService.hacerPedido({
       currentThreadId: threadId,
       transferUrl: args?.transferUrl ?? '',
@@ -161,7 +161,7 @@ export async function sendMessageWithTools(
   const usersEmpresa = await services.clienteService.findUsersByEmpresa(
     context.empresaId,
   );
-  const formatedText = `DIRECCION_EMPRESA: ${context?.direccion} \n RETIRO_SUCURSAL_ENABLED: ${context?.retiroEnSucursalEnabled ? "true" : "false"} \n EmpresaId: ${context.empresaId} \n EmpresaType: ${context.empresaType} \n UserId: ${context.userId} \n Nombre de usuario: ${context.senderName} \n
+  const formatedText = `DIRECCION_EMPRESA: ${context?.direccion} \n RETIRO_SUCURSAL_ENABLED: ${context?.retiroEnSucursalEnabled ? 'true' : 'false'} \n EmpresaId: ${context.empresaId} \n EmpresaType: ${context.empresaType} \n UserId: ${context.userId} \n Nombre de usuario: ${context.senderName} \n
     CURRENT_TIME:${getCurrentDate()}\n CURRENT_EMPLEADOS:${JSON.stringify(usersEmpresa ?? '[]')} \n`;
 
   let currentMessages = [...messages];
@@ -175,7 +175,7 @@ export async function sendMessageWithTools(
 
   while (maxIterations-- > 0) {
     const currentMessagesSlices = currentMessages;
-    const instructions = await getInstructions(context.empresaType)
+    const instructions = await getInstructions(context.empresaType);
     const chatMessages = sanitizeMessages([
       { role: 'system', content: instructions },
       { role: 'system', content: formatedText },
