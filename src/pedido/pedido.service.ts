@@ -1036,10 +1036,8 @@ export class PedidoService implements OnModuleDestroy {
 
     const { intervaloTiempoCalendario, timeZone = 'America/Montevideo' } =
       empresa;
-    const diaSemana = moment(fecha).endOf('day').tz(timeZone).isoWeekday();
+    const diaSemana = moment(fecha).endOf('day').subtract(6, "hours").tz(timeZone).isoWeekday();
     const horariosDia = await this.horarioService.findByDay(diaSemana);
-    console.log('diaSemana', diaSemana);
-    console.log('horariosDia', horariosDia);
     if (!timeZone || !intervaloTiempoCalendario || !horariosDia) return [];
 
     if (horariosDia.length === 0) return [];

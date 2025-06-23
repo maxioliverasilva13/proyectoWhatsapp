@@ -161,6 +161,7 @@ export async function sendMessageWithTools(
   const usersEmpresa = await services.clienteService.findUsersByEmpresa(
     context.empresaId,
   );
+
   const formatedText = `DIRECCION_EMPRESA: ${context?.direccion} \n RETIRO_SUCURSAL_ENABLED: ${context?.retiroEnSucursalEnabled ? 'true' : 'false'} \n EmpresaId: ${context.empresaId} \n EmpresaType: ${context.empresaType} \n UserId: ${context.userId} \n Nombre de usuario: ${context.senderName} \n
     CURRENT_TIME:${getCurrentDate()}\n CURRENT_EMPLEADOS:${JSON.stringify(usersEmpresa ?? '[]')} \n`;
 
@@ -174,18 +175,22 @@ export async function sendMessageWithTools(
   let lastMessage = null;
 
   while (maxIterations-- > 0) {
-    const currentMessagesSlices = currentMessages;
+    if (hasUnrespondedToolCalls(currentMessages)) {
+      console.warn(
+        '[⚠️] Tool calls pendientes sin responder. Deteniendo el ciclo.',
+      );
+      break;
+    }
+
     const instructions = await getInstructions(context.empresaType);
     const chatMessages = sanitizeMessages([
       { role: 'system', content: instructions },
       { role: 'system', content: formatedText },
-      ...currentMessagesSlices,
+      ...currentMessages,
     ]);
 
     console.log('[Iteración]', 5 - maxIterations);
-    console.log('[Enviando mensajes]');
-
-    console.log('chatMessages', chatMessages);
+    console.log('[Enviando mensajes]', chatMessages);
 
     const response = await fetch('https://api.deepseek.com/chat/completions', {
       method: 'POST',
@@ -220,7 +225,7 @@ export async function sendMessageWithTools(
 
       currentMessages.push({
         role: 'assistant',
-        ...(message.tool_calls && { tool_calls: message.tool_calls }),
+        tool_calls: message.tool_calls,
         ...(message.content && { content: message.content }),
       });
 
@@ -264,7 +269,7 @@ export async function sendMessageWithTools(
         });
       }
 
-      continue; // Volver a iterar con las respuestas de tools
+      continue;
     }
 
     if (message?.content) {
@@ -275,4 +280,21 @@ export async function sendMessageWithTools(
 
   console.log('[Fin sin respuesta clara]', lastMessage);
   return lastMessage?.content || 'No pude generar una respuesta';
+}
+
+function hasUnrespondedToolCalls(messages: any[]): boolean {
+  const reversed = [...messages].reverse();
+  const lastAssistantWithTools = reversed.find(
+    (m) => m.role === 'assistant' && m.tool_calls?.length > 0,
+  );
+
+  if (!lastAssistantWithTools) return false;
+
+  const index = messages.indexOf(lastAssistantWithTools);
+  const toolCallIds = lastAssistantWithTools.tool_calls.map((tc: any) => tc.id);
+  const nextMessages = messages.slice(index + 1);
+
+  return !toolCallIds.every((id: string) =>
+    nextMessages.some((m) => m.role === 'tool' && m.tool_call_id === id),
+  );
 }
