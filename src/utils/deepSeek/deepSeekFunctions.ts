@@ -118,7 +118,7 @@ async function executeToolByName(
       transferUrl: args?.transferUrl ?? '',
       clienteId,
       empresaId,
-      detalles: args.detalles,
+      detalles: args.detalles ?? args.info?.detalles,
       openAIResponse: args.info,
       empresaType,
       clientName,
