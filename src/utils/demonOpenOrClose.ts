@@ -55,6 +55,8 @@ export const OpenOrClose = async () => {
                 }
             }
 
+            console.log("emrpesa a actualizar", empresas)
+
             empresa.abierto = estaDentroDeHorario && !cierreProvisorio;
             await repoEmpresa.save(empresa);
         }));
