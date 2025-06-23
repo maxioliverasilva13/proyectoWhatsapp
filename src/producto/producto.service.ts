@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { Producto } from './entities/producto.entity';
 import { CreateProductoDto } from './dto/create-producto.dto';
-import { DataSource, ILike, In, Repository } from 'typeorm';
+import { DataSource, ILike, In, IsNull, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UpdateProductoDto } from './dto/update-producto.dto';
 import { ProductoPedido } from 'src/productopedido/entities/productopedido.entity';
@@ -125,14 +125,17 @@ export class ProductoService implements OnModuleDestroy {
   }
 
   async findAllWithQuery(data: GetProductsDTO): Promise<Producto[]> {
-    const whereCondition: any = { disponible: true, isMenuDiario: false };
+    const base: any = { disponible: true };
 
     if (data.query?.trim()) {
-      whereCondition.nombre = ILike(`%${data.query.trim()}%`);
+      base.nombre = ILike(`%${data.query.trim()}%`);
     }
 
     const products = await this.productoRepository.find({
-      where: whereCondition,
+      where: [
+        { ...base, isMenuDiario: false },
+        { ...base, isMenuDiario: IsNull() },
+      ],
       relations: ['category'],
     });
 
@@ -202,23 +205,26 @@ export class ProductoService implements OnModuleDestroy {
   }
 
   async findAllInText() {
+    const base = { disponible: true };
+
     const productsAll = await this.productoRepository.find({
-      where: { disponible: true, isMenuDiario: false },
+      where: [
+        { ...base, isMenuDiario: false },
+        { ...base, isMenuDiario: IsNull() },
+      ],
       relations: ['category'],
     });
 
-    return productsAll.map((prod) => {
-      return {
-        categories: prod.category?.map((cat) => cat?.name),
-        name: prod?.nombre,
-        id: prod?.id,
-        disponible: prod?.disponible,
-        price: prod?.precio,
-        description: prod?.descripcion,
-        plazoDuracionEstimado: prod?.plazoDuracionEstimadoMinutos,
-        currency_id: prod?.currency_id,
-      };
-    });
+    return productsAll.map((prod) => ({
+      categories: prod.category?.map((cat) => cat?.name),
+      name: prod?.nombre,
+      id: prod?.id,
+      disponible: prod?.disponible,
+      price: prod?.precio,
+      description: prod?.descripcion,
+      plazoDuracionEstimado: prod?.plazoDuracionEstimadoMinutos,
+      currency_id: prod?.currency_id,
+    }));
   }
 
   async updateProducto(id: number, updateProductoDto: UpdateProductoDto) {
