@@ -58,7 +58,10 @@ import { PaymentMethodController } from './paymentMethod/paymentMethod.controlle
 import { HorarioController } from './horario/horario.controller';
 import { HorarioModule } from './horario/horario.module';
 import { ClienteController } from './cliente/cliente.controller';
-import { SeedModule } from './fakeseed/fakeseed.module';
+import { OpenaiController } from './openAI/openAI.controller';
+import { OpenaiModule } from './openAI/openAI.module';
+import { MenuImageModule } from './menuImg/menuImg.module';
+import { MenuImageController } from './menuImg/menuImg.controller';
 
 ConfigModule.forRoot();
 
@@ -95,6 +98,7 @@ const connection = handleGetConnection();
     }),
     ProductoModule,
     PedidoModule,
+    OpenaiModule,
     ChatModule,
     MensajeModule,
     EstadoModule,
@@ -120,6 +124,7 @@ const connection = handleGetConnection();
     HorarioModule,
     PaymentsModule,
     PaymentsModule,
+    MenuImageModule
   ],
   controllers: [
     AppController,
@@ -157,7 +162,9 @@ export class AppModule {
         MensajeController,
         CategoryController,
         PaymentMethodController,
-        ClienteController
+        ClienteController,
+        OpenaiController,
+        MenuImageController
       );
 
     //JWT MIDDLEWARE
