@@ -75,6 +75,8 @@ function createEnvFileApp() {
       EMAIL_HOST=${process.env.EMAIL_HOST}
       TOKEN_CONNECT_GIT=${process.env.TOKEN_CONNECT_GIT}
       EMAIL_PORT=${process.env.EMAIL_PORT}
+      OPEN_AI_TOKEN=${process.env.OPEN_AI_TOKEN}
+
       EMAIL_PASS=${process.env.EMAIL_PASS}
       REDIS_HOST=${process.env.REDIS_HOST}
       REDIS_PORT=${process.env.REDIS_PORT}
