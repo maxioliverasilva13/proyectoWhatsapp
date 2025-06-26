@@ -6,21 +6,21 @@ import axios from 'axios';
 
 @Injectable()
 export class OpenaiService {
-  constructor(
-    @InjectRepository(Category)
-    private readonly categoryRepo: Repository<Category>,
-  ) {}
+    constructor(
+        @InjectRepository(Category)
+        private readonly categoryRepo: Repository<Category>,
+    ) { }
 
-  async parseMenu(text: string): Promise<any> {
-    try {
-      const allCategories = await this.categoryRepo.find({ where: { enabled: true } });
+    async parseMenu(text: string): Promise<any> {
+        try {
+            const allCategories = await this.categoryRepo.find({ where: { enabled: true } });
 
-      let categoryText = '';
-      allCategories.map((cat) => {
-        categoryText += `\nid: ${cat.id}, nombre: ${cat.name}, descripcion: ${cat.description}\n`;
-      });
+            let categoryText = '';
+            allCategories.map((cat) => {
+                categoryText += `\nid: ${cat.id}, nombre: ${cat.name}, descripcion: ${cat.description}\n`;
+            });
 
-      const prompt = `
+            const prompt = `
 Tu tarea es analizar el siguiente texto extraído de una imagen de un menú de restaurante y devolver un arreglo en formato JSON. 
 Cada objeto del arreglo representa un producto del menú. Seguí estrictamente este esquema por cada producto:
 
@@ -49,32 +49,32 @@ Ahora analizá este texto del menú y devolvé los productos según el formato m
 Respondé solo con el JSON válido. No incluyas explicaciones ni texto adicional.
 `;
 
-      const response = await axios.post(
-        'https://api.deepseek.com/v1/chat/completions',
-        {
-          model: 'deepseek-chat',
-          messages: [{ role: 'user', content: prompt }],
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${process.env.DEEPSEEK_TOKEN}`,
-          },
-        },
-      );
+            const response = await axios.post(
+                'https://api.deepseek.com/v1/chat/completions',
+                {
+                    model: 'deepseek-chat',
+                    messages: [{ role: 'user', content: prompt }],
+                },
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${process.env.DEEPSEEK_TOKEN}`,
+                    },
+                },
+            );
 
-      const result = response.data.choices[0].message?.content;
-      return {
-        ok: true,
-        data: JSON.parse(result || '{}'),
-      };
-    } catch (error) {
-      throw new BadRequestException({
-        ok: false,
-        statusCode: 400,
-        message: error?.message || 'Error al procesar el menú',
-        error: 'Bad Request',
-      });
+            const result = response.data.choices[0].message?.content;
+            return {
+                ok: true,
+                data: JSON.parse(result || '{}'),
+            };
+        } catch (error) {
+            throw new BadRequestException({
+                ok: false,
+                statusCode: 400,
+                message: error?.message || 'Error al procesar el menú',
+                error: 'Bad Request',
+            });
+        }
     }
-  }
 }

@@ -1,5 +1,8 @@
-import { Controller, Get, Post, Body, Param, Delete, Patch } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Patch, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { MenuImageService } from './menuImg.service';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 
 @Controller('menu-images')
 export class MenuImageController {
@@ -8,6 +11,23 @@ export class MenuImageController {
   @Post()
   create(@Body('url') url: string) {
     return this.menuImageService.create(url);
+  }
+
+  @Post()
+  @UseInterceptors(
+    FileInterceptor('image', {
+      storage: diskStorage({
+        destination: './uploads',
+        filename: (req, file, cb) => {
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
+          cb(null, `${uniqueSuffix}${extname(file.originalname)}`);
+        },
+      }),
+    }),
+  )
+  async parseMenuFromImage(@UploadedFile() file: Express.Multer.File) {
+    return this.menuImageService.parseMenuFromImage(file.path);
   }
 
   @Get()
