@@ -11,7 +11,7 @@ export class MenuImageService {
   constructor(
     @InjectRepository(MenuImage)
     private readonly menuImageRepo: Repository<MenuImage>,
-    private readonly openAiService : OpenaiService
+    private readonly openAiService: OpenaiService
   ) { }
 
   create(url: string): Promise<MenuImage> {

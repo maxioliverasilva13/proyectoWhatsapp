@@ -13,7 +13,7 @@ export class MenuImageController {
     return this.menuImageService.create(url);
   }
 
-  @Post()
+  @Post('parseMenuImage')
   @UseInterceptors(
     FileInterceptor('image', {
       storage: diskStorage({

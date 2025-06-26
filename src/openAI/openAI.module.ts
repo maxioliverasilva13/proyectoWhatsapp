@@ -8,5 +8,6 @@ import { Category } from 'src/category/entities/category.entity';
     imports: [ TypeOrmModule.forFeature([Category])],
   controllers: [OpenaiController],
   providers: [OpenaiService],
+  exports: [OpenaiService]
 })
 export class OpenaiModule {}
