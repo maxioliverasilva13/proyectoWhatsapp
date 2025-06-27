@@ -11,6 +11,9 @@ export class MenuImage {
   @Column({ default: false })
   processed: boolean;
 
+  @Column({ nullable: true })
+  nombre: string;
+
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 

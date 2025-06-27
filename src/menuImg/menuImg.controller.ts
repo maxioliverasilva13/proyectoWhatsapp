@@ -7,8 +7,8 @@ export class MenuImageController {
   constructor(private readonly menuImageService: MenuImageService) { }
 
   @Post()
-  create(@Body('url') url: string) {
-    return this.menuImageService.create(url);
+  create(@Body() data: {url: string, nombre: string;}, ) {
+    return this.menuImageService.create(data.url, data.nombre);
   }
 
   @Post('parseMenuImage')

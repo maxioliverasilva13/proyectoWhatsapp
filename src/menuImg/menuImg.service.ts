@@ -14,8 +14,8 @@ export class MenuImageService {
 
   ) { }
 
-  create(url: string): Promise<MenuImage> {
-    const image = this.menuImageRepo.create({ url });
+  create(url: string, nombre: string): Promise<MenuImage> {
+    const image = this.menuImageRepo.create({ url, nombre });
     return this.menuImageRepo.save(image);
   }
 
