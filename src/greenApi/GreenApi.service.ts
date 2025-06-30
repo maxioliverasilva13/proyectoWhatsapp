@@ -61,11 +61,11 @@ export class GreenApiService {
     }
 
     console.log('obtengo el ultimo thread');
-    
+
 
     if (chatIdExist) {
       console.log('ya hay un chat creado, es', chatId);
-      
+
       chatIdWhatsapp = chatIdExist
     } else {
       console.log('no hay un chat creado');
@@ -89,7 +89,7 @@ export class GreenApiService {
       });
 
       console.log('se creo el thrad');
-      
+
 
       if (resp.thread.id) {
         currentThreadId = resp.thread.id
@@ -109,7 +109,7 @@ export class GreenApiService {
       numberSender,
       false,
     );
-    
+
     const openAIResponse = await sendMessageWithTools(textMessage, messages,
       {
         productoService: this.productoService,
@@ -197,8 +197,8 @@ export class GreenApiService {
     userId = "",
     isDomicilio = false
   }: any) {
-    
-    
+
+
     try {
       const newOrder = await this.pedidoService.create({
         clienteId: clienteId,
@@ -233,6 +233,36 @@ export class GreenApiService {
         ok: false,
         message: error?.message ?? "Erro inesperado creando orden"
       };
+    }
+  }
+
+  async sendImageToChat(chatIdWhatsapp: string, imageUrl: string) {
+    console.log('Enviando imagen...');
+
+    const payload = {
+      chatId: chatIdWhatsapp,
+      urlFile: imageUrl,
+      fileName: 'imagen.jpg', 
+      caption: '',
+    };
+
+    try {
+      const resp = await fetch(
+        `https://api.greenapi.com/waInstance${process.env.ID_INSTANCE}/sendFileByUrl/${process.env.API_TOKEN_INSTANCE}`,
+        {
+          headers: { 'Content-Type': 'application/json' },
+          method: 'POST',
+          body: JSON.stringify(payload),
+        },
+      );
+
+      const respF = await resp.json();
+      console.log('respF', respF);
+      return { success: true };
+    } catch (error: any) {
+      console.log('Error al enviar imagen');
+      console.log(error?.response?.data?.message ?? error);
+      return { success: false };
     }
   }
 }

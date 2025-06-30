@@ -19,10 +19,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Mensaje } from 'src/mensaje/entities/mensaje.entity';
 import { Chat } from 'src/chat/entities/chat.entity';
 import { RedisService } from 'src/redis/redis.service';
-import { PedidoService } from 'src/pedido/pedido.service';
 import { Pedido } from 'src/pedido/entities/pedido.entity';
 import { PaymentMethodModule } from 'src/paymentMethod/paymentMethod.module';
-import { HorarioService } from 'src/horario/horario.service';
 import { HorarioModule } from 'src/horario/horario.module';
 
 @Module({
