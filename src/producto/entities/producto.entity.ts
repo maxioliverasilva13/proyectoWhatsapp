@@ -1,5 +1,4 @@
 import { Category } from 'src/category/entities/category.entity';
-import { Currency } from 'src/currencies/entities/currency.entity';
 import { ProductoPedido } from 'src/productopedido/entities/productopedido.entity';
 import {
   Entity,
