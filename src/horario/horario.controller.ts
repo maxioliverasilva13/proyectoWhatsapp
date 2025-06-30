@@ -1,4 +1,13 @@
-import { Controller, Post, Get, Body, Delete, Param, ParseIntPipe } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  Delete,
+  Param,
+  ParseIntPipe,
+  Put,
+} from '@nestjs/common';
 import { HorarioService } from './horario.service';
 import { CreateHorarioDto } from './dto/create-horario.dto';
 
@@ -11,9 +20,24 @@ export class HorarioController {
     return this.horarioService.create(dto);
   }
 
+  @Post('/daily-menu')
+  createDailyMenu(@Body() dto: CreateHorarioDto) {
+    return this.horarioService.create(dto, true);
+  }
+
   @Get()
   findAll() {
     return this.horarioService.findAll();
+  }
+
+  @Get('/daily-menu')
+  findAllDailyMenu() {
+    return this.horarioService.findAll(true);
+  }
+
+  @Put('/daily-menu/:id')
+  updateDailyMenu(@Param('id') id: string, @Body() updatedailyData: any) {
+    return this.horarioService.updateDailySchedule(id, updatedailyData);
   }
 
   @Delete(':id')
