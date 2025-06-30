@@ -35,7 +35,7 @@ export class HorarioService {
     }
 
     const existentes = await this.horarioRepo.find({
-      where: { dayOfWeek },
+      where: { dayOfWeek, isDailyMenu: isDailyMenu },
     });
 
     const solapado = existentes.some((horario) => {
