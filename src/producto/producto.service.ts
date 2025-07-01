@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  forwardRef,
   Inject,
   Injectable,
   OnModuleDestroy,
@@ -32,8 +33,8 @@ export class ProductoService implements OnModuleDestroy {
     private categoryRepo: Repository<Category>,
     @InjectRepository(MenuImage)
     private menuImgRepo: Repository<MenuImage>,
-    private readonly greenApiService: GreenApiService
-
+    @Inject(forwardRef(() => GreenApiService))
+    private readonly greenApiService: GreenApiService,
   ) { }
 
   async onModuleInit() {

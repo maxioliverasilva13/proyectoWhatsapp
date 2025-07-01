@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { ChatGptThreadsService } from 'src/chatGptThreads/chatGptThreads.service';
 import { ClienteService } from 'src/cliente/cliente.service';
 import { DeviceService } from 'src/device/device.service';
@@ -9,10 +9,7 @@ import { PedidoService } from 'src/pedido/pedido.service';
 import { ProductoService } from 'src/producto/producto.service';
 import { sendMessageWithTools } from 'src/utils/deepSeek/deepSeekFunctions';
 import { connectToGreenApi } from 'src/utils/greenApi';
-import {
-  createThread,
-  sendMessageToThread,
-} from 'src/utils/openAIServices';
+
 
 @Injectable()
 export class GreenApiService {
@@ -20,6 +17,7 @@ export class GreenApiService {
     private readonly chatGptThreadsService: ChatGptThreadsService,
     private readonly pedidoService: PedidoService,
     private readonly clienteService: ClienteService,
+    @Inject(forwardRef(() => ProductoService))
     private readonly productoService: ProductoService,
     private readonly infoLineService: InfolineService,
     private readonly deviceService: DeviceService,
@@ -242,7 +240,7 @@ export class GreenApiService {
     const payload = {
       chatId: chatIdWhatsapp,
       urlFile: imageUrl,
-      fileName: 'imagen.jpg', 
+      fileName: 'imagen.jpg',
       caption: '',
     };
 
