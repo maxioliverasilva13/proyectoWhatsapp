@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { ProductoService } from './producto.service';
 import { ProductoController } from './producto.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -9,7 +9,7 @@ import { MenuImage } from 'src/menuImg/entities/menu';
 import { GreenApiModule } from 'src/greenApi/GreenApi.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Producto, ProductoPedido, Category, MenuImage]), GreenApiModule],
+  imports: [TypeOrmModule.forFeature([Producto, ProductoPedido, Category, MenuImage]), forwardRef(() => GreenApiModule)],
   controllers: [ProductoController],
   providers: [ProductoService],
   exports: [ProductoService, TypeOrmModule],

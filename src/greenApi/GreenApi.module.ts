@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TenantConnectionService } from 'src/tenant-connection-service/tenant-connection-service.service';
 import { GrenApiController } from './GreenApi.controller';
 import { GreenApiService } from './GreenApi.service';
@@ -24,7 +24,7 @@ import { PaymentMethodModule } from 'src/paymentMethod/paymentMethod.module';
 import { HorarioModule } from 'src/horario/horario.module';
 
 @Module({
-  imports:[ TypeOrmModule.forFeature([Chat, Mensaje, Pedido]),ChatGptThreadsModule, PedidoModule, DeviceModule, ClienteModule, ProductoModule,EmpresaModule, NumeroConfianzaModule, WebSocketModule, InfolineModule, MensajeModule, ChatModule, HorarioModule, BullModule.registerQueue({
+  imports:[ TypeOrmModule.forFeature([Chat, Mensaje, Pedido]),ChatGptThreadsModule, PedidoModule, DeviceModule, ClienteModule, forwardRef(()=> ProductoModule),EmpresaModule, NumeroConfianzaModule, WebSocketModule, InfolineModule, MensajeModule, ChatModule, HorarioModule, BullModule.registerQueue({
     name:`GreenApiResponseMessagee-${process.env.SUBDOMAIN}`,
     connection: {
       host: process.env.REDIS_HOST || 'localhost',
