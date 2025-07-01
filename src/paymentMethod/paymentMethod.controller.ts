@@ -5,20 +5,25 @@ import { CreatePaymentMethodDto } from './entities/dtos/create-payment-method.dt
 
 @Controller('payment-methods')
 export class PaymentMethodController {
-    constructor(private readonly paymentMethodService: PaymentMethodService) { }
+  constructor(private readonly paymentMethodService: PaymentMethodService) {}
 
-    @Get()
-    findAll() {
-        return this.paymentMethodService.findAll();
-    }
+  @Get()
+  findAll() {
+    return this.paymentMethodService.findAll();
+  }
 
-    @Put(':id')
-    update(@Param('id') id: string, @Body() dto: UpdatePaymentMethodDto) {
-        return this.paymentMethodService.update(+id, dto);
-    }
+  @Get('/getAll')
+  findAllPayments() {
+    return this.paymentMethodService.findAllPayments();
+  }
 
-    @Post()
-    create(@Body() dto: CreatePaymentMethodDto) {
-        return this.paymentMethodService.create(dto);
-    }
+  @Put(':id')
+  update(@Param('id') id: string, @Body() dto: UpdatePaymentMethodDto) {
+    return this.paymentMethodService.update(+id, dto);
+  }
+
+  @Post()
+  create(@Body() dto: CreatePaymentMethodDto) {
+    return this.paymentMethodService.create(dto);
+  }
 }

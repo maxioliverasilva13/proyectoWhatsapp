@@ -16,6 +16,11 @@ export class PaymentMethodService {
     return this.paymentMethodRepository.find({where:{enabled:true}});
   }
 
+   findAllPayments(): Promise<PaymentMethod[]> {
+    return this.paymentMethodRepository.find();
+  }
+
+
   async update(id: number, dto: UpdatePaymentMethodDto): Promise<PaymentMethod> {
     await this.paymentMethodRepository.update(id, dto);
     return this.paymentMethodRepository.findOneBy({ id });
