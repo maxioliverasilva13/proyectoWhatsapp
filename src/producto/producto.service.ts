@@ -212,15 +212,17 @@ export class ProductoService implements OnModuleDestroy {
   }
 
   async findAllInText(chatIdWhatsapp?: any) {
+    console.log(chatIdWhatsapp);
+    
     const base = { disponible: true };
 
-    const [menu, items] = await this.menuImgRepo.findAndCount()
+    const menuImgs = await this.menuImgRepo.find()
 
     let messageToAssistant = '';
 
-    if (items > 0 && chatIdWhatsapp) {
+    if (menuImgs.length > 0 && chatIdWhatsapp) {
       messageToAssistant = "IMPORTANTE: Ya se envió una imagen del menú al usuario. No debes listar los productos. Solo pregúntale qué desea. Aun así, debes usar esta lista de productos para validar lo que el usuario solicite.";
-      await Promise.all(menu.map(element =>
+      await Promise.all(menuImgs.map(element =>
         this.greenApiService.sendImageToChat(chatIdWhatsapp, element.url)
       ));
     }

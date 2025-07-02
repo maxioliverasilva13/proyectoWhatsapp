@@ -81,7 +81,7 @@ async function executeToolByName(
   console.log('args', args);
   if (name === 'getProductsByEmpresa') {
     console.log('getProductsByEmpresa');
-    toolResult = await productoService.findAllInText();
+    toolResult = await productoService.findAllInText(chatIdExist);
   } else if (name === 'getPedidosByUser') {
     console.log('getPedidosByUser');
     toolResult = await pedidoService.getMyOrders(clienteId);
@@ -171,6 +171,7 @@ export async function sendMessageWithTools(
     currentMessages.push({ role: 'user', content: msg });
   }
 
+  
   let maxIterations = 5;
   let lastMessage = null;
 
@@ -189,8 +190,6 @@ export async function sendMessageWithTools(
       ...currentMessages,
     ]);
 
-    console.log('[Iteración]', 5 - maxIterations);
-    console.log('[Enviando mensajes]', chatMessages);
 
     const response = await fetch('https://api.deepseek.com/chat/completions', {
       method: 'POST',
@@ -216,7 +215,6 @@ export async function sendMessageWithTools(
     lastMessage = message;
 
     if (message?.tool_calls?.length > 0) {
-      console.log('[Tool Calls detectadas]', message.tool_calls);
 
       await services.messagesService.createToolCallsMessage({
         tool_calls: message.tool_calls,
@@ -238,7 +236,6 @@ export async function sendMessageWithTools(
           console.error('[Error al parsear argumentos de tool]', e);
         }
 
-        console.log('[Ejecutando tool]', name, args);
 
         const toolOutput = await executeToolByName(
           name,
@@ -260,7 +257,6 @@ export async function sendMessageWithTools(
           chat: context.originalChatId,
         });
 
-        console.log('[Tool output generado]', toolCall.id, toolOutputString);
 
         currentMessages.push({
           role: 'tool',
