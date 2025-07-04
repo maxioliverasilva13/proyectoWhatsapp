@@ -4,6 +4,7 @@ import { ClienteService } from 'src/cliente/cliente.service';
 import { DeviceService } from 'src/device/device.service';
 import { InfolineService } from 'src/infoline/infoline.service';
 import { MensajeService } from 'src/mensaje/mensaje.service';
+import { MenuImageService } from 'src/menuImg/menuImg.service';
 import { PaymentMethodService } from 'src/paymentMethod/paymentMethod.service';
 import { PedidoService } from 'src/pedido/pedido.service';
 import { ProductoService } from 'src/producto/producto.service';
@@ -22,7 +23,9 @@ export class GreenApiService {
     private readonly infoLineService: InfolineService,
     private readonly deviceService: DeviceService,
     private readonly paymentMethodService: PaymentMethodService,
-    private readonly messagesService: MensajeService
+    private readonly messagesService: MensajeService,
+    @Inject(forwardRef(() => MenuImageService))
+    private readonly menuImageService: MenuImageService,
   ) { }
 
   async onModuleInit() {
@@ -117,6 +120,7 @@ export class GreenApiService {
         infoLineService: this.infoLineService,
         messagesService: this.messagesService,
         clienteService: this.clienteService,
+        menuImageService: this.menuImageService
       },
       {
         threadId,

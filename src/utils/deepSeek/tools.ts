@@ -2,6 +2,17 @@ export const Customtools = [
     {
         "type": "function",
         "function": {
+            "name": "getProductosImgs",
+            "description": "Llama a una función externa para mostrar imágenes de productos disponibles y registrar el historial de productos. También llama internamente a getProductsByEmpresa para propósitos de historial, pero no debe llamarse nuevamente a esa función luego. NO se deben mostrar productos después de esta llamada salvo que el usuario lo solicite explícitamente.",
+            "parameters": {
+                "type": "object",
+                "properties": {}
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
 
             "name": "getProductsByEmpresa",
             "description": "Busca una lista de productos por su ID en tiempo real",
@@ -23,7 +34,6 @@ export const Customtools = [
     {
         "type": "function",
         "function": {
-
             "name": "getPedidosByUser",
             "description": "Busca en tiempo real la lista actualizada de pedidos de un usuario. No usar memoria previa ni datos cacheados.",
 
@@ -72,7 +82,7 @@ export const Customtools = [
             }
         }
     },
-     {
+    {
         "type": "function",
         "function": {
             "name": "getDailyMenu",
@@ -145,7 +155,7 @@ export const Customtools = [
                             },
                             "detalles": {
                                 "type": "string",
-                                "description": "Detalles específicos proporcionados por el usuario sobre la orden"
+                                "description": "Detalles específicos proporcionados por el usuario sobre la orden, es MUY importante captar lo que el usuario quiere"
                             },
                             "empleadoId": {
                                 "type": "string",
@@ -258,7 +268,6 @@ export const Customtools = [
         "function": {
             "name": "cancelOrder",
             "description": "Permite cancelar una orden/pedido/reserva",
-
             "parameters": {
                 "type": "object",
                 "properties": {

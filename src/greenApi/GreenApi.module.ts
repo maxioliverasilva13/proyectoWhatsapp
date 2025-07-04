@@ -22,9 +22,10 @@ import { RedisService } from 'src/redis/redis.service';
 import { Pedido } from 'src/pedido/entities/pedido.entity';
 import { PaymentMethodModule } from 'src/paymentMethod/paymentMethod.module';
 import { HorarioModule } from 'src/horario/horario.module';
+import { MenuImageModule } from 'src/menuImg/menuImg.module';
 
 @Module({
-  imports:[ TypeOrmModule.forFeature([Chat, Mensaje, Pedido]),ChatGptThreadsModule, PedidoModule, DeviceModule, ClienteModule, forwardRef(()=> ProductoModule),EmpresaModule, NumeroConfianzaModule, WebSocketModule, InfolineModule, MensajeModule, ChatModule, HorarioModule, BullModule.registerQueue({
+  imports:[ TypeOrmModule.forFeature([Chat, Mensaje, Pedido]),ChatGptThreadsModule, PedidoModule, DeviceModule, ClienteModule, forwardRef(()=> ProductoModule),forwardRef(()=> MenuImageModule),EmpresaModule, NumeroConfianzaModule, WebSocketModule, InfolineModule, MensajeModule, ChatModule, HorarioModule, BullModule.registerQueue({
     name:`GreenApiResponseMessagee-${process.env.SUBDOMAIN}`,
     connection: {
       host: process.env.REDIS_HOST || 'localhost',
