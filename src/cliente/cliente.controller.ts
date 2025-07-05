@@ -73,6 +73,13 @@ export class ClienteController {
     return this.clienteService.findByEmpresa(empresaId);
   }
 
+  @Post('updateClientsNotifyMenu')
+  updateClientsNotifyMenu(@Req() request: Request, @Body() data) {
+    const empresaId = request['empresaId'];
+    return this.clienteService.updateClientsNotificarMenu(empresaId, data);
+  }
+
+
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.clienteService.remove(+id);

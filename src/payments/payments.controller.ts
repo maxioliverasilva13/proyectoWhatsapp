@@ -56,6 +56,7 @@ export class PaymentsController {
   @Post('verify')
   async handleWebhook(@Body() body: any) {
     const pubsubMessage = body.message;
+    console.log("llaman a verify con", body)
     if (pubsubMessage) {
       const decodedData = JSON.parse(
         Buffer.from(pubsubMessage.data, 'base64').toString('utf-8')

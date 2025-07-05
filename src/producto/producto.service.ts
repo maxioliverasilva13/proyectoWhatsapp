@@ -1,12 +1,13 @@
 import {
   BadRequestException,
+  forwardRef,
   Inject,
   Injectable,
   OnModuleDestroy,
 } from '@nestjs/common';
 import { Producto } from './entities/producto.entity';
 import { CreateProductoDto } from './dto/create-producto.dto';
-import { DataSource, ILike, In, Repository } from 'typeorm';
+import { DataSource, ILike, In, IsNull, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UpdateProductoDto } from './dto/update-producto.dto';
 import { ProductoPedido } from 'src/productopedido/entities/productopedido.entity';
@@ -15,6 +16,8 @@ import { handleGetGlobalConnection } from 'src/utils/dbConnection';
 import { Currency } from 'src/currencies/entities/currency.entity';
 import { Category } from 'src/category/entities/category.entity';
 import { UpdatePricesDto } from './dto/update-price-product.dto';
+import { MenuImage } from 'src/menuImg/entities/menu';
+import { GreenApiService } from 'src/greenApi/GreenApi.service';
 
 @Injectable()
 export class ProductoService implements OnModuleDestroy {
@@ -28,7 +31,11 @@ export class ProductoService implements OnModuleDestroy {
     private productoPedidoRepository: Repository<ProductoPedido>,
     @InjectRepository(Category)
     private categoryRepo: Repository<Category>,
-  ) {}
+    @InjectRepository(MenuImage)
+    private menuImgRepo: Repository<MenuImage>,
+    @Inject(forwardRef(() => GreenApiService))
+    private readonly greenApiService: GreenApiService,
+  ) { }
 
   async onModuleInit() {
     if (!this.globalConnection) {
@@ -69,20 +76,25 @@ export class ProductoService implements OnModuleDestroy {
         createProduct.categoryIds &&
         categories.length !== createProduct.categoryIds.length
       ) {
-        throw new BadRequestException({
-          ok: false,
-          statusCode: 400,
-          message: 'Una o más categorías no fueron encontradas',
-          error: 'Bad Request',
-        });
+        if (!createProduct?.isMenuDiario) {
+          throw new BadRequestException({
+            ok: false,
+            statusCode: 400,
+            message: 'Una o más categorías no fueron encontradas',
+            error: 'Bad Request',
+          });
+        }
       }
 
       const product = new Producto();
       product.nombre = createProduct.nombre;
       product.precio = createProduct.precio;
+      product.isMenuDiario = createProduct?.isMenuDiario ?? false;
       product.empresa_id = empresaId;
       product.descripcion = createProduct.descripcion;
       product.disponible = true;
+      product.diaSemana = createProduct?.diaSemana ?? 1;
+      product.orderMenuDiario = createProduct?.orderMenuDiario ?? 0;
       product.currency_id = currencyExist?.id;
       product.plazoDuracionEstimadoMinutos =
         createProduct.plazoDuracionEstimadoMinutos;
@@ -113,12 +125,32 @@ export class ProductoService implements OnModuleDestroy {
   }
 
   async findAll(): Promise<Producto[]> {
-    return this.productoRepository.find({ relations: ['category'] });
+    return this.productoRepository.find({
+      relations: ['category'],
+      where: { isMenuDiario: true },
+    });
   }
 
   async findAllWithQuery(data: GetProductsDTO): Promise<Producto[]> {
-    const whereCondition: any = { disponible: true };
-    console.log('recibo', data.query);
+    const base: any = { disponible: true };
+
+    if (data.query?.trim()) {
+      base.nombre = ILike(`%${data.query.trim()}%`);
+    }
+
+    const products = await this.productoRepository.find({
+      where: [
+        { ...base, isMenuDiario: false },
+        { ...base, isMenuDiario: IsNull() },
+      ],
+      relations: ['category'],
+    });
+
+    return products;
+  }
+
+  async findAllDailyMenu(data: GetProductsDTO): Promise<Producto[]> {
+    const whereCondition: any = { disponible: true, isMenuDiario: true };
 
     if (data.query?.trim()) {
       whereCondition.nombre = ILike(`%${data.query.trim()}%`);
@@ -156,24 +188,50 @@ export class ProductoService implements OnModuleDestroy {
     }
   }
 
-  async findAllInText() {
+  async findAllInTextDailyMenu(dayOfWeeK: number) {
     const productsAll = await this.productoRepository.find({
-      where: { disponible: true },
-      relations: ['category'],
+      where: {
+        disponible: true,
+        isMenuDiario: true,
+        diaSemana: dayOfWeeK ?? 0,
+      },
     });
 
     return productsAll.map((prod) => {
       return {
-        categories: prod.category?.map((cat) => cat?.name),
         name: prod?.nombre,
         id: prod?.id,
         disponible: prod?.disponible,
         price: prod?.precio,
+        dayOfWeeK: dayOfWeeK,
         description: prod?.descripcion,
         plazoDuracionEstimado: prod?.plazoDuracionEstimadoMinutos,
         currency_id: prod?.currency_id,
       };
     });
+  }
+
+  async findAllInText(chatIdWhatsapp?: any) {
+    const base = { disponible: true };
+
+    const productsAll = await this.productoRepository.find({
+      where: [
+        { ...base, isMenuDiario: false },
+        { ...base, isMenuDiario: IsNull() },
+      ],
+      relations: ['category'],
+    });
+
+    return productsAll.map((prod) => ({
+      categories: prod.category?.map((cat) => cat?.name),
+      name: prod?.nombre,
+      id: prod?.id,
+      disponible: prod?.disponible,
+      price: prod?.precio,
+      description: prod?.descripcion,
+      plazoDuracionEstimado: prod?.plazoDuracionEstimadoMinutos,
+      currency_id: prod?.currency_id,
+    }))
   }
 
   async updateProducto(id: number, updateProductoDto: UpdateProductoDto) {

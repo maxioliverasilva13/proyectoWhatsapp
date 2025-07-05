@@ -1,6 +1,6 @@
 import { toolresults } from 'googleapis/build/src/apis/toolresults';
 import getCurrentDate from '../getCurrentDate';
-import { instructions } from './instructions';
+import { getInstructions } from './instructions';
 import { Customtools } from './tools';
 
 type ToolCallFunction = {
@@ -16,11 +16,14 @@ interface Services {
   infoLineService: any;
   messagesService: any;
   clienteService: any;
+  menuImageService: any
 }
 
 interface Context {
   threadId: number;
+  direccion?: string;
   clienteId: any;
+  retiroEnSucursalEnabled?: boolean;
   empresaId: any;
   empresaType: any;
   clientName: any;
@@ -56,6 +59,7 @@ async function executeToolByName(
     paymentMethodService,
     greenApiService,
     infoLineService,
+    menuImageService
   } = services;
 
   const {
@@ -77,9 +81,12 @@ async function executeToolByName(
   console.log('intentando llamar a funcion', name);
 
   console.log('args', args);
-  if (name === 'getProductsByEmpresa') {
+  if (name === 'getProductosImgs') {
+    console.log('getProductosImgs');
+    toolResult = await menuImageService.listProductsImages(chatIdExist);
+  } else if (name === 'getProductsByEmpresa') {
     console.log('getProductsByEmpresa');
-    toolResult = await productoService.findAllInText();
+    toolResult = await productoService.findAllInText(chatIdExist);
   } else if (name === 'getPedidosByUser') {
     console.log('getPedidosByUser');
     toolResult = await pedidoService.getMyOrders(clienteId);
@@ -102,17 +109,21 @@ async function executeToolByName(
   } else if (name === 'cancelOrder') {
     console.log('cancelOrder');
     toolResult = await pedidoService.remove(args.orderId);
+  } else if (name === 'getDailyMenu') {
+    console.log('getDailyMenu');
+    toolResult = await productoService.findAllInTextDailyMenu(args.dayOfWeek);
   } else if (name === 'getCurrencies') {
     console.log('getCurrencies');
     toolResult = await productoService.getCurrencies();
   } else if (name === 'confirmOrder') {
     console.log('confirmOrder');
+    console.log('intentando crear orden con', args, args?.info?.data);
     toolResult = await greenApiService.hacerPedido({
       currentThreadId: threadId,
       transferUrl: args?.transferUrl ?? '',
       clienteId,
       empresaId,
-      detalles: args.detalles,
+      detalles: args.detalles ?? args.info?.detalles,
       openAIResponse: args.info,
       empresaType,
       clientName,
@@ -124,6 +135,7 @@ async function executeToolByName(
       withIA: true,
       paymentMethodId: args?.paymentMethodId,
       userId: args?.info?.empleadoId,
+      isDomicilio: args?.isDomicilio ?? false,
     });
   } else if (name === 'getAvailability') {
     console.log('getAvailability');
@@ -151,34 +163,47 @@ export async function sendMessageWithTools(
   services: Services,
   context: Context,
 ): Promise<string> {
-  const usersEmpresa = await services.clienteService.findUsersByEmpresa(
-    context.empresaId,
-  );
-  const formatedText = `EmpresaId: ${context.empresaId} \n EmpresaType: ${context.empresaType} \n UserId: ${context.userId} \n Nombre de usuario: ${context.senderName} \n
-    CURRENT_TIME:${getCurrentDate()}\n CURRENT_EMPLEADOS:${JSON.stringify(usersEmpresa ?? '[]')} \n`;
+  // Fetch static data in parallel
+  const [usersEmpresa, menuImagesCount] = await Promise.all([
+    services.clienteService.findUsersByEmpresa(context.empresaId),
+    services.menuImageService.getCantidadImages(),
+  ]);
+
+  // Prepare base formatted text string once
+  const formatedText =
+    `DIRECCION_EMPRESA: ${context.direccion}\n` +
+    `RETIRO_SUCURSAL_ENABLED: ${context.retiroEnSucursalEnabled ? 'true' : 'false'}\n` +
+    `EmpresaId: ${context.empresaId}\n` +
+    `EmpresaType: ${context.empresaType}\n` +
+    `UserId: ${context.userId}\n` +
+    `Nombre de usuario: ${context.senderName}\n` +
+    `CURRENT_TIME: ${getCurrentDate()}\n` +
+    `CANT_IMAGES_PROD: ${menuImagesCount}\n` +
+    `CURRENT_EMPLEADOS: ${JSON.stringify(usersEmpresa ?? [])}\n`;
 
   let currentMessages = [...messages];
-
   if (msg) {
     currentMessages.push({ role: 'user', content: msg });
   }
 
-  let maxIterations = 5;
-  let lastMessage = null;
+  let maxIterations = 10;
+  let lastMessageContent: string | null = null;
 
   while (maxIterations-- > 0) {
-    const currentMessagesSlices = currentMessages;
+    if (hasUnrespondedToolCalls(currentMessages)) {
+      console.warn('[⚠️] Tool calls pendientes sin responder. Deteniendo el ciclo.');
+      break;
+    }
+
+    const instructions = await getInstructions(context.empresaType);
+
     const chatMessages = sanitizeMessages([
       { role: 'system', content: instructions },
       { role: 'system', content: formatedText },
-      ...currentMessagesSlices,
+      ...currentMessages,
     ]);
 
-    console.log('[Iteración]', 5 - maxIterations);
-    console.log('[Enviando mensajes]');
-
-    console.log('chatMessages', chatMessages);
-
+    console.log('[Enviando solicitud DeepSeek] Iteración restante:', maxIterations);
     const response = await fetch('https://api.deepseek.com/chat/completions', {
       method: 'POST',
       headers: {
@@ -188,83 +213,87 @@ export async function sendMessageWithTools(
       body: JSON.stringify({
         model: 'deepseek-chat',
         messages: chatMessages,
-        tools: [...Customtools],
+        tools: Customtools,
         tool_choice: 'auto',
         max_tokens: 4096,
-        temperature: 0.3,
+        temperature: 0.1,
         stream: false,
       }),
     });
-
     const data = await response.json();
     console.log('[Respuesta API]', JSON.stringify(data, null, 2));
 
     const message = data?.choices?.[0]?.message;
-    lastMessage = message;
+    if (!message) {
+      console.warn('[⚠️] No se recibió mensaje de DeepSeek.');
+      break;
+    }
 
-    if (message?.tool_calls?.length > 0) {
-      console.log('[Tool Calls detectadas]', message.tool_calls);
+    lastMessageContent = message.content ?? lastMessageContent;
 
+    if (message.tool_calls?.length) {
       await services.messagesService.createToolCallsMessage({
         tool_calls: message.tool_calls,
         chat: context.originalChatId,
       });
-
       currentMessages.push({
         role: 'assistant',
-        ...(message.tool_calls && { tool_calls: message.tool_calls }),
+        tool_calls: message.tool_calls,
         ...(message.content && { content: message.content }),
       });
 
-      for (const toolCall of message.tool_calls) {
-        const { name, arguments: rawArgs } = toolCall.function;
+      for (const tc of message.tool_calls) {
         let args = {};
         try {
-          args = JSON.parse(rawArgs);
+          args = JSON.parse(tc.function.arguments || '{}');
         } catch (e) {
-          console.error('[Error al parsear argumentos de tool]', e);
+          console.error('[Error parseando args de tool]', e);
         }
 
-        console.log('[Ejecutando tool]', name, args);
-
-        const toolOutput = await executeToolByName(
-          name,
+        const output = await executeToolByName(
+          tc.function.name,
           args,
           services,
           context,
         );
-
-        const toolOutputString =
-          typeof toolOutput === 'string'
-            ? toolOutput
-            : typeof toolOutput === 'object'
-              ? JSON.stringify(toolOutput)
-              : String(toolOutput);
+        const content = typeof output === 'string' ? output : JSON.stringify(output);
 
         await services.messagesService.createToolMessage({
-          mensaje: toolOutputString,
-          toolCallId: toolCall.id,
+          mensaje: content,
+          toolCallId: tc.id,
           chat: context.originalChatId,
         });
 
-        console.log('[Tool output generado]', toolCall.id, toolOutputString);
-
         currentMessages.push({
           role: 'tool',
-          tool_call_id: toolCall.id,
-          content: toolOutputString,
+          tool_call_id: tc.id,
+          content,
         });
       }
 
-      continue; // Volver a iterar con las respuestas de tools
+      continue;
     }
 
-    if (message?.content) {
+    if (message.content) {
       console.log('[Respuesta final del asistente]', message.content);
       return message.content;
     }
   }
 
-  console.log('[Fin sin respuesta clara]', lastMessage);
-  return lastMessage?.content || 'No pude generar una respuesta';
+  console.log('[Fin sin respuesta clara] Último contenido:', lastMessageContent);
+  return lastMessageContent || 'No pude generar una respuesta';
+}
+
+function hasUnrespondedToolCalls(messages: any[]): boolean {
+  const reversed = [...messages].reverse();
+  const lastAssistantWithTools = reversed.find(
+    (m) => m.role === 'assistant' && m.tool_calls?.length > 0,
+  );
+  if (!lastAssistantWithTools) return false;
+  const index = messages.indexOf(lastAssistantWithTools);
+  const toolCallIds = lastAssistantWithTools.tool_calls.map((tc: any) => tc.id);
+  const nextMessages = messages.slice(index + 1);
+  return !toolCallIds.every((id) =>
+    nextMessages.some((m) => m.role === 'tool' && m.tool_call_id === id),
+  );
 }

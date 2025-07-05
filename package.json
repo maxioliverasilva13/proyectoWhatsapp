@@ -61,12 +61,14 @@
     "multer": "^1.4.5-lts.1",
     "node-fetch": "^3.3.2",
     "nodemailer": "^6.9.16",
+    "openai": "^5.8.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pg": "^8.13.1",
     "reflect-metadata": "^0.2.0",
     "resend": "^4.5.1",
     "rxjs": "^7.8.1",
+    "tesseract.js": "^6.0.1",
     "typeorm": "^0.3.20",
     "typeorm-extension": "^3.6.3"
   },
@@ -111,5 +113,6 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
-  }
+  },
+  "packageManager": "pnpm@10.11.0+sha512.6540583f41cc5f628eb3d9773ecee802f4f9ef9923cc45b69890fb47991d4b092964694ec3a4f738a420c918a333062c8b925d312f42e4f0c263eb603551f977"
 }

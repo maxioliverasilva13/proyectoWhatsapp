@@ -36,6 +36,36 @@ export class ClienteService implements OnModuleDestroy {
     return clients?.length;
   }
 
+  async updateClientsNotificarMenu(empresaId: number, data: any = []) {
+    try {
+      await Promise.all(
+        data.map(async (client: { id: any; notificar: boolean }) => {
+          const clientId = client?.id;
+          const notificar = client?.notificar ?? false;
+
+          const cliente = await this.clienteRepository.findOne({
+            where: { empresa_id: empresaId, id: clientId },
+          });
+          if (cliente) {
+            await this.clienteRepository.save({
+              ...cliente,
+              notificar_menu: notificar,
+            });
+          }
+        }),
+      );
+
+      return { ok: true, message: 'Clients updated successfully' };
+    } catch (error) {
+      throw new BadRequestException({
+        ok: false,
+        statusCode: 400,
+        message: error?.message,
+        error: 'Bad Request',
+      });
+    }
+  }
+
   async findUsersByEmpresa(empresaId: number) {
     const users = await this.usuarioRepository.find({
       where: { id_empresa: empresaId, activo: true },

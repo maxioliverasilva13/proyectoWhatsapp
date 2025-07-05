@@ -523,7 +523,11 @@ export class PedidoService implements OnModuleDestroy {
 
       if (tipoServicio.id === TIPO_SERVICIO_RESERVA_ID) {
         const existsPedido = await this.pedidoRepository.findOne({
-          where: { fecha: createPedidoDto.fecha, available: true },
+          where: {
+            fecha: createPedidoDto.fecha,
+            available: true,
+            owner_user_id: createPedidoDto.userId,
+          },
         });
         if (existsPedido) {
           throw new BadRequestException(
@@ -574,6 +578,7 @@ export class PedidoService implements OnModuleDestroy {
         newPedido.withIA = createPedidoDto?.withIA ?? false;
         newPedido.tipo_servicio_id = tipoServicio.id;
         newPedido.available = true;
+        newPedido.isDomicilio = createPedidoDto.isDomicilio;
         newPedido.fecha =
           createPedidoDto.empresaType === 'RESERVA'
             ? createPedidoDto.fecha || products[0].fecha
@@ -828,6 +833,7 @@ export class PedidoService implements OnModuleDestroy {
           transferUrl: pedidoExist?.transferUrl,
           id: pedidoExist.id,
           estimateTime,
+          isDomicilio: pedidoExist.isDomicilio,
           estadoActual: pedidoExist.estado,
           cambiosEstado: pedidoExist.cambioEstados,
           detalle_pedido: pedidoExist?.detalle_pedido,
@@ -923,6 +929,8 @@ export class PedidoService implements OnModuleDestroy {
       orderId: pedido.id,
       available: pedido?.available,
       date: pedido.fecha,
+      isDomicilio: pedido.isDomicilio,
+      isRetiroSucursal: !pedido.isDomicilio,
       transferUrl: pedido?.transferUrl,
       status: pedido.confirmado,
       createdAt: pedido?.createdAt,
@@ -1028,10 +1036,8 @@ export class PedidoService implements OnModuleDestroy {
 
     const { intervaloTiempoCalendario, timeZone = 'America/Montevideo' } =
       empresa;
-    const diaSemana = moment(fecha).endOf('day').tz(timeZone).isoWeekday();
+    const diaSemana = moment(fecha).endOf('day').subtract(6, "hours").tz(timeZone).isoWeekday();
     const horariosDia = await this.horarioService.findByDay(diaSemana);
-    console.log('diaSemana', diaSemana);
-    console.log('horariosDia', horariosDia);
     if (!timeZone || !intervaloTiempoCalendario || !horariosDia) return [];
 
     if (horariosDia.length === 0) return [];
@@ -1514,7 +1520,6 @@ ${productosList}
   }
 
   async update(id: number, updatePedidoDto: UpdatePedidoDto) {
-    console.log('voy a editar', id, updatePedidoDto);
     const pedido = await this.pedidoRepository.findOne({ where: { id } });
 
     if (!pedido) {

@@ -1,18 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { ChatGptThreadsService } from 'src/chatGptThreads/chatGptThreads.service';
 import { ClienteService } from 'src/cliente/cliente.service';
 import { DeviceService } from 'src/device/device.service';
 import { InfolineService } from 'src/infoline/infoline.service';
 import { MensajeService } from 'src/mensaje/mensaje.service';
+import { MenuImageService } from 'src/menuImg/menuImg.service';
 import { PaymentMethodService } from 'src/paymentMethod/paymentMethod.service';
 import { PedidoService } from 'src/pedido/pedido.service';
 import { ProductoService } from 'src/producto/producto.service';
 import { sendMessageWithTools } from 'src/utils/deepSeek/deepSeekFunctions';
 import { connectToGreenApi } from 'src/utils/greenApi';
-import {
-  createThread,
-  sendMessageToThread,
-} from 'src/utils/openAIServices';
+
 
 @Injectable()
 export class GreenApiService {
@@ -20,11 +18,14 @@ export class GreenApiService {
     private readonly chatGptThreadsService: ChatGptThreadsService,
     private readonly pedidoService: PedidoService,
     private readonly clienteService: ClienteService,
+    @Inject(forwardRef(() => ProductoService))
     private readonly productoService: ProductoService,
     private readonly infoLineService: InfolineService,
     private readonly deviceService: DeviceService,
     private readonly paymentMethodService: PaymentMethodService,
-    private readonly messagesService: MensajeService
+    private readonly messagesService: MensajeService,
+    @Inject(forwardRef(() => MenuImageService))
+    private readonly menuImageService: MenuImageService,
   ) { }
 
   async onModuleInit() {
@@ -46,6 +47,8 @@ export class GreenApiService {
     senderName,
     timeZone,
     chatId,
+    retiroEnSucursalEnabled,
+    direccion,
   ) {
     let originalChatId = '';
     let chatIdWhatsapp = '';
@@ -59,11 +62,11 @@ export class GreenApiService {
     }
 
     console.log('obtengo el ultimo thread');
-    
+
 
     if (chatIdExist) {
       console.log('ya hay un chat creado, es', chatId);
-      
+
       chatIdWhatsapp = chatIdExist
     } else {
       console.log('no hay un chat creado');
@@ -87,7 +90,7 @@ export class GreenApiService {
       });
 
       console.log('se creo el thrad');
-      
+
 
       if (resp.thread.id) {
         currentThreadId = resp.thread.id
@@ -107,7 +110,7 @@ export class GreenApiService {
       numberSender,
       false,
     );
-    
+
     const openAIResponse = await sendMessageWithTools(textMessage, messages,
       {
         productoService: this.productoService,
@@ -117,6 +120,7 @@ export class GreenApiService {
         infoLineService: this.infoLineService,
         messagesService: this.messagesService,
         clienteService: this.clienteService,
+        menuImageService: this.menuImageService
       },
       {
         threadId,
@@ -127,9 +131,11 @@ export class GreenApiService {
         numberSender,
         chatIdExist: chatIdWhatsapp,
         originalChatId,
+        retiroEnSucursalEnabled: retiroEnSucursalEnabled,
         timeZone,
         senderName: senderName,
-        userId: clienteId
+        userId: clienteId,
+        direccion: direccion
       }
     )
 
@@ -190,10 +196,11 @@ export class GreenApiService {
     withIA = false,
     paymentMethodId = "",
     transferUrl = "",
-    userId = ""
+    userId = "",
+    isDomicilio = false
   }: any) {
-    
-    
+
+
     try {
       const newOrder = await this.pedidoService.create({
         clienteId: clienteId,
@@ -213,6 +220,7 @@ export class GreenApiService {
         withIA: withIA,
         paymentMethodId: paymentMethodId,
         userId: userId,
+        isDomicilio: isDomicilio,
       });
       // await this.chatGptThreadsService.deleteThread(currentThreadId);
       await this.deviceService.sendNotificationEmpresa(
@@ -227,6 +235,36 @@ export class GreenApiService {
         ok: false,
         message: error?.message ?? "Erro inesperado creando orden"
       };
+    }
+  }
+
+  async sendImageToChat(chatIdWhatsapp: string, imageUrl: string) {
+    console.log('Enviando imagen...');
+
+    const payload = {
+      chatId: chatIdWhatsapp,
+      urlFile: imageUrl,
+      fileName: 'imagen.jpg',
+      caption: '',
+    };
+
+    try {
+      const resp = await fetch(
+        `https://api.greenapi.com/waInstance${process.env.ID_INSTANCE}/sendFileByUrl/${process.env.API_TOKEN_INSTANCE}`,
+        {
+          headers: { 'Content-Type': 'application/json' },
+          method: 'POST',
+          body: JSON.stringify(payload),
+        },
+      );
+
+      const respF = await resp.json();
+      console.log('respF', respF);
+      return { success: true };
+    } catch (error: any) {
+      console.log('Error al enviar imagen');
+      console.log(error?.response?.data?.message ?? error);
+      return { success: false };
     }
   }
 }

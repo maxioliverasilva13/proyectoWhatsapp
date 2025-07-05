@@ -6,5 +6,7 @@ import { SupabaseService } from 'src/suprabase/suprabase.service';
 @Module({
   controllers: [ImageController],
   providers: [ImageService, SupabaseService],
+  exports:[ImageService]
 })
 export class ImageModule {}
+ 

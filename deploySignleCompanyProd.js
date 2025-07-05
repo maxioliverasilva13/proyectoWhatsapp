@@ -102,7 +102,7 @@ async function deployCompany(empresa) {
     `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'mkdir -p /projects/${empresa.db_name}/letsencrypt && touch /projects/${empresa.db_name}/letsencrypt/acme.json && chmod 600 /projects/${empresa.db_name}/letsencrypt/acme.json'`
   );
   await execSync(
-    `ssh -i private_key root@${dropletIp} 'cd /projects/${empresa.db_name} && docker-compose -f docker-compose.yml up -d --build'`
+    `ssh -i private_key root@${dropletIp} 'cd /projects/${empresa.db_name} && docker-compose -f docker-compose.yml up -d --build --force-recreate --remove-orphans'`
   );
 }
 

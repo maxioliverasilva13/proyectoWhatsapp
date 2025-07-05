@@ -23,6 +23,7 @@ import { Payment } from "src/payments/payment.entity";
 import { Reclamo } from "src/pedido/entities/reclamo.entity";
 import { PaymentMethod } from "src/paymentMethod/entities/paymentMethod.entity";
 import { Horario } from "src/horario/entities/horario.entity";
+import { MenuImage } from "src/menuImg/entities/menu";
 
 export const ENTITIES_TO_MAP_GLOBAL_DB = [
   Plan,
@@ -51,7 +52,8 @@ export const ENTITIES_TO_MAP_EMPRESA_DB = [
   Infoline,
   Category,
   Cliente,
-  Reclamo
+  Reclamo,
+  MenuImage
 ];
 
 export const SEEDERS_TO_MAP_GLOBAL_DB = 'src/database/seeders/app/*{.ts,.js}'

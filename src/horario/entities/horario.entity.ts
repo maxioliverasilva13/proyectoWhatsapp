@@ -17,4 +17,7 @@ export class Horario extends BaseEntity {
 
     @Column({ type: 'time', nullable: false, default: null })
     hora_fin: string;
+
+    @Column({ nullable: false, default: false })
+    isDailyMenu: boolean;
 }
