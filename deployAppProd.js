@@ -33,7 +33,7 @@ function createEnvFileApp() {
       POSTGRES_USER=${process.env.POSTGRES_USER_GLOBAL}
       POSTGRES_PASSWORD=${process.env.POSTGRES_PASSWORD_GLOBAL}
       POSTGRES_DB=${process.env.POSTGRES_DB_GLOBAL}
-      VIRTUAL_HOST=app.whatsproy.com
+      VIRTUAL_HOST=app.measyapp.com
       EMAIL_USER=${process.env.EMAIL_USER}
       SUPABASE_URL=${process.env.SUPABASE_URL}
       FIREBASE_PROJECT_ID=${process.env.FIREBASE_PROJECT_ID}
