@@ -5,6 +5,7 @@ export const SUPABASE_INSTRUCTIONS_FILE_PATH_DELIVERY =
 export const SUPABASE_INSTRUCTIONS_FILE_PATH_RESERVA =
   'https://fpswkddofgehbyiujiuo.supabase.co/storage/v1/object/public/WhatsProyImaages/Instructions/deepSeekInstructionsReserva.txt';
 
+  
 export async function getInstructions(empresaType: any): Promise<string> {
   console.log("me llega", empresaType, TIPO_SERVICIO_DELIVERY_ID)
   const isDelivery = empresaType === "DELIVERY"

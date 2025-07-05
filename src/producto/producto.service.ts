@@ -214,17 +214,6 @@ export class ProductoService implements OnModuleDestroy {
   async findAllInText(chatIdWhatsapp?: any) {
     const base = { disponible: true };
 
-    const [menu, items] = await this.menuImgRepo.findAndCount()
-
-    let messageToAssistant = '';
-
-    if (items > 0 && chatIdWhatsapp) {
-      messageToAssistant = "IMPORTANTE: Ya se envió una imagen del menú al usuario. No debes listar los productos. Solo pregúntale qué desea. Aun así, debes usar esta lista de productos para validar lo que el usuario solicite.";
-      await Promise.all(menu.map(element =>
-        this.greenApiService.sendImageToChat(chatIdWhatsapp, element.url)
-      ));
-    }
-
     const productsAll = await this.productoRepository.find({
       where: [
         { ...base, isMenuDiario: false },
@@ -233,19 +222,16 @@ export class ProductoService implements OnModuleDestroy {
       relations: ['category'],
     });
 
-    return {
-      message: messageToAssistant,
-      data: productsAll.map((prod) => ({
-        categories: prod.category?.map((cat) => cat?.name),
-        name: prod?.nombre,
-        id: prod?.id,
-        disponible: prod?.disponible,
-        price: prod?.precio,
-        description: prod?.descripcion,
-        plazoDuracionEstimado: prod?.plazoDuracionEstimadoMinutos,
-        currency_id: prod?.currency_id,
-      }))
-    }
+    return productsAll.map((prod) => ({
+      categories: prod.category?.map((cat) => cat?.name),
+      name: prod?.nombre,
+      id: prod?.id,
+      disponible: prod?.disponible,
+      price: prod?.precio,
+      description: prod?.descripcion,
+      plazoDuracionEstimado: prod?.plazoDuracionEstimadoMinutos,
+      currency_id: prod?.currency_id,
+    }))
   }
 
   async updateProducto(id: number, updateProductoDto: UpdateProductoDto) {
