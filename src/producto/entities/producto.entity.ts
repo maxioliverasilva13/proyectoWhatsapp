@@ -1,7 +1,15 @@
 import { Category } from 'src/category/entities/category.entity';
-import { Currency } from 'src/currencies/entities/currency.entity';
 import { ProductoPedido } from 'src/productopedido/entities/productopedido.entity';
-import { Entity, Column, PrimaryGeneratedColumn, BaseEntity, OneToMany, ManyToOne, ManyToMany, JoinTable } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  BaseEntity,
+  OneToMany,
+  ManyToOne,
+  ManyToMany,
+  JoinTable,
+} from 'typeorm';
 
 @Entity('productos')
 export class Producto extends BaseEntity {
@@ -11,7 +19,13 @@ export class Producto extends BaseEntity {
   @Column()
   nombre: string;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true, default: 0 })
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    nullable: true,
+    default: 0,
+  })
   precio: number;
 
   @Column({ nullable: true })
@@ -35,8 +49,16 @@ export class Producto extends BaseEntity {
   @OneToMany(() => ProductoPedido, (prod) => prod.producto)
   pedidosprod: ProductoPedido[];
 
-
-  @ManyToMany(()=> Category, (cat) => cat.producto )
+  @ManyToMany(() => Category, (cat) => cat.producto)
   @JoinTable()
-  category: Category[]
+  category: Category[];
+
+  @Column({ default: null })
+  isMenuDiario: boolean;
+
+  @Column({ default: 0, nullable: true })
+  orderMenuDiario: number;
+
+  @Column({ default: 0, nullable: true })
+  diaSemana: number;
 }

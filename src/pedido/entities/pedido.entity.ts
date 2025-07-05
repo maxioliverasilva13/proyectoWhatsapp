@@ -82,4 +82,7 @@ export class Pedido extends BaseEntity {
 
   @ManyToOne(() => Cliente, (client) => client.pedido)
   client: Cliente;
+
+  @Column({ nullable: true, default: true })
+  isDomicilio: boolean;
 }

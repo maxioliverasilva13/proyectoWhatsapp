@@ -189,7 +189,7 @@ export class GrenApiController {
                 await this.redisService.handleIncomingMessageWithBuffering({
                   chatId,
                   message: messageToSend,
-                  delayMs: 10000,
+                  delayMs: 5000,
                   maxTokens: 250,
                   numberSender,
                   empresaType,
@@ -221,6 +221,8 @@ export class GrenApiController {
                       senderName,
                       timeZone,
                       chatId,
+                      InfoCompany.retiroEnSucursal,
+                      InfoCompany.direccion,
                     );
 
                     if (!respText?.isError) {

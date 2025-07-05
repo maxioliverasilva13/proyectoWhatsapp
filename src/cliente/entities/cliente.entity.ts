@@ -1,11 +1,10 @@
-import { Pedido } from "src/pedido/entities/pedido.entity";
-import { Reclamo } from "src/pedido/entities/reclamo.entity";
-import { BaseEntity } from "src/utils/base.entity";
-import { PrimaryGeneratedColumn, Column, Entity, OneToMany } from "typeorm";
+import { Pedido } from 'src/pedido/entities/pedido.entity';
+import { Reclamo } from 'src/pedido/entities/reclamo.entity';
+import { BaseEntity } from 'src/utils/base.entity';
+import { PrimaryGeneratedColumn, Column, Entity, OneToMany } from 'typeorm';
 
 @Entity('cliente')
 export class Cliente extends BaseEntity {
-
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -24,4 +23,6 @@ export class Cliente extends BaseEntity {
   @OneToMany(() => Pedido, (pedido) => pedido.client)
   pedido: Pedido[];
 
+  @Column({ default: true, nullable: false })
+  notificar_menu: boolean;
 }

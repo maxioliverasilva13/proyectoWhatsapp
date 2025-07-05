@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TenantConnectionService } from 'src/tenant-connection-service/tenant-connection-service.service';
 import { GrenApiController } from './GreenApi.controller';
 import { GreenApiService } from './GreenApi.service';
@@ -19,14 +19,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Mensaje } from 'src/mensaje/entities/mensaje.entity';
 import { Chat } from 'src/chat/entities/chat.entity';
 import { RedisService } from 'src/redis/redis.service';
-import { PedidoService } from 'src/pedido/pedido.service';
 import { Pedido } from 'src/pedido/entities/pedido.entity';
 import { PaymentMethodModule } from 'src/paymentMethod/paymentMethod.module';
-import { HorarioService } from 'src/horario/horario.service';
 import { HorarioModule } from 'src/horario/horario.module';
+import { MenuImageModule } from 'src/menuImg/menuImg.module';
 
 @Module({
-  imports:[ TypeOrmModule.forFeature([Chat, Mensaje, Pedido]),ChatGptThreadsModule, PedidoModule, DeviceModule, ClienteModule, ProductoModule,EmpresaModule, NumeroConfianzaModule, WebSocketModule, InfolineModule, MensajeModule, ChatModule, HorarioModule, BullModule.registerQueue({
+  imports:[ TypeOrmModule.forFeature([Chat, Mensaje, Pedido]),ChatGptThreadsModule, PedidoModule, DeviceModule, ClienteModule, forwardRef(()=> ProductoModule),forwardRef(()=> MenuImageModule),EmpresaModule, NumeroConfianzaModule, WebSocketModule, InfolineModule, MensajeModule, ChatModule, HorarioModule, BullModule.registerQueue({
     name:`GreenApiResponseMessagee-${process.env.SUBDOMAIN}`,
     connection: {
       host: process.env.REDIS_HOST || 'localhost',

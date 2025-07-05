@@ -152,7 +152,14 @@ export class AdminService {
 
     const owner = 'maxioliverasilva13';
     const repo = 'proyectoWhatsapp';
-    const workflow_id = 'deployManualCompany.yml';
+    const workflow_id =
+      process.env.ENV === 'prod'
+        ? 'deployManualCompanyProd.yml'
+        : 'deployManualCompany.yml';
+
+    const workflow_app_id =
+      process.env.ENV === 'prod' ? 'deploy-app-qa.yml' : 'deploy-app-prod.yml';
+
     const ref = 'qa';
     const githubToken = process.env.TOKEN_CONNECT_GIT;
 
@@ -168,6 +175,17 @@ export class AdminService {
     };
 
     const url = `https://api.github.com/repos/${owner}/${repo}/actions/workflows/${workflow_id}/dispatches`;
+    const urlDeployApp = `https://api.github.com/repos/${owner}/${repo}/actions/workflows/${workflow_app_id}/dispatches`;
+
+    const responseApp = await fetch(urlDeployApp, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: `Bearer ${githubToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
 
     const response = await fetch(url, {
       method: 'POST',

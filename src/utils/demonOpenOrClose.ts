@@ -13,9 +13,12 @@ export const OpenOrClose = async () => {
         const repoCierreProvisorio = globalConnection.getRepository(CierreProvisorio);
         const repoHorario = currentConnection.getRepository(Horario);
 
-        const empresas = await repoEmpresa.find();
+        const empresa = await repoEmpresa.findOne({ where: { db_name: process.env.SUBDOMAIN } });
 
-        await Promise.all(empresas.map(async (empresa: Empresa) => {
+        if (!empresa) {
+            console.log("Empresa no encontrada");
+            return;
+        }
             const now = moment.tz(empresa.timeZone);
             const diaSemana = now.isoWeekday();
 
@@ -55,9 +58,9 @@ export const OpenOrClose = async () => {
                 }
             }
 
+            console.log("emrpesa a actualizar", empresa)
             empresa.abierto = estaDentroDeHorario && !cierreProvisorio;
             await repoEmpresa.save(empresa);
-        }));
 
     } catch (error) {
         console.error('Error en OpenOrClose:', error);

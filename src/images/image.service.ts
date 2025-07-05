@@ -8,6 +8,8 @@ export class ImageService {
 
   async uploadImage(file: Express.Multer.File): Promise<string> {
     const supabase = this.supabaseService.getClient();
+    console.log('el client es:', supabase);
+    
     const bucket = process.env.SUPABASE_BUCKET;
     const sanitizedFileName = file.originalname
     .normalize("NFD") 
