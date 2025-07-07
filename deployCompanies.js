@@ -155,7 +155,7 @@ async function deployApp() {
     `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'mkdir -p /projects/app/letsencrypt && touch /projects/app/letsencrypt/acme.json && chmod 600 /projects/app/letsencrypt/acme.json'`
   );
   await execSync(
-    `ssh -i private_key root@${dropletIp} 'cd /projects/app && docker-compose -f docker-compose-app.yml up -d --build'`,
+    `ssh -i private_key root@${dropletIp} 'cd /projects/app && docker-compose -f docker-compose-app.yml up -d --build --force-recreate'`,
   );
   
 }
