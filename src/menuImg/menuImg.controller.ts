@@ -1,6 +1,5 @@
 import { Controller, Get, Post, Body, Param, Delete, Patch, UseInterceptors, UploadedFile, Query } from '@nestjs/common';
 import { MenuImageService } from './menuImg.service';
-import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('menu-images')
 export class MenuImageController {
@@ -15,6 +14,8 @@ export class MenuImageController {
   async parseMenuImage(@Query('url') url : string) {
     return  this.menuImageService.parseMenuFromImage(url);
   }
+
+  
 
   @Get()
   findAll() {
