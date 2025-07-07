@@ -36,7 +36,6 @@ services:
       - traefik.enable=true
       - traefik.http.routers.${SUBDOMAIN}-router.rule=Host(`${VIRTUAL_HOST}`)
       - traefik.http.routers.${SUBDOMAIN}-router.entrypoints=websecure
-      - traefik.http.routers.${SUBDOMAIN}-router.entrypoints=https
       - traefik.http.services.${SUBDOMAIN}-service.loadbalancer.server.port=3000
       - traefik.http.routers.${SUBDOMAIN}-router.tls=true
       - traefik.http.routers.${SUBDOMAIN}-router.tls.certresolver=myresolver
