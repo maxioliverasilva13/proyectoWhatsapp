@@ -42,8 +42,6 @@ services:
       - app-network
     restart: always
     container_name: ${SUBDOMAIN}-app
-    volumes:
-      - ./letsencrypt/acme.json:/acme.json
 
 networks:
   app-network:

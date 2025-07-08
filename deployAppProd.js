@@ -87,9 +87,13 @@ async function deployApp() {
   await execSync(
     `scp -i private_key -o StrictHostKeyChecking=no -r .env.app root@${dropletIp}:/projects/app/.env`,
   );
-  await execSync(
-    `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'mkdir -p /projects/app/letsencrypt && [ ! -f /projects/app/letsencrypt/acme.json ] && touch /projects/app/letsencrypt/acme.json && chmod 600 /projects/app/letsencrypt/acme.json || echo "acme.json ya existe"'`,
-  );
+  await execSync(`
+  ssh -i private_key root@${dropletIp} '
+    mkdir -p /projects/app/letsencrypt &&
+    touch /projects/app/letsencrypt/acme.json &&
+    chmod 600 /projects/app/letsencrypt/acme.json
+  '
+`);
   await execSync(
     `ssh -i private_key root@${dropletIp} 'cd /projects/app && docker-compose -f docker-compose-app-prod.yml up -d --build --force-recreate'`,
   );

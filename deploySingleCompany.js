@@ -97,9 +97,6 @@ async function deployCompany(empresa) {
   );
 
   await execSync(
-    `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'mkdir -p /projects/${empresa.db_name}/letsencrypt && [ ! -f /projects/${empresa.db_name}/letsencrypt/acme.json ] && touch /projects/${empresa.db_name}/letsencrypt/acme.json && chmod 600 /projects/${empresa.db_name}/letsencrypt/acme.json || echo "acme.json ya existe"'`,
-  );
-  await execSync(
     `ssh -i private_key root@${dropletIp} 'cd /projects/${empresa.db_name} && docker-compose -f docker-compose.yml up -d --build --force-recreate --remove-orphans'`,
   );
 }

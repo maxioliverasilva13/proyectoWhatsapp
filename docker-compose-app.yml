@@ -47,8 +47,6 @@ services:
       - app-network
     restart: always
     container_name: app
-    volumes:
-      - ./letsencrypt/acme.json:/acme.json
 
   traefik:
     image: traefik:v2.10
