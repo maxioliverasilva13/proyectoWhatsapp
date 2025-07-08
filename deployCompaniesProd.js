@@ -76,7 +76,6 @@ function createEnvFileApp() {
       TOKEN_CONNECT_GIT=${process.env.TOKEN_CONNECT_GIT}
       EMAIL_PORT=${process.env.EMAIL_PORT}
       OPEN_AI_TOKEN=${process.env.OPEN_AI_TOKEN}
-
       EMAIL_PASS=${process.env.EMAIL_PASS}
       REDIS_HOST=${process.env.REDIS_HOST}
       REDIS_PORT=${process.env.REDIS_PORT}
@@ -98,7 +97,7 @@ function createEnvFileApp() {
       DOCKER_BUILDKIT=1
       SUBDOMAIN=app
     `;
-  console.log(".env.app", envContent)
+  console.log('.env.app', envContent);
   fs.writeFileSync(`.env.app`, envContent);
 }
 
@@ -114,20 +113,17 @@ async function deployCompany(empresa) {
   await execSync(
     `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'mkdir -p /projects/${empresa?.db_name}'`,
   );
-  // remove old .env
-
   await execSync(
-    `rsync -avz --delete -e "ssh -i private_key -o StrictHostKeyChecking=no" --exclude='node_modules' ./ root@${dropletIp}:/projects/${empresa?.db_name}/`,
+    `rsync -avz --delete -e "ssh -i private_key -o StrictHostKeyChecking=no" --exclude='node_modules' --exclude='letsencrypt' ./ root@${dropletIp}:/projects/${empresa?.db_name}/`,
   );
   await execSync(
-    `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'rm -f /projects/${empresa?.db_name}/.env'`
+    `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'rm -f /projects/${empresa?.db_name}/.env'`,
   );
   await execSync(
     `scp -i private_key -o StrictHostKeyChecking=no -r .env.${empresa.db_name} root@${dropletIp}:/projects/${empresa?.db_name}/.env`,
   );
-
   await execSync(
-    `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'mkdir -p /projects/${empresa?.db_name}/letsencrypt && touch /projects/${empresa?.db_name}/letsencrypt/acme.json && chmod 600 /projects/${empresa?.db_name}/letsencrypt/acme.json'`
+    `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'mkdir -p /projects/${empresa?.db_name}/letsencrypt && [ ! -f /projects/${empresa?.db_name}/letsencrypt/acme.json ] && touch /projects/${empresa?.db_name}/letsencrypt/acme.json && chmod 600 /projects/${empresa?.db_name}/letsencrypt/acme.json || echo "acme.json ya existe"'`,
   );
   await execSync(
     `ssh -i private_key root@${dropletIp} 'cd /projects/${empresa?.db_name} && docker-compose -f docker-compose.yml up -d --build --force-recreate --remove-orphans'`,
@@ -142,35 +138,32 @@ async function deployApp() {
   await execSync(
     `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'mkdir -p /projects/app'`,
   );
-  // remove old .env
   await execSync(
-    `rsync --delete -avz -e "ssh -i private_key -o StrictHostKeyChecking=no" --exclude='node_modules' ./ root@${dropletIp}:/projects/app/`,
+    `rsync --delete -avz -e "ssh -i private_key -o StrictHostKeyChecking=no" --exclude='node_modules' --exclude='letsencrypt' ./ root@${dropletIp}:/projects/app/`,
   );
   await execSync(
-    `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'rm -f /projects/app/.env'`
+    `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'rm -f /projects/app/.env'`,
   );
   await execSync(
     `scp -i private_key -o StrictHostKeyChecking=no -r .env.app root@${dropletIp}:/projects/app/.env`,
   );
   await execSync(
-    `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'mkdir -p /projects/app/letsencrypt && touch /projects/app/letsencrypt/acme.json && chmod 600 /projects/app/letsencrypt/acme.json'`
+    `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'mkdir -p /projects/app/letsencrypt && [ ! -f /projects/app/letsencrypt/acme.json ] && touch /projects/app/letsencrypt/acme.json && chmod 600 /projects/app/letsencrypt/acme.json || echo "acme.json ya existe"'`,
   );
   await execSync(
     `ssh -i private_key root@${dropletIp} 'cd /projects/app && docker-compose -f docker-compose-app-prod.yml up -d --build --force-recreate'`,
   );
-  
 }
-
 
 (async () => {
   try {
     await deployApp();
     const empresas = await getCompanies();
     for (const empresa of empresas) {
-    await deployCompany(empresa);
-  }
+      await deployCompany(empresa);
+    }
   } catch (error) {
-    console.log("error", error)
+    console.log('error', error);
     process.exit(1);
   } finally {
     process.exit(0);

@@ -40,7 +40,7 @@ function createEnvFileApp() {
       DOCKER_BUILDKIT=1
       SUBDOMAIN=app
     `;
-  console.log(".env.app", envContent)
+  console.log('.env.app', envContent);
   fs.writeFileSync(`.env.app`, envContent);
 }
 
@@ -52,31 +52,29 @@ async function deployApp() {
   await execSync(
     `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'mkdir -p /projects/app'`,
   );
-  // remove old .env
+  
   await execSync(
-    `rsync --delete -avz -e "ssh -i private_key -o StrictHostKeyChecking=no" --exclude='node_modules' ./ root@${dropletIp}:/projects/app/`,
+    `rsync --delete -avz -e "ssh -i private_key -o StrictHostKeyChecking=no" --exclude='node_modules' --exclude='letsencrypt' ./ root@${dropletIp}:/projects/app/`,
   );
   await execSync(
-    `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'rm -f /projects/app/.env'`
+    `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'rm -f /projects/app/.env'`,
   );
   await execSync(
     `scp -i private_key -o StrictHostKeyChecking=no -r .env.app root@${dropletIp}:/projects/app/.env`,
   );
   await execSync(
-    `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'mkdir -p /projects/app/letsencrypt && touch /projects/app/letsencrypt/acme.json && chmod 600 /projects/app/letsencrypt/acme.json'`
+    `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'mkdir -p /projects/app/letsencrypt && [ ! -f /projects/app/letsencrypt/acme.json ] && touch /projects/app/letsencrypt/acme.json && chmod 600 /projects/app/letsencrypt/acme.json || echo "acme.json ya existe, no se toca"'`,
   );
   await execSync(
     `ssh -i private_key root@${dropletIp} 'cd /projects/app && docker-compose -f docker-compose-app.yml up -d --build --force-recreate'`,
   );
-  
 }
-
 
 (async () => {
   try {
     await deployApp();
   } catch (error) {
-    console.log("error", error)
+    console.log('error', error);
     process.exit(1);
   } finally {
     process.exit(0);

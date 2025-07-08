@@ -31,7 +31,6 @@ services:
       ASSISTANT_ID: ${ASSISTANT_ID}
       RESEND_KEY: ${RESEND_KEY}
       DEEPSEEK_TOKEN: ${DEEPSEEK_TOKEN}
-
     labels:
       - traefik.enable=true
       - traefik.http.routers.${SUBDOMAIN}-router.rule=Host(`${VIRTUAL_HOST}`)
@@ -43,8 +42,9 @@ services:
       - app-network
     restart: always
     container_name: ${SUBDOMAIN}-app
+    volumes:
+      - ./letsencrypt/acme.json:/acme.json
+
 networks:
   app-network:
     external: true
-volumes:
-  globaldb-data:

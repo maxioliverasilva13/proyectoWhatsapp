@@ -1,20 +1,18 @@
-const { Client } = require("pg");
-const { execSync } = require("child_process");
-const fs = require("fs");
+const { Client } = require('pg');
+const { execSync } = require('child_process');
+const fs = require('fs');
 
-// Obtener el nombre de la empresa desde los argumentos del script
 const dbNameArg = process.argv[2];
 
-console.log("deployando con ", dbNameArg)
+console.log('deployando con ', dbNameArg);
 
 if (!dbNameArg) {
   console.error(
-    "Falta el parámetro db_name. Uso: node deploySingleCompany.js <db_name>"
+    'Falta el parámetro db_name. Uso: node deploySingleCompany.js <db_name>',
   );
   process.exit(1);
 }
 
-// Configuración de la base de datos global
 const client = new Client({
   user: process.env.POSTGRES_USER_GLOBAL,
   host: process.env.POSTGRES_GLOBAL_DB_HOST,
@@ -30,13 +28,13 @@ async function getEmpresaByDbName(dbName) {
   try {
     await client.connect();
     const res = await client.query(
-      "SELECT * FROM empresa WHERE db_name = $1 LIMIT 1",
-      [dbName]
+      'SELECT * FROM empresa WHERE db_name = $1 LIMIT 1',
+      [dbName],
     );
     await client.end();
     return res.rows[0] || null;
   } catch (error) {
-    console.error("Error al obtener la empresa:", error);
+    console.error('Error al obtener la empresa:', error);
     return null;
   } finally {
     await client.end();
@@ -68,7 +66,7 @@ ASSISTANT_ID=${process.env.ASSISTANT_ID}
 ENV=qa
 DOCKER_BUILDKIT=1
 SUBDOMAIN=${empresa.db_name}
-RESEND_KEY: ${process.env.RESEND_KEY}
+RESEND_KEY=${process.env.RESEND_KEY}
 DEEPSEEK_TOKEN=${process.env.DEEPSEEK_TOKEN}
 `;
 
@@ -79,30 +77,30 @@ async function deployCompany(empresa) {
   const dropletIp = process.env.DROPLET_IP;
   createEnvFile(empresa);
 
-  const envFileContent = fs.readFileSync(`.env.${empresa.db_name}`, "utf8");
+  const envFileContent = fs.readFileSync(`.env.${empresa.db_name}`, 'utf8');
   console.log(`Contenido de .env.${empresa.db_name}:`, envFileContent);
 
-  require("dotenv").config({ path: `.env.${empresa.db_name}` });
+  require('dotenv').config({ path: `.env.${empresa.db_name}` });
 
   await execSync(
-    `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'mkdir -p /projects/${empresa.db_name}'`
-  );
-
-  await execSync(
-    `rsync -avz --delete -e "ssh -i private_key -o StrictHostKeyChecking=no" --exclude='node_modules' ./ root@${dropletIp}:/projects/${empresa.db_name}/`
-  );
-  await execSync(
-    `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'rm -f /projects/${empresa.db_name}/.env'`
-  );
-  await execSync(
-    `scp -i private_key -o StrictHostKeyChecking=no -r .env.${empresa.db_name} root@${dropletIp}:/projects/${empresa.db_name}/.env`
+    `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'mkdir -p /projects/${empresa.db_name}'`,
   );
 
   await execSync(
-    `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'mkdir -p /projects/${empresa.db_name}/letsencrypt && touch /projects/${empresa.db_name}/letsencrypt/acme.json && chmod 600 /projects/${empresa.db_name}/letsencrypt/acme.json'`
+    `rsync -avz --delete -e "ssh -i private_key -o StrictHostKeyChecking=no" --exclude='node_modules' --exclude='letsencrypt' ./ root@${dropletIp}:/projects/${empresa.db_name}/`,
   );
   await execSync(
-    `ssh -i private_key root@${dropletIp} 'cd /projects/${empresa.db_name} && docker-compose -f docker-compose.yml up -d --build --force-recreate --remove-orphans'`
+    `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'rm -f /projects/${empresa.db_name}/.env'`,
+  );
+  await execSync(
+    `scp -i private_key -o StrictHostKeyChecking=no -r .env.${empresa.db_name} root@${dropletIp}:/projects/${empresa.db_name}/.env`,
+  );
+
+  await execSync(
+    `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'mkdir -p /projects/${empresa.db_name}/letsencrypt && [ ! -f /projects/${empresa.db_name}/letsencrypt/acme.json ] && touch /projects/${empresa.db_name}/letsencrypt/acme.json && chmod 600 /projects/${empresa.db_name}/letsencrypt/acme.json || echo "acme.json ya existe"'`,
+  );
+  await execSync(
+    `ssh -i private_key root@${dropletIp} 'cd /projects/${empresa.db_name} && docker-compose -f docker-compose.yml up -d --build --force-recreate --remove-orphans'`,
   );
 }
 
@@ -116,7 +114,7 @@ async function deployCompany(empresa) {
 
     await deployCompany(empresa);
   } catch (error) {
-    console.error("Error durante el despliegue:", error);
+    console.error('Error durante el despliegue:', error);
     process.exit(1);
   } finally {
     process.exit(0);

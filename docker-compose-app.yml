@@ -47,18 +47,21 @@ services:
       - app-network
     restart: always
     container_name: app
+    volumes:
+      - ./letsencrypt/acme.json:/acme.json
+
   traefik:
     image: traefik:v2.10
     command:
-     - --api.insecure=true
-     - --providers.docker=true
-     - --entrypoints.web.address=:80
-     - --entrypoints.websecure.address=:443
-     - --certificatesresolvers.myresolver.acme.tlschallenge=true
-     - --certificatesresolvers.myresolver.acme.email=angelotunado02@gmail.com
-     - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
-     - --entrypoints.web.http.redirections.entryPoint.to=websecure
-     - --entrypoints.web.http.redirections.entryPoint.scheme=https
+      - --api.insecure=true
+      - --providers.docker=true
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --certificatesresolvers.myresolver.acme.tlschallenge=true
+      - --certificatesresolvers.myresolver.acme.email=angelotunado02@gmail.com
+      - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
+      - --entrypoints.web.http.redirections.entryPoint.to=websecure
+      - --entrypoints.web.http.redirections.entryPoint.scheme=https
     ports:
       - 80:80
       - 443:443
