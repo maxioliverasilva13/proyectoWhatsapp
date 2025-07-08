@@ -1,0 +1,77 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: production
+      POSTGRES_USER: ${POSTGRES_USER}
+      EMAIL_USER: ${EMAIL_USER}
+      EMAIL_PASS: ${EMAIL_PASS}
+      EMAIL_HOST: ${EMAIL_HOST}
+      EMAIL_PORT: ${EMAIL_PORT}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      SUPABASE_URL: ${SUPABASE_URL}
+      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID}
+      FIREBASE_PRIVATE_KEY: ${FIREBASE_PRIVATE_KEY}
+      FIREBASE_CLIENT_EMAIL: ${FIREBASE_CLIENT_EMAIL}
+      TOKEN_CONNECT_GIT: ${TOKEN_CONNECT_GIT}
+      SUPABASE_KEY: ${SUPABASE_KEY}
+      SUPABASE_BUCKET: ${SUPABASE_BUCKET}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      GOOGLE_CLIENT_EMAIL: ${GOOGLE_CLIENT_EMAIL}
+      RESEND_KEY: ${RESEND_KEY}
+      GOOGLE_PRIVATE_KEY: ${GOOGLE_PRIVATE_KEY}
+      ENV: production
+      SUBDOMAIN: ${SUBDOMAIN}
+      VIRTUAL_HOST: ${VIRTUAL_HOST}
+      POSTGRES_USER_GLOBAL: ${POSTGRES_USER_GLOBAL}
+      POSTGRES_PASSWORD_GLOBAL: ${POSTGRES_PASSWORD_GLOBAL}
+      POSTGRES_GLOBAL_DB_HOST: ${POSTGRES_GLOBAL_DB_HOST}
+      POSTGRES_DB_GLOBAL: ${POSTGRES_DB_GLOBAL}
+      POSTGRES_GLOBAL_DB_PORT: ${POSTGRES_GLOBAL_DB_PORT}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      OPEN_AI_TOKEN: ${OPEN_AI_TOKEN}
+      DEEPSEEK_TOKEN: ${DEEPSEEK_TOKEN}
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.app-router.rule=Host(`app.measyapp.com`)
+      - traefik.http.routers.app-router.entrypoints=websecure
+      - traefik.http.services.app-service.loadbalancer.server.port=3000
+      - traefik.http.routers.app-router.tls=true
+      - traefik.http.routers.app-router.tls.certresolver=myresolver
+    networks:
+      - app-network
+    restart: always
+    container_name: app
+  traefik:
+    image: traefik:v2.10
+    command:
+     - --api.insecure=true
+     - --providers.docker=true
+     - --entrypoints.web.address=:80
+     - --entrypoints.websecure.address=:443
+     - --certificatesresolvers.myresolver.acme.tlschallenge=true
+     - --certificatesresolvers.myresolver.acme.email=angelotunado02@gmail.com
+     - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
+     - --entrypoints.web.http.redirections.entryPoint.to=websecure
+     - --entrypoints.web.http.redirections.entryPoint.scheme=https
+    ports:
+      - 80:80
+      - 443:443
+      - 8080:8080
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./letsencrypt:/letsencrypt
+    networks:
+      - app-network
+    restart: always
+
+networks:
+  app-network:
+    external: true
+volumes:
+  globaldb-data:

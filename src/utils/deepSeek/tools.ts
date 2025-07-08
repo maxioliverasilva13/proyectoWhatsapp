@@ -3,7 +3,7 @@ export const Customtools = [
         "type": "function",
         "function": {
             "name": "getProductosImgs",
-            "description": "Llama a una función externa para mostrar imágenes de productos disponibles y registrar el historial de productos. También llama internamente a getProductsByEmpresa para propósitos de historial, pero no debe llamarse nuevamente a esa función luego. NO se deben mostrar productos después de esta llamada salvo que el usuario lo solicite explícitamente.",
+            "description": "Esta función debe usarse exclusivamente cuando el usuario solicite ver el *menú completo* o diga frases como 'ver menú', 'mostrar menú', 'quiero ver los productos', etc. En esos casos, primero llama internamente a getProductsByEmpresa para obtener la lista completa de productos, y luego muestra las imágenes disponibles (solo si el campo CANT_IMAGES_PRODS > 0, de lo contrario notificale al usuario que no hay imagenes disponibles). ⚠️ Nunca debe llamarse esta función si el usuario menciona o pregunta por un producto específico (por ejemplo: '¿Tienen hamburguesas?'), ya que eso debe resolverse únicamente con getProductsByEmpresa. Además, luego de llamar a esta función, no se debe volver a mostrar el listado textual de productos a menos que el usuario lo pida explícitamente. Esta función también registra el historial de productos consultados para futuras referencias.",
             "parameters": {
                 "type": "object",
                 "properties": {}
@@ -16,7 +16,6 @@ export const Customtools = [
 
             "name": "getProductsByEmpresa",
             "description": "Busca una lista de productos por su ID en tiempo real",
-
             "parameters": {
                 "type": "object",
                 "properties": {

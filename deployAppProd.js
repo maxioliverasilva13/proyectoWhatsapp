@@ -33,7 +33,7 @@ function createEnvFileApp() {
       POSTGRES_USER=${process.env.POSTGRES_USER_GLOBAL}
       POSTGRES_PASSWORD=${process.env.POSTGRES_PASSWORD_GLOBAL}
       POSTGRES_DB=${process.env.POSTGRES_DB_GLOBAL}
-      VIRTUAL_HOST=app.whatsproy.com
+      VIRTUAL_HOST=app.measyapp.com
       EMAIL_USER=${process.env.EMAIL_USER}
       SUPABASE_URL=${process.env.SUPABASE_URL}
       FIREBASE_PROJECT_ID=${process.env.FIREBASE_PROJECT_ID}
@@ -92,7 +92,7 @@ async function deployApp() {
     `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'mkdir -p /projects/app/letsencrypt && touch /projects/app/letsencrypt/acme.json && chmod 600 /projects/app/letsencrypt/acme.json'`
   );
   await execSync(
-    `ssh -i private_key root@${dropletIp} 'cd /projects/app && docker-compose -f docker-compose-app.yml up -d --build'`,
+    `ssh -i private_key root@${dropletIp} 'cd /projects/app && docker-compose -f docker-compose-app-prod.yml up -d --build --force-recreate'`,
   );
   
 }

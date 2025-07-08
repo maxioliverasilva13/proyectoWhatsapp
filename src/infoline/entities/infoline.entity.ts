@@ -25,3 +25,4 @@ export class Infoline {
     @Column()
     id_tipo_servicio: number;
 }
+

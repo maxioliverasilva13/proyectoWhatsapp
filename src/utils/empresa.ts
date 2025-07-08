@@ -1,10 +1,10 @@
 export const getDbName = (nombre: string): string => {
   const dbName = nombre
-    .normalize("NFD")
+    .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-zA-Z0-9 ]/g, '') 
+    .replace(/[^a-zA-Z0-9 ]/g, '')
     .trim()
-    .replace(/\s+/g, '_')
+    .replace(/\s+/g, '-')
     .toLowerCase();
 
   return dbName;
