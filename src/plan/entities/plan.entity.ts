@@ -24,15 +24,18 @@ export class Plan extends BaseEntity {
     @Column()
     diasDuracion: number;
 
-    @Column({default:false})
+    @Column({ default: false })
     mostPoppular: boolean;
 
+    @Column({ default: false })
+    isWeb: boolean
+
     @Column()
-    adventages : string;
+    adventages: string;
 
     @Column()
     maxPedidos: number;
 
-    @OneToMany(()=> Payment, (planEmpresa)=> planEmpresa.plan)
-    payments : Payment[]
+    @OneToMany(() => Payment, (planEmpresa) => planEmpresa.plan)
+    payments: Payment[]
 }
