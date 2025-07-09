@@ -14,6 +14,7 @@ export class DeviceService {
   private messaging: admin.messaging.Messaging;
 
   private initializeService(withoutAppValidation = false) {
+    console.log("xd", process.env.FIREBASE_PRIVATE_KEY)
     if (!admin.apps.length) {
       admin.initializeApp({
         credential: admin.credential.cert({
