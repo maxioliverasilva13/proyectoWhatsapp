@@ -14,8 +14,7 @@ const client = new Client({
   },
 });
 
-const escapeEnvValue = (val) =>
-  JSON.stringify(val ?? '').replace(/\n/g, '\\n');
+const escapeEnvValue = (val) => val;
 
 async function getCompanies() {
   try {
