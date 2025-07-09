@@ -97,7 +97,7 @@ async function deployCompany(empresa) {
   );
 
   await execSync(
-    `ssh -i private_key root@${dropletIp} 'cd /projects/${empresa.db_name} && docker-compose -f docker-compose.yml up -d --build --force-recreate --remove-orphans'`,
+    `ssh -i private_key root@${dropletIp} 'cd /projects/${empresa.db_name} && docker compose -f docker-compose.yml up -d --build --force-recreate --remove-orphans'`,
   );
 }
 

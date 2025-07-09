@@ -69,7 +69,7 @@ async function deployApp() {
   '
 `);
   await execSync(
-    `ssh -i private_key root@${dropletIp} 'cd /projects/app && docker-compose -f docker-compose-app.yml up -d --build --force-recreate'`,
+    `ssh -i private_key root@${dropletIp} 'cd /projects/app && docker compose -f docker-compose-app.yml up -d --build --force-recreate'`,
   );
 }
 
