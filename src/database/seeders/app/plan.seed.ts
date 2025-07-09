@@ -27,6 +27,7 @@ export class PlanSeed implements Seeder {
         adventages:
           'Mensajes ilimitados,Hasta 300 ordenes mensuales,Respuesta rapida,Cierre provisorio,Multiples cuentas,Calendario',
         maxPedidos: 300,
+        isWeb:false
       },
       {
         id: 2,
@@ -37,8 +38,10 @@ export class PlanSeed implements Seeder {
         diasDuracion: 31,
         mostPoppular: true,
         adventages:
-          'Mensajes ilimitados,Hasta 800 ordenes mensuales,Respuesta rápida prioritaria,Cierre provisorio,Multiples cuentas,Calendario,Soporte preferencial',
+          'Mensajes ilimitados,Hasta 800 ordenes mensuales,Respuesta rápida prioritaria,Cierre provisorio,Multiples cuentas,Calendario,Soporte preferencial, Web personalizada',
         maxPedidos: 800,
+        isWeb:true
+
       },
       {
         id: 3,
@@ -49,8 +52,10 @@ export class PlanSeed implements Seeder {
         diasDuracion: 31,
         mostPoppular: false,
         adventages:
-          'Mensajes ilimitados,Hasta 2000 ordenes mensuales,Soporte premium,Cierre automático,Multiples cuentas,Integraciones avanzadas,Estadísticas en tiempo real,Calendario',
+          'Mensajes ilimitados,Hasta 2000 ordenes mensuales,Soporte premium,Cierre automático,Multiples cuentas,Integraciones avanzadas,Estadísticas en tiempo real,Calendario, Web personalizada',
         maxPedidos: 2000,
+        isWeb:true
+
       },
     ];
 

@@ -22,6 +22,7 @@ import { translations } from 'src/lenguage/translation';
 import { getLanguageFromTimezone } from 'src/lenguage/utils';
 import { HorarioService } from 'src/horario/horario.service';
 import { estaAbierto } from 'src/horario/utils';
+import { TIPO_SERVICIO_DELIVERY_ID } from 'src/database/seeders/app/tipopedido.seed';
 
 function extractMessage(respText: any): { message: string | undefined } {
   let info = { message: undefined };
@@ -77,7 +78,7 @@ export class GrenApiController {
     @InjectQueue(`GreenApiResponseMessagee-${process.env.SUBDOMAIN}`)
     private readonly messageQueue: Queue,
     private readonly redisService: RedisService,
-  ) {}
+  ) { }
 
   @Post('/webhooks')
   async handleWebhook(@Req() request: Request, @Body() body: any) {
@@ -134,10 +135,13 @@ export class GrenApiController {
             if (numberExist?.data) {
               return;
             } else {
-              const estaDentroDeHorario = await estaAbierto(
-                InfoCompany?.timeZone,
-                this.horarioService,
-              );
+              let estaDentroDeHorario = true;
+              if (empresaType === TIPO_SERVICIO_DELIVERY_ID) {
+                estaDentroDeHorario = await estaAbierto(
+                  InfoCompany?.timeZone,
+                  this.horarioService,
+                );
+              }
 
               if (estaDentroDeHorario === true) {
                 let messageToSend;
