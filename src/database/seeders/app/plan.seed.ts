@@ -18,44 +18,42 @@ export class PlanSeed implements Seeder {
     const plansDefault = [
       {
         id: 1,
-        nombre: 'Basic Plan',
+        nombre: 'Plan Básico',
         active: true,
         product_sku: 'basicsubscriptionmeasy2025',
-        costoUSD: 99,
+        costoUSD: 49,
         diasDuracion: 31,
         mostPoppular: false,
         adventages:
-          'Mensajes ilimitados,Hasta 300 ordenes mensuales,Respuesta rapida,Cierre provisorio,Multiples cuentas,Calendario',
-        maxPedidos: 300,
-        isWeb:false
+          'Mensajes ilimitados,Hasta 500 ordenes mensuales,Respuesta rapida,Cierre provisorio,Multiples cuentas',
+        maxPedidos: 500,
+        isWeb: false,
       },
       {
         id: 2,
-        nombre: 'Intermediate Plan',
+        nombre: 'Plan Intermedio',
         active: true,
         product_sku: 'mediumsubscriptionmeasy2025',
-        costoUSD: 199,
+        costoUSD: 119,
         diasDuracion: 31,
         mostPoppular: true,
         adventages:
-          'Mensajes ilimitados,Hasta 800 ordenes mensuales,Respuesta rápida prioritaria,Cierre provisorio,Multiples cuentas,Calendario,Soporte preferencial, Web personalizada',
-        maxPedidos: 800,
-        isWeb:true
-
+          'Mensajes ilimitados,Hasta 1000 ordenes mensuales,Web Personalizada,Respuesta rápida prioritaria,Cierre provisorio,Multiples cuentas,Soporte preferencial',
+        maxPedidos: 1000,
+        isWeb: true,
       },
       {
         id: 3,
-        nombre: 'Pro Plan',
+        nombre: 'Plan Pro',
         active: true,
         product_sku: 'prosubscriptionmeasy2025',
-        costoUSD: 349,
+        costoUSD: 219,
         diasDuracion: 31,
         mostPoppular: false,
         adventages:
           'Mensajes ilimitados,Hasta 2000 ordenes mensuales,Soporte premium,Cierre automático,Multiples cuentas,Integraciones avanzadas,Estadísticas en tiempo real,Calendario, Web personalizada',
         maxPedidos: 2000,
-        isWeb:true
-
+        isWeb: true,
       },
     ];
 
