@@ -1,11 +1,5 @@
 import { Seeder, SeederFactoryManager } from 'typeorm-extension';
 import { DataSource } from 'typeorm';
-import { Usuario } from 'src/usuario/entities/usuario.entity';
-import * as bcrypt from 'bcryptjs';
-import { Tiposervicio } from 'src/tiposervicio/entities/tiposervicio.entity';
-import { TipoPedido } from 'src/enums/tipopedido';
-import { Role } from 'src/roles/entities/role.entity';
-import { TypeRol } from 'src/enums/rol';
 import { Plan } from 'src/plan/entities/plan.entity';
 
 export class PlanSeed implements Seeder {
