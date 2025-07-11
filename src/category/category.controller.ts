@@ -32,6 +32,11 @@ export class CategoryController {
     return this.categoryService.getProductFromCategory(parseInt(idCategory))
   }
 
+  @Get('getProductsWithoutCategories')
+  async getProducctsWithoutCategory() {
+    return this.categoryService.getProductsWithoutCategory()
+  }
+
   @Delete(':id')
   async deleteCategory(@Param('id') id: string) {
     return this.categoryService.deleteCategory(parseInt(id))
