@@ -71,6 +71,30 @@ export class CategoryService {
     }
   }
 
+  async getProductsWithoutCategory() {
+    try {
+      const allProducts = await this.productRepository
+        .createQueryBuilder("producto")
+        .leftJoinAndSelect("producto.category", "category")
+        .where("category.id IS NULL")
+        .getMany();
+
+      return {
+        ok: true,
+        data: allProducts,
+      };
+    } catch (error) {
+      throw new BadRequestException({
+        ok: false,
+        statusCode: 400,
+        message: error?.message,
+        error: "Bad Request",
+      });
+    }
+  }
+
+
+
   async getProductFromCategory(idCategory: number) {
     try {
 
