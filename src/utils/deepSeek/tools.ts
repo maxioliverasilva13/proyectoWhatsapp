@@ -272,7 +272,7 @@ export const Customtools = [
                 "properties": {
                     "orderId": {
                         "type": "string",
-                        "description": "Id de la orden que el usuario desda modfiicar"
+                        "description": "Id de la orden que el usuario desda eliminar"
                     }
                 },
                 "required": [
