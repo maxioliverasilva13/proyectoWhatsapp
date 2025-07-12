@@ -11,6 +11,11 @@ export class RedisService implements OnModuleDestroy {
     await this.redis.lpush(key, value);
   }
 
+  async isSpamming(key: string, limit: number, windowSeconds: number) {
+    const count = await this.increment(key, windowSeconds);
+    return count > limit;
+  }
+
   async popAllFromList(key: string): Promise<string[]> {
     const messages = await this.redis.lrange(key, 0, -1);
     await this.redis.del(key);
