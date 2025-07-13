@@ -190,6 +190,7 @@ export class AppModule {
         { path: "/usuario/workers/:empresaId", method: RequestMethod.GET },
         { path: "/usuario/workers", method: RequestMethod.GET },
         { path: "/payment-methods", method: RequestMethod.GET },
+        { path: "/plan", method: RequestMethod.GET },
       )
       .forRoutes('*');
   }
