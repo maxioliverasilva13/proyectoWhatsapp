@@ -11,7 +11,6 @@ import { ProductoService } from 'src/producto/producto.service';
 import { sendMessageWithTools } from 'src/utils/deepSeek/deepSeekFunctions';
 import { connectToGreenApi } from 'src/utils/greenApi';
 
-
 @Injectable()
 export class GreenApiService {
   constructor(

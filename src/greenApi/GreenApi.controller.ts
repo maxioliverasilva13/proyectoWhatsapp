@@ -98,7 +98,6 @@ export class GrenApiController {
         console.log("me llaman con", empresaId)
         const empresaType = request['empresaType'];
         const { typeWebhook, messageData } = body;
-
         if (typeWebhook === 'incomingMessageReceived') {
           // const orderPlanStatus = await this.pedidoService.orderPlanStatus();
           // if (orderPlanStatus?.slotsToCreate <= 0) {
@@ -110,6 +109,26 @@ export class GrenApiController {
           const chatId = senderData?.chatId;
           const numberSender = sender?.match(/^\d+/)[0];
           const senderName = senderData?.chatName ?? senderData?.senderName;
+
+          const spamKey = `spam:count:${numberSender}`;
+          const isSpammer = await this.redisService.isSpamming(spamKey, 50, 900);
+
+          if (isSpammer) {
+            await this.messageQueue.add(
+              'send',
+              {
+                chatId: chatId,
+                message: {
+                  message:
+                    'Detectamos un uso inusual. Por favor, esperá unos minutos antes de enviar más mensajes.',
+                },
+              },
+              { priority: 0, attempts: 1 },
+            );
+            return;
+          }
+
+
           const numberExist = await this.numeroConfianza.getOne(
             numberSender,
             empresaId,
