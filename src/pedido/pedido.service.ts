@@ -1036,7 +1036,11 @@ export class PedidoService implements OnModuleDestroy {
 
     const { intervaloTiempoCalendario, timeZone = 'America/Montevideo' } =
       empresa;
-    const diaSemana = moment(fecha).endOf('day').subtract(6, "hours").tz(timeZone).isoWeekday();
+    const diaSemana = moment(fecha)
+      .endOf('day')
+      .subtract(6, 'hours')
+      .tz(timeZone)
+      .isoWeekday();
     const horariosDia = await this.horarioService.findByDay(diaSemana);
     if (!timeZone || !intervaloTiempoCalendario || !horariosDia) return [];
 
@@ -1483,6 +1487,8 @@ export class PedidoService implements OnModuleDestroy {
 
 🧾 Detalle de ${tipo.toLowerCase()}:
 ${productosList}
+
+${pedido.detalle_pedido ? `\n\n📌 Detalles: ${pedido.detalle_pedido}` : ''}
 
 ¡Gracias por elegirnos! 💚`;
 
