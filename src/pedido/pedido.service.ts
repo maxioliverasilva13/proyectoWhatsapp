@@ -1451,6 +1451,9 @@ export class PedidoService implements OnModuleDestroy {
 
   async confirmOrder(id: number) {
     try {
+      const empresa = await this.empresaRepository.findOne({
+        where: { db_name: process.env.SUBDOMAIN },
+      });
       const pedido = await this.pedidoRepository.findOne({
         where: { id: id },
       });
@@ -1489,6 +1492,8 @@ export class PedidoService implements OnModuleDestroy {
 ${productosList}
 
 ${pedido.detalle_pedido ? `\n\n📌 Detalles: ${pedido.detalle_pedido}` : ''}
+
+${pedido.isDomicilio === false ? `\n\n📌 Retirar en sucursal: ${empresa.direccion}` : ''}
 
 ¡Gracias por elegirnos! 💚`;
 
