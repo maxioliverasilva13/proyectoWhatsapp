@@ -244,7 +244,8 @@ export class GrenApiController {
                       senderName,
                       timeZone,
                       chatId,
-                      InfoCompany.retiroEnSucursal,
+                      InfoCompany.retiroEnSucursalHabilitado,
+                      InfoCompany.envioADomicilioHabilitado,
                       InfoCompany.direccion,
                     );
 
