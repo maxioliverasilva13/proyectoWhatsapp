@@ -99,7 +99,7 @@ export class CategoryService {
     try {
 
       const categoryExist = await this.categoryRepository.findOne({
-        where: { id: idCategory }, relations: ['producto'],
+        where: { id: idCategory }, relations: ['producto', 'category'],
       });
 
       if (!categoryExist) {
