@@ -57,16 +57,19 @@ export class ProductoService implements OnModuleDestroy {
 
   async create(createProduct: CreateProductoDto, empresaId: number) {
     try {
-      const currencyExist = await this.currencyRepo.findOne({
+
+      let currencyExist;
+
+      const currencySelected = await this.currencyRepo.findOne({
         where: { id: createProduct?.currency_id ?? 0 },
       });
-      if (!currencyExist) {
-        throw new BadRequestException({
-          ok: false,
-          statusCode: 400,
-          message: 'No se encontro el currency seleccionado',
-          error: 'Bad Request',
+
+      if (!currencySelected) {
+        currencyExist = await this.currencyRepo.findOne({
+          where: { codigo: "UYU" },
         });
+      } else {
+        currencyExist = currencySelected;
       }
 
       const categories = await this.categoryRepo.find({
