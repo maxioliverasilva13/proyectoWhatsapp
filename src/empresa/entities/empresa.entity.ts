@@ -60,7 +60,10 @@ export class Empresa extends BaseEntity {
   apiConfigured: boolean;
 
   @Column({ default: false })
-  retiroEnSucursal: boolean;
+  retiroEnSucursalHabilitado: boolean;
+
+  @Column({ default: false })
+  envioADomicilioHabilitado: boolean;
 
   @Column({ default: false })
   notificarMenuDiario: boolean;

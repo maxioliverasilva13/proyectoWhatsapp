@@ -107,6 +107,7 @@ export class AuthService implements OnModuleDestroy {
       let payment = null;
       let oldPlan = null;
       let retiroEnSucursal = false;
+      let envioADomicilio = false;
       let apiUrl = '';
       let assistentEnabled = false;
       let greenApiConfigured = false;
@@ -155,7 +156,8 @@ export class AuthService implements OnModuleDestroy {
           remaindersHorsRemainder = empresa.remaindersHorsRemainder;
           payment = empresa.payment;
           direccion = empresa.direccion;
-          retiroEnSucursal = empresa.retiroEnSucursal ?? false;
+          retiroEnSucursal = empresa.retiroEnSucursalHabilitado ?? false;
+          envioADomicilio = empresa.envioADomicilioHabilitado ?? false;
           timeZone = empresa.timeZone;
           apiConfigured = empresa.apiConfigured;
           apiUrl = `${process.env.ENV === 'dev' ? 'http' : 'https'}://${process.env.VIRTUAL_HOST?.replace(
@@ -198,6 +200,7 @@ export class AuthService implements OnModuleDestroy {
         payment: payment,
         direccion,
         greenApiConfigured,
+        envioADomicilio,
         globalConfig:
           greenApiConfigured && userConfigured && paymentMade && apiConfigured,
         intervaloTiempoCalendario,

@@ -56,6 +56,12 @@ export class Producto extends BaseEntity {
   @Column({ default: null })
   isMenuDiario: boolean;
 
+  @Column({ default: false, nullable: true })
+  envioADomicilio: boolean;
+
+  @Column({ default: false, nullable: true })
+  retiroEnSucursal: boolean;
+
   @Column({ default: 0, nullable: true })
   orderMenuDiario: number;
 

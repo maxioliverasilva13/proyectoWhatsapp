@@ -35,7 +35,7 @@ export class ProductoService implements OnModuleDestroy {
     private menuImgRepo: Repository<MenuImage>,
     @Inject(forwardRef(() => GreenApiService))
     private readonly greenApiService: GreenApiService,
-  ) { }
+  ) {}
 
   async onModuleInit() {
     if (!this.globalConnection) {
@@ -93,6 +93,8 @@ export class ProductoService implements OnModuleDestroy {
       product.empresa_id = empresaId;
       product.descripcion = createProduct.descripcion;
       product.disponible = true;
+      product.envioADomicilio = createProduct?.envioADomicilio ?? false;
+      product.retiroEnSucursal = createProduct?.retiroEnSucursal ?? false;
       product.diaSemana = createProduct?.diaSemana ?? 1;
       product.orderMenuDiario = createProduct?.orderMenuDiario ?? 0;
       product.currency_id = currencyExist?.id;
@@ -205,6 +207,8 @@ export class ProductoService implements OnModuleDestroy {
         price: prod?.precio,
         dayOfWeeK: dayOfWeeK,
         description: prod?.descripcion,
+        envioADomicilio: prod?.envioADomicilio,
+        retiroEnSucursal: prod?.retiroEnSucursal,
         plazoDuracionEstimado: prod?.plazoDuracionEstimadoMinutos,
         currency_id: prod?.currency_id,
       };
@@ -228,10 +232,12 @@ export class ProductoService implements OnModuleDestroy {
       id: prod?.id,
       disponible: prod?.disponible,
       price: prod?.precio,
+      envioADomicilio: prod?.envioADomicilio,
+      retiroEnSucursal: prod?.retiroEnSucursal,
       description: prod?.descripcion,
       plazoDuracionEstimado: prod?.plazoDuracionEstimadoMinutos,
       currency_id: prod?.currency_id,
-    }))
+    }));
   }
 
   async updateProducto(id: number, updateProductoDto: UpdateProductoDto) {

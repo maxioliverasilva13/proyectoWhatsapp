@@ -25,7 +25,7 @@ export class GreenApiService {
     private readonly messagesService: MensajeService,
     @Inject(forwardRef(() => MenuImageService))
     private readonly menuImageService: MenuImageService,
-  ) { }
+  ) {}
 
   async onModuleInit() {
     const subdomain = process.env.SUBDOMAIN;
@@ -47,6 +47,7 @@ export class GreenApiService {
     timeZone,
     chatId,
     retiroEnSucursalEnabled,
+    envioADomicilioEnabled,
     direccion,
   ) {
     let originalChatId = '';
@@ -62,11 +63,10 @@ export class GreenApiService {
 
     console.log('obtengo el ultimo thread');
 
-
     if (chatIdExist) {
       console.log('ya hay un chat creado, es', chatId);
 
-      chatIdWhatsapp = chatIdExist
+      chatIdWhatsapp = chatIdExist;
     } else {
       console.log('no hay un chat creado');
     }
@@ -90,19 +90,17 @@ export class GreenApiService {
 
       console.log('se creo el thrad');
 
-
       if (resp.thread.id) {
-        currentThreadId = resp.thread.id
+        currentThreadId = resp.thread.id;
       }
       if (resp?.thread?.originalChatId) {
         originalChatId = resp?.thread?.originalChatId;
       }
       if (resp.thread.chatId) {
         console.log('se creo el thrad bien, asignare chat id');
-        chatIdWhatsapp = resp.thread.chatId
+        chatIdWhatsapp = resp.thread.chatId;
       }
     }
-
 
     const messages = await this.chatGptThreadsService.createMessageByThrad(
       textMessage,
@@ -110,7 +108,9 @@ export class GreenApiService {
       false,
     );
 
-    const openAIResponse = await sendMessageWithTools(textMessage, messages,
+    const openAIResponse = await sendMessageWithTools(
+      textMessage,
+      messages,
       {
         productoService: this.productoService,
         pedidoService: this.pedidoService,
@@ -119,7 +119,7 @@ export class GreenApiService {
         infoLineService: this.infoLineService,
         messagesService: this.messagesService,
         clienteService: this.clienteService,
-        menuImageService: this.menuImageService
+        menuImageService: this.menuImageService,
       },
       {
         threadId,
@@ -131,12 +131,13 @@ export class GreenApiService {
         chatIdExist: chatIdWhatsapp,
         originalChatId,
         retiroEnSucursalEnabled: retiroEnSucursalEnabled,
+        envioADomicilioEnabled: envioADomicilioEnabled,
         timeZone,
         senderName: senderName,
         userId: clienteId,
-        direccion: direccion
-      }
-    )
+        direccion: direccion,
+      },
+    );
 
     if (!openAIResponse) {
       return { isError: true };
@@ -152,7 +153,6 @@ export class GreenApiService {
     };
 
     let openAIResponseFormatted;
-
 
     try {
       const openAIResponseRaw = cleanJSON(openAIResponse);
@@ -171,7 +171,7 @@ export class GreenApiService {
     let textError;
     await this.chatGptThreadsService.updateThreadStatus(threadId, timeZone);
 
-    console.log("openAIResponseFormatted", openAIResponseFormatted)
+    console.log('openAIResponseFormatted', openAIResponseFormatted);
     const respToUser = textError ? textError : openAIResponseFormatted;
 
     console.log('devolvere respToUser', respToUser);
@@ -193,13 +193,11 @@ export class GreenApiService {
     messagePush = 'Test',
     originalChatId,
     withIA = false,
-    paymentMethodId = "",
-    transferUrl = "",
-    userId = "",
-    isDomicilio = false
+    paymentMethodId = '',
+    transferUrl = '',
+    userId = '',
+    isDomicilio = false,
   }: any) {
-
-
     try {
       const newOrder = await this.pedidoService.create({
         clienteId: clienteId,
@@ -232,7 +230,7 @@ export class GreenApiService {
       console.log('error haciendo pedido', error);
       return {
         ok: false,
-        message: error?.message ?? "Erro inesperado creando orden"
+        message: error?.message ?? 'Erro inesperado creando orden',
       };
     }
   }

@@ -25,6 +25,7 @@ interface Context {
   clienteId: any;
   retiroEnSucursalEnabled?: boolean;
   empresaId: any;
+  envioADomicilioEnabled?: boolean;
   empresaType: any;
   clientName: any;
   numberSender: any;
@@ -173,6 +174,7 @@ export async function sendMessageWithTools(
   const formatedText =
     `DIRECCION_EMPRESA: ${context.direccion}\n` +
     `RETIRO_SUCURSAL_ENABLED: ${context.retiroEnSucursalEnabled ? 'true' : 'false'}\n` +
+    `ENVIO_DOMICILIO_ENABLED: ${context.envioADomicilioEnabled ? 'true' : 'false'}\n` +
     `EmpresaId: ${context.empresaId}\n` +
     `EmpresaType: ${context.empresaType}\n` +
     `UserId: ${context.userId}\n` +
