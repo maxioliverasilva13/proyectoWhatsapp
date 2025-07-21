@@ -99,6 +99,7 @@ export class GrenApiController {
         const empresaType = request['empresaType'];
         const { typeWebhook, messageData } = body;
         if (typeWebhook === 'incomingMessageReceived') {
+          console.log("aca 3")
           // const orderPlanStatus = await this.pedidoService.orderPlanStatus();
           // if (orderPlanStatus?.slotsToCreate <= 0) {
           //   return;
@@ -116,8 +117,10 @@ export class GrenApiController {
             50,
             900,
           );
+          console.log("aca 4")
 
           if (isSpammer) {
+            console.log("aca 5")
             await this.messageQueue.add(
               'send',
               {
@@ -131,6 +134,7 @@ export class GrenApiController {
             );
             return;
           }
+          console.log("aca 6")
 
           const numberExist = await this.numeroConfianza.getOne(
             numberSender,
@@ -143,6 +147,8 @@ export class GrenApiController {
             relations: ['payment', 'payment.plan'],
           });
 
+
+          console.log("aca 7", InfoCompany.assistentEnabled)
           if (!InfoCompany.assistentEnabled) {
             return;
           }
