@@ -78,7 +78,7 @@ export class GrenApiController {
     @InjectQueue(`GreenApiResponseMessagee-${process.env.SUBDOMAIN}`)
     private readonly messageQueue: Queue,
     private readonly redisService: RedisService,
-  ) { }
+  ) {}
 
   @Post('/webhooks')
   async handleWebhook(@Req() request: Request, @Body() body: any) {
@@ -95,7 +95,7 @@ export class GrenApiController {
       } else {
         const timeZone = request['timeZone'];
         const empresaId = request['empresaId'];
-        console.log("me llaman con", empresaId)
+        console.log('me llaman con', empresaId);
         const empresaType = request['empresaType'];
         const { typeWebhook, messageData } = body;
         if (typeWebhook === 'incomingMessageReceived') {
@@ -111,7 +111,11 @@ export class GrenApiController {
           const senderName = senderData?.chatName ?? senderData?.senderName;
 
           const spamKey = `spam:count:${numberSender}`;
-          const isSpammer = await this.redisService.isSpamming(spamKey, 50, 900);
+          const isSpammer = await this.redisService.isSpamming(
+            spamKey,
+            50,
+            900,
+          );
 
           if (isSpammer) {
             await this.messageQueue.add(
@@ -127,7 +131,6 @@ export class GrenApiController {
             );
             return;
           }
-
 
           const numberExist = await this.numeroConfianza.getOne(
             numberSender,
@@ -161,6 +164,8 @@ export class GrenApiController {
                   this.horarioService,
                 );
               }
+              console.log('estaDentroDeHorario', estaDentroDeHorario);
+              console.log('empresaType', empresaType);
 
               if (estaDentroDeHorario === true) {
                 let messageToSend;
@@ -235,7 +240,7 @@ export class GrenApiController {
                       return;
                     }
 
-                    console.log("fullMessage", fullMessage)
+                    console.log('fullMessage', fullMessage);
                     const respText = await this.greenApi.handleMessagetText(
                       fullMessage,
                       numberSender,
@@ -307,6 +312,7 @@ export class GrenApiController {
                 } else {
                   textResponse = translations[lang]?.closed ?? '';
                 }
+                console.log("textResponse", textResponse)
 
                 await this.messageQueue.add(
                   'send',
@@ -333,4 +339,3 @@ export class GrenApiController {
     }
   }
 }
-
