@@ -35,6 +35,7 @@ import { InjectQueue } from '@nestjs/bullmq';
 import {
   TIPO_SERVICIO_DELIVERY_ID,
   TIPO_SERVICIO_RESERVA_ID,
+  TIPO_SERVICIO_RESERVA_ESPACIO_ID,
 } from 'src/database/seeders/app/tipopedido.seed';
 import { DeviceService } from 'src/device/device.service';
 import { Reclamo } from './entities/reclamo.entity';
@@ -42,6 +43,7 @@ import { PaymentMethod } from 'src/paymentMethod/entities/paymentMethod.entity';
 import { HorarioService } from 'src/horario/horario.service';
 import { CierreProvisorio } from 'src/cierreProvisorio/entities/cierreProvisorio.entitty';
 import { SalesByCategoryDto } from './dto/sales-by-category.dto';
+import { Espacio } from 'src/espacio/entities/espacio';
 
 @Injectable()
 export class PedidoService implements OnModuleDestroy {
@@ -78,7 +80,9 @@ export class PedidoService implements OnModuleDestroy {
     private readonly messageQueue: Queue,
     private readonly deviceService: DeviceService,
     private readonly horarioService: HorarioService,
-  ) {}
+    @InjectRepository(Espacio)
+    private readonly espacioRepository: Repository<Espacio>,
+  ) { }
 
   async onModuleInit() {
     if (!this.globalConnection) {
@@ -569,7 +573,7 @@ export class PedidoService implements OnModuleDestroy {
       const crearNuevoPedido = async (products) => {
         let total = 0;
         const infoLineToJson = createPedidoDto.infoLinesJson;
-
+        let espacioExist;
         const newPedido = new Pedido();
         newPedido.confirmado = createPedidoDto.confirmado || false;
         newPedido.cliente_id = createPedidoDto.clienteId;
@@ -588,6 +592,12 @@ export class PedidoService implements OnModuleDestroy {
           newPedido.chatIdWhatsapp = createPedidoDto.chatId.toString();
         }
         newPedido.detalle_pedido = createPedidoDto?.detalles ?? '';
+        if (createPedidoDto.espacio_id) {
+          espacioExist = await this.espacioRepository.findOne({ where: { id: createPedidoDto.espacio_id } })
+          if (espacioExist) {
+            newPedido.espacio = espacioExist;
+          }
+        }
 
         if (clientExist) {
           newPedido.client = clientExist;
@@ -1029,10 +1039,23 @@ export class PedidoService implements OnModuleDestroy {
     fecha: string,
     withPast = false,
     userId?: any,
+    isEmpresaReservaEsp?: boolean
   ): Promise<string[]> {
     const empresa = await this.empresaRepository.findOne({
       where: { db_name: process.env.SUBDOMAIN },
     });
+
+    console.log('recibo', fecha)
+    console.log('recibo', withPast)
+    console.log('userId', userId)
+    console.log('isEmpresaReservaEsp', isEmpresaReservaEsp)
+
+
+    let espacio;
+
+    if (isEmpresaReservaEsp) {
+      espacio = await this.espacioRepository.findOne({ where: { id: userId } })
+    }
 
     const { intervaloTiempoCalendario, timeZone = 'America/Montevideo' } =
       empresa;
@@ -1048,17 +1071,22 @@ export class PedidoService implements OnModuleDestroy {
 
     const now = moment.tz(timeZone);
     const disponibilidad: string[] = [];
-    const pedidosExistentes = await this.pedidoRepository.find({
-      where: {
-        available: true,
-        finalizado: false,
-        owner_user_id: userId,
-        fecha: Between(
-          moment.tz(`${fecha} 00:00`, timeZone).utc().toDate(),
-          moment.tz(`${fecha} 23:59:59`, timeZone).utc().toDate(),
-        ),
-      },
-    });
+    const where: any = {
+      available: true,
+      finalizado: false,
+      fecha: Between(
+        moment.tz(`${fecha} 00:00`, timeZone).utc().toDate(),
+        moment.tz(`${fecha} 23:59:59`, timeZone).utc().toDate()
+      )
+    };
+
+    if (isEmpresaReservaEsp) {
+      where.espacio = espacio;
+    } else {
+      where.owner_user_id = userId;
+    }
+
+    const pedidosExistentes = await this.pedidoRepository.find({ where });
 
     const cierresProvisorios = await this.cierreProvisorioRepo.find({
       where: {
@@ -1121,10 +1149,18 @@ export class PedidoService implements OnModuleDestroy {
     fechaInicio: string,
     fechaFin: string,
     userId?: any,
+    isEmpresaReservaEsp?: boolean
   ): Promise<string[]> {
     const empresa = await this.empresaRepository.findOne({
       where: { db_name: process.env.SUBDOMAIN },
     });
+
+
+    let espacioExist;
+
+    if (isEmpresaReservaEsp) {
+      espacioExist = await this.espacioRepository.findOne({ where: { id: userId } })
+    }
 
     const { intervaloTiempoCalendario, timeZone = 'America/Montevideo' } =
       empresa;
@@ -1143,17 +1179,24 @@ export class PedidoService implements OnModuleDestroy {
 
       if (!horariosDia || horariosDia.length === 0) continue;
 
-      const pedidosDelDia = await this.pedidoRepository.find({
-        where: {
-          finalizado: false,
-          available: true,
-          owner_user_id: userId,
-          fecha: Between(
-            moment.tz(`${fecha} 00:00`, timeZone).utc().toDate(),
-            moment.tz(`${fecha} 23:59:59`, timeZone).utc().toDate(),
-          ),
-        },
-      });
+      const where: any = {
+        finalizado: false,
+        available: true,
+        owner_user_id: userId,
+        fecha: Between(
+          moment.tz(`${fecha} 00:00`, timeZone).utc().toDate(),
+          moment.tz(`${fecha} 23:59:59`, timeZone).utc().toDate(),
+        ),
+      }
+
+      if (isEmpresaReservaEsp) {
+        where.espacio = espacioExist;
+      } else {
+        where.owner_user_id = userId;
+      }
+
+
+      const pedidosDelDia = await this.pedidoRepository.find({ where });
 
       const cierresProvisorios = await this.cierreProvisorioRepo.find({
         where: {
@@ -1335,7 +1378,7 @@ export class PedidoService implements OnModuleDestroy {
     return resultados;
   }
 
-  async getNextDateTimeAvailable(timeZone: string, userId?: any): Promise<any> {
+  async getNextDateTimeAvailable(timeZone: string, userId?: any, isEmpresaReservaEsp?: boolean): Promise<any> {
     try {
       const empresaInfo = await this.empresaRepository.findOne({
         where: { db_name: process.env.SUBDOMAIN },
@@ -1357,6 +1400,7 @@ export class PedidoService implements OnModuleDestroy {
         fechaActual,
         fechaFin,
         userId,
+        isEmpresaReservaEsp
       );
 
       if (disponibilidades.length > 0) {

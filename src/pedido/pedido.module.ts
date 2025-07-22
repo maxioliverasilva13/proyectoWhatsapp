@@ -21,6 +21,7 @@ import { DeviceModule } from 'src/device/device.module';
 import { Reclamo } from './entities/reclamo.entity';
 import { PaymentMethod } from 'src/paymentMethod/entities/paymentMethod.entity';
 import { HorarioModule } from 'src/horario/horario.module';
+import { Espacio } from 'src/espacio/entities/espacio';
 
 @Module({
   imports: [
@@ -37,7 +38,8 @@ import { HorarioModule } from 'src/horario/horario.module';
       Cambioestadopedido,
       Mensaje,
       Cliente,
-      Reclamo
+      Reclamo,
+      Espacio
     ]),
     ProductopedidoModule,
     DeviceModule,

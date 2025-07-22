@@ -13,6 +13,7 @@ import {
 import { PedidoService } from './pedido.service';
 import { CreatePedidoDto } from './dto/create-pedido.dto';
 import { UpdatePedidoDto } from './dto/update-pedido.dto';
+import { TIPO_SERVICIO_RESERVA_ESPACIO_ID } from 'src/database/seeders/app/tipopedido.seed';
 
 enum OrderStatus {
   ACTIVE = 'active',
@@ -64,20 +65,26 @@ export class PedidoController {
   getNextDateAvailable(
     @Req() request: Request,
     @Query('userId') userId: number,
+    @Query('spaceId') spaceId: number,
+
   ) {
     const timeZone = request['timeZone'];
+    const isEmpresaReservaEsp = request['empresaId'] === TIPO_SERVICIO_RESERVA_ESPACIO_ID
 
-    return this.pedidoService.getNextDateTimeAvailable(timeZone);
+    return this.pedidoService.getNextDateTimeAvailable(timeZone,userId? userId : spaceId,isEmpresaReservaEsp);
   }
 
   @Get('/calendar/dates-avaiable')
   getDatesAvailable(@Req() request: any, @Query('userId') userId: number) {
+    const isEmpresaReservaEsp = request['empresaId'] === TIPO_SERVICIO_RESERVA_ESPACIO_ID
+
     const fecha = request.query['fecha'];
     const withPast = request.query['withPast'];
     return this.pedidoService.obtenerDisponibilidadActivasByFecha(
       fecha,
       withPast === 'true',
       userId,
+      isEmpresaReservaEsp
     );
   }
 

@@ -1,4 +1,5 @@
 export enum TipoPedido {
     DELIVERY = 'DELIVERY',
     RESERVA = 'RESERVA',
-  }
+    RESERVA_ESPACIO = 'RESERVAS DE ESPACIO'
+}

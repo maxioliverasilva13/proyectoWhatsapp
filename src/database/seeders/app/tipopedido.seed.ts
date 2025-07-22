@@ -5,6 +5,7 @@ import { TipoPedido } from 'src/enums/tipopedido';
 
 export const TIPO_SERVICIO_DELIVERY_ID = 1;
 export const TIPO_SERVICIO_RESERVA_ID = 2;
+export const TIPO_SERVICIO_RESERVA_ESPACIO_ID = 3;
 
 export class TipoServicioSeed implements Seeder {
   async run(
@@ -23,6 +24,11 @@ export class TipoServicioSeed implements Seeder {
         id: TIPO_SERVICIO_RESERVA_ID,
         nombre: 'Reserva',
         tipo: TipoPedido.RESERVA,
+      },
+      {
+        id: TIPO_SERVICIO_RESERVA_ESPACIO_ID,
+        nombre: 'Reserva de espacios',
+        tipo: TipoPedido.RESERVA_ESPACIO,
       },
     ];
 

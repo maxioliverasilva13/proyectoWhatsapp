@@ -26,3 +26,14 @@ export const defaultsInfoLineReservas = [
     id_tipo_servicio: 2,
   },
 ];
+
+export const defaultsInfoLineReservaEspacio = [
+  {
+    id: FECHA_HORA_INFOLINE_RESERVA,
+    nombre: 'Fecha y Hora',
+    requerido: true,
+    es_defecto: true,
+    tipo: TipoInfoLine.date,
+    id_tipo_servicio: 3,
+  },
+];
