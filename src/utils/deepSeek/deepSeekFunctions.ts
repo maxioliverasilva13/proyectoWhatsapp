@@ -1,4 +1,3 @@
-import { toolresults } from 'googleapis/build/src/apis/toolresults';
 import getCurrentDate from '../getCurrentDate';
 import { getInstructions } from './instructions';
 import { Customtools } from './tools';
@@ -16,7 +15,8 @@ interface Services {
   infoLineService: any;
   messagesService: any;
   clienteService: any;
-  menuImageService: any
+  menuImageService: any;
+  espacioService: any
 }
 
 interface Context {
@@ -119,6 +119,7 @@ async function executeToolByName(
   } else if (name === 'confirmOrder') {
     console.log('confirmOrder');
     console.log('intentando crear orden con', args, args?.info?.data);
+
     toolResult = await greenApiService.hacerPedido({
       currentThreadId: threadId,
       transferUrl: args?.transferUrl ?? '',
@@ -137,19 +138,21 @@ async function executeToolByName(
       paymentMethodId: args?.paymentMethodId,
       userId: args?.info?.empleadoId,
       isDomicilio: args?.isDomicilio ?? false,
+      espacio_id: args?.espacio_id ?? null
     });
   } else if (name === 'getAvailability') {
     console.log('getAvailability');
     toolResult = await pedidoService.obtenerDisponibilidadActivasByFecha(
       args.date,
       false,
-      args.empleadoId,
+      args.empleadoId ? args.empleadoId : args.espacio_id,
+      empresaType === 'RESERVAS DE ESPACIO'
     );
   } else if (name === 'getNextAvailability') {
     console.log('getNextAvailability');
     toolResult = await pedidoService.getNextDateTimeAvailable(
       timeZone,
-      args.empleadoId,
+      args.empleadoId ? args.empleadoId : args.espacio_id,
     );
   } else {
     toolResult = { error: `Tool ${name} no implementada` };
@@ -170,6 +173,8 @@ export async function sendMessageWithTools(
     services.menuImageService.getCantidadImages(),
   ]);
 
+  const esp_text = await services.espacioService.findAllPlainText()
+
   // Prepare base formatted text string once
   const formatedText =
     `DIRECCION_EMPRESA: ${context.direccion}\n` +
@@ -181,7 +186,9 @@ export async function sendMessageWithTools(
     `Nombre de usuario: ${context.senderName}\n` +
     `CURRENT_TIME: ${getCurrentDate()}\n` +
     `CANT_IMAGES_PROD: ${menuImagesCount}\n` +
-    `CURRENT_EMPLEADOS: ${JSON.stringify(usersEmpresa ?? [])}\n`;
+    `CURRENT_EMPLEADOS: ${JSON.stringify(usersEmpresa ?? [])}\n` +
+    `ESPACIOS_DISPONIBLES: ${esp_text}\n`
+    ;
 
   let currentMessages = [...messages];
   if (msg) {
@@ -215,7 +222,7 @@ export async function sendMessageWithTools(
       body: JSON.stringify({
         model: 'deepseek-chat',
         messages: chatMessages,
-        tools: Customtools,
+        tools: Customtools(context.empresaType),
         tool_choice: 'auto',
         max_tokens: 4096,
         temperature: 0.1,

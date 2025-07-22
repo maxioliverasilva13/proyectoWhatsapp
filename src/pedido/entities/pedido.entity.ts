@@ -1,6 +1,7 @@
 import { Cambioestadopedido } from 'src/cambioestadopedido/entities/cambioestadopedido.entity';
 import { Chat } from 'src/chat/entities/chat.entity';
 import { Cliente } from 'src/cliente/entities/cliente.entity';
+import { Espacio } from 'src/espacio/entities/espacio';
 import { Estado } from 'src/estado/entities/estado.entity';
 import { PaymentMethod } from 'src/paymentMethod/entities/paymentMethod.entity';
 import { ProductoPedido } from 'src/productopedido/entities/productopedido.entity';
@@ -61,6 +62,9 @@ export class Pedido extends BaseEntity {
   @ManyToOne(() => Chat, (chat) => chat.pedido)
   @JoinColumn()
   chat: Chat;
+
+  @ManyToOne(() => Espacio, (esp) => esp.pedido)
+  espacio: Espacio;
 
   @OneToMany(() => ProductoPedido, (prod) => prod.pedido)
   pedidosprod: ProductoPedido[];

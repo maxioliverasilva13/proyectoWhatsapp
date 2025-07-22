@@ -18,5 +18,6 @@ export class CreatePedidoDto {
     originalChatId?: string;
     detalles?: string;
     messageToUser?: string;
+    espacio_id?: number;
     chatId : string
 }

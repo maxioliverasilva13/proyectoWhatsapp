@@ -4,6 +4,7 @@ import { Infoline } from 'src/infoline/entities/infoline.entity';
 import {
   defaultsInfoLineDelivery,
   defaultsInfoLineReservas,
+  defaultsInfoLineReservaEspacio,
   NOMBRE_INFOLINE_DELIVERY,
 } from 'src/utils/infoline';
 
@@ -28,6 +29,11 @@ export class InfoLineSeed implements Seeder {
     );
     await Promise.all(
       defaultsInfoLineReservas?.map(async (infoline) => {
+        return await infoLineRepository.upsert(infoline, ['nombre']);
+      }),
+    );
+    await Promise.all(
+      defaultsInfoLineReservaEspacio?.map(async (infoline) => {
         return await infoLineRepository.upsert(infoline, ['nombre']);
       }),
     );

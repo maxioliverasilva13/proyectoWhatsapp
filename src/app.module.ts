@@ -62,6 +62,8 @@ import { OpenaiController } from './openAI/openAI.controller';
 import { OpenaiModule } from './openAI/openAI.module';
 import { MenuImageModule } from './menuImg/menuImg.module';
 import { MenuImageController } from './menuImg/menuImg.controller';
+import { EspacioModule } from './espacio/espacio.module';
+import { EspacioController } from './espacio/espacio.controller';
 
 ConfigModule.forRoot();
 
@@ -114,6 +116,7 @@ const connection = handleGetConnection();
     ChatGptThreadsModule,
     NumeroConfianzaModule,
     PaymentMethodModule,
+    EspacioModule,
     AuthModule,
     CierreProvisorioModule,
     PlanEmpresaModule,
@@ -157,6 +160,7 @@ export class AppModule {
         GrenApiController,
         PedidoController,
         InfolineController,
+        EspacioController,
         ChatGptThreadsController,
         HorarioController,
         MensajeController,

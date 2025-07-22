@@ -2,6 +2,7 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { ChatGptThreadsService } from 'src/chatGptThreads/chatGptThreads.service';
 import { ClienteService } from 'src/cliente/cliente.service';
 import { DeviceService } from 'src/device/device.service';
+import { EspacioService } from 'src/espacio/espacio.service';
 import { InfolineService } from 'src/infoline/infoline.service';
 import { MensajeService } from 'src/mensaje/mensaje.service';
 import { MenuImageService } from 'src/menuImg/menuImg.service';
@@ -25,6 +26,7 @@ export class GreenApiService {
     private readonly messagesService: MensajeService,
     @Inject(forwardRef(() => MenuImageService))
     private readonly menuImageService: MenuImageService,
+    private readonly espacioService: EspacioService,
   ) {}
 
   async onModuleInit() {
@@ -120,6 +122,7 @@ export class GreenApiService {
         messagesService: this.messagesService,
         clienteService: this.clienteService,
         menuImageService: this.menuImageService,
+        espacioService: this.espacioService
       },
       {
         threadId,
@@ -197,6 +200,7 @@ export class GreenApiService {
     transferUrl = '',
     userId = '',
     isDomicilio = false,
+    espacio_id = null
   }: any) {
     try {
       const newOrder = await this.pedidoService.create({
@@ -218,6 +222,7 @@ export class GreenApiService {
         paymentMethodId: paymentMethodId,
         userId: userId,
         isDomicilio: isDomicilio,
+        espacio_id: espacio_id
       });
       // await this.chatGptThreadsService.deleteThread(currentThreadId);
       await this.deviceService.sendNotificationEmpresa(
