@@ -138,7 +138,8 @@ async function executeToolByName(
       paymentMethodId: args?.paymentMethodId,
       userId: args?.info?.empleadoId,
       isDomicilio: args?.isDomicilio ?? false,
-      espacio_id: args?.espacio_id ?? null
+      espacio_id: args?.espacio_id ?? null,
+      timeZone
     });
   } else if (name === 'getAvailability') {
     console.log('getAvailability');
@@ -153,6 +154,7 @@ async function executeToolByName(
     toolResult = await pedidoService.getNextDateTimeAvailable(
       timeZone,
       args.empleadoId ? args.empleadoId : args.espacio_id,
+      empresaType === 'RESERVAS DE ESPACIO'
     );
   } else {
     toolResult = { error: `Tool ${name} no implementada` };

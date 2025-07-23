@@ -490,8 +490,6 @@ export class PedidoService implements OnModuleDestroy {
   }
 
   async create(createPedidoDto: CreatePedidoDto) {
-    console.log('voy a crear pedido con', createPedidoDto);
-
     try {
       const currentOrders = await this.pedidoRepository
         .createQueryBuilder('pedido')
@@ -525,12 +523,30 @@ export class PedidoService implements OnModuleDestroy {
         where: { tipo: createPedidoDto.empresaType },
       });
 
+
+      console.log('el tipo de servicio es', tipoServicio);
+
+      let existsPedido;
+
       if (tipoServicio.id === TIPO_SERVICIO_RESERVA_ID) {
-        const existsPedido = await this.pedidoRepository.findOne({
+        existsPedido = await this.pedidoRepository.findOne({
           where: {
             fecha: createPedidoDto.fecha,
             available: true,
             owner_user_id: createPedidoDto.userId,
+          },
+        });
+        if (existsPedido) {
+          throw new BadRequestException(
+            'El horario seleccionado esta ocupado.',
+          );
+        }
+      } else if (tipoServicio.id === TIPO_SERVICIO_RESERVA_ESPACIO_ID) {
+        existsPedido = await this.pedidoRepository.findOne({
+          where: {
+            fecha: createPedidoDto.fecha,
+            available: true,
+            espacio: { id: createPedidoDto.espacio_id },
           },
         });
         if (existsPedido) {
@@ -571,6 +587,12 @@ export class PedidoService implements OnModuleDestroy {
       let globalTotal = 0;
 
       const crearNuevoPedido = async (products) => {
+        const fechaFinal = moment.tz(
+          createPedidoDto.fecha || products[0].fecha,
+          'YYYY-MM-DD HH:mm',
+          createPedidoDto?.timeZone
+        ).toDate();
+
         let total = 0;
         const infoLineToJson = createPedidoDto.infoLinesJson;
         let espacioExist;
@@ -583,16 +605,11 @@ export class PedidoService implements OnModuleDestroy {
         newPedido.tipo_servicio_id = tipoServicio.id;
         newPedido.available = true;
         newPedido.isDomicilio = createPedidoDto.isDomicilio;
-        const fecha = createPedidoDto.empresaType !== 'DELIVERY'
-          ? moment.tz(String(createPedidoDto.fecha || products[0].fecha), 'America/Montevideo').toDate()
-          : getCurrentDate();
+        newPedido.fecha =
+          createPedidoDto.empresaType !== 'DELIVERY'
+            ? fechaFinal
+            : new Date(getCurrentDate());
 
-        if (!(fecha instanceof Date) || isNaN(fecha.getTime())) {
-          throw new BadRequestException('Fecha inválida');
-        }
-        
-
-        newPedido.fecha = fecha;
 
         newPedido.infoLinesJson = infoLineToJson;
         if (createPedidoDto?.chatId) {

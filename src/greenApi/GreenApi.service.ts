@@ -200,7 +200,8 @@ export class GreenApiService {
     transferUrl = '',
     userId = '',
     isDomicilio = false,
-    espacio_id = null
+    espacio_id = null,
+    timeZone
   }: any) {
     try {
       const newOrder = await this.pedidoService.create({
@@ -222,7 +223,8 @@ export class GreenApiService {
         paymentMethodId: paymentMethodId,
         userId: userId,
         isDomicilio: isDomicilio,
-        espacio_id: espacio_id
+        espacio_id: espacio_id,
+        timeZone: timeZone
       });
       // await this.chatGptThreadsService.deleteThread(currentThreadId);
       await this.deviceService.sendNotificationEmpresa(

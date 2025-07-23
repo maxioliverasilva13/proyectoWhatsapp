@@ -19,5 +19,6 @@ export class CreatePedidoDto {
     detalles?: string;
     messageToUser?: string;
     espacio_id?: number;
-    chatId : string
+    chatId : string;
+    timeZone: string;
 }
