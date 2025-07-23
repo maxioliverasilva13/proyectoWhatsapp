@@ -590,6 +590,7 @@ export class PedidoService implements OnModuleDestroy {
         if (!(fecha instanceof Date) || isNaN(fecha.getTime())) {
           throw new BadRequestException('Fecha inválida');
         }
+        
 
         newPedido.fecha = fecha;
 
