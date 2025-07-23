@@ -583,6 +583,15 @@ export class PedidoService implements OnModuleDestroy {
         newPedido.tipo_servicio_id = tipoServicio.id;
         newPedido.available = true;
         newPedido.isDomicilio = createPedidoDto.isDomicilio;
+
+        console.log('-----------------------------------');
+        
+        console.log(createPedidoDto.fecha);
+
+        console.log(products[0].fecha);
+        console.log('-----------------------------------');
+
+        
         newPedido.fecha =
           createPedidoDto.empresaType !== 'DELIVERY' ?
             createPedidoDto.fecha || products[0].fecha
