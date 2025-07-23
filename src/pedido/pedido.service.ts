@@ -583,20 +583,10 @@ export class PedidoService implements OnModuleDestroy {
         newPedido.tipo_servicio_id = tipoServicio.id;
         newPedido.available = true;
         newPedido.isDomicilio = createPedidoDto.isDomicilio;
+        createPedidoDto.empresaType !== 'DELIVERY'
+          ? moment.tz(String(createPedidoDto.fecha || products[0].fecha), 'America/Montevideo').toDate()
+          : getCurrentDate()
 
-        console.log('-----------------------------------');
-        
-        console.log(createPedidoDto.fecha);
-
-        console.log(products[0].fecha);
-        console.log('-----------------------------------');
-
-        
-        newPedido.fecha =
-          createPedidoDto.empresaType !== 'DELIVERY' ?
-            createPedidoDto.fecha || products[0].fecha
-            :
-            getCurrentDate()
         newPedido.infoLinesJson = infoLineToJson;
         if (createPedidoDto?.chatId) {
           newPedido.chatIdWhatsapp = createPedidoDto.chatId.toString();
@@ -1371,7 +1361,6 @@ export class PedidoService implements OnModuleDestroy {
             !overlapping &&
             !enCierreProvisorio
           ) {
-            console.log('agrego cupo');
             cupos++;
           }
 
@@ -1447,8 +1436,8 @@ export class PedidoService implements OnModuleDestroy {
         espacioExist = await this.espacioRepository.findOne({ where: { id: userId } })
       }
 
-      
-      const conditions : any = {
+
+      const conditions: any = {
         where: {
           available: true,
           fecha: Between(filterDateStart, filterDateEnd),
