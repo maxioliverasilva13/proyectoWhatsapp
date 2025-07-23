@@ -786,6 +786,7 @@ export class PedidoService implements OnModuleDestroy {
           'estado',
           'cambioEstados.pedido',
           'cambioEstados.estado',
+          'espacio'
         ],
       });
       if (!pedidoExist) {
@@ -849,6 +850,7 @@ export class PedidoService implements OnModuleDestroy {
           cambiosEstado: pedidoExist.cambioEstados,
           detalle_pedido: pedidoExist?.detalle_pedido,
           total,
+          espacio: pedidoExist?.espacio?? {},
           infoLines: JSON.parse(pedidoExist.infoLinesJson),
         },
       };
