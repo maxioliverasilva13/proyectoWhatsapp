@@ -605,7 +605,8 @@ export class PedidoService implements OnModuleDestroy {
 
         if (
           createPedidoDto?.paymentMethodId &&
-          createPedidoDto?.paymentMethodId !== ''
+          createPedidoDto?.paymentMethodId !== '' &&
+          !isNaN(Number(createPedidoDto.paymentMethodId))
         ) {
           const paymentMethod = await this.paymentMethodRepo.findOne({
             where: { id: Number(createPedidoDto?.paymentMethodId) },
