@@ -63,6 +63,7 @@ async function executeToolByName(
     menuImageService
   } = services;
 
+  
   const {
     threadId,
     clienteId,
