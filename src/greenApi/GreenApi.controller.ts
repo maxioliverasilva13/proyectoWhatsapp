@@ -163,15 +163,15 @@ export class GrenApiController {
             if (numberExist?.data) {
               return;
             } else {
-              let estaDentroDeHorario = true;
+              let estaDentroDeHorario = await estaAbierto(InfoCompany?.timeZone, this.horarioService);
               if (empresaType === TIPO_SERVICIO_DELIVERY_ID) {
+                console.log("entor a ver si es delivery", empresaType);
                 estaDentroDeHorario = await estaAbierto(
                   InfoCompany?.timeZone,
                   this.horarioService,
                 );
               }
-              console.log('estaDentroDeHorario', estaDentroDeHorario);
-              console.log('empresaType', empresaType);
+              console.log("estaDentroDeHorario", estaDentroDeHorario)
 
               if (estaDentroDeHorario === true) {
                 let messageToSend;
