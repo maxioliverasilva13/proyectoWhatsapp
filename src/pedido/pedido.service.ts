@@ -1451,7 +1451,7 @@ export class PedidoService implements OnModuleDestroy {
 
 
       if (isEmpresaReservaEsp) {
-        conditions.where.espacio = userId;
+        conditions.where.espacio = espacioExist;
       } else {
         conditions.where.owner_user_id = userId;
       }
