@@ -850,7 +850,7 @@ export class PedidoService implements OnModuleDestroy {
           cambiosEstado: pedidoExist.cambioEstados,
           detalle_pedido: pedidoExist?.detalle_pedido,
           total,
-          espacio: pedidoExist?.espacio?? {},
+          espacio: pedidoExist?.espacio ?? {},
           infoLines: JSON.parse(pedidoExist.infoLinesJson),
         },
       };
@@ -1423,7 +1423,7 @@ export class PedidoService implements OnModuleDestroy {
     }
   }
 
-  async getOrdersForCalendar(dateTime: string, timeZone: string, userId?: any) {
+  async getOrdersForCalendar(dateTime: string, timeZone: string, userId?: any, isEmpresaReservaEsp?: boolean) {
     try {
       const now = getCurrentDate();
       const filterDate = moment(dateTime, 'YYYY-MM-DD').startOf('day');
@@ -1431,17 +1431,33 @@ export class PedidoService implements OnModuleDestroy {
       const filterDateStart = filterDate.startOf('day').toDate();
       const filterDateEnd = filterDate.endOf('day').toDate();
 
-      const pedidos = await this.pedidoRepository.find({
+      let espacioExist;
+
+      if (isEmpresaReservaEsp) {
+        espacioExist = await this.espacioRepository.findOne({ where: { id: userId } })
+      }
+
+      
+      const conditions : any = {
         where: {
           available: true,
           fecha: Between(filterDateStart, filterDateEnd),
-          owner_user_id: userId,
         },
         order: {
           fecha: 'DESC',
         },
         relations: ['pedidosprod', 'pedidosprod.producto'],
-      });
+      }
+
+
+      if (isEmpresaReservaEsp) {
+        conditions.where.espacio = userId;
+      } else {
+        conditions.where.owner_user_id = userId;
+      }
+
+
+      const pedidos = await this.pedidoRepository.find(conditions);
 
       const dates = {};
       await Promise.all(

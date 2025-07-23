@@ -58,7 +58,9 @@ export class PedidoController {
     @Query('userId') userId: number,
   ) {
     const timeZone = request['timeZone'];
-    return this.pedidoService.getOrdersForCalendar(date, timeZone, userId);
+    const isEmpresaReservaEsp = request['empresaId'] === TIPO_SERVICIO_RESERVA_ESPACIO_ID
+
+    return this.pedidoService.getOrdersForCalendar(date, timeZone, userId, isEmpresaReservaEsp);
   }
 
   @Get('/calendar/next-date-avaiable')
