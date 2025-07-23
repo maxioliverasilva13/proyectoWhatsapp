@@ -583,9 +583,15 @@ export class PedidoService implements OnModuleDestroy {
         newPedido.tipo_servicio_id = tipoServicio.id;
         newPedido.available = true;
         newPedido.isDomicilio = createPedidoDto.isDomicilio;
-        createPedidoDto.empresaType !== 'DELIVERY'
+        const fecha = createPedidoDto.empresaType !== 'DELIVERY'
           ? moment.tz(String(createPedidoDto.fecha || products[0].fecha), 'America/Montevideo').toDate()
-          : getCurrentDate()
+          : getCurrentDate();
+
+        if (!(fecha instanceof Date) || isNaN(fecha.getTime())) {
+          throw new BadRequestException('Fecha inválida');
+        }
+
+        newPedido.fecha = fecha;
 
         newPedido.infoLinesJson = infoLineToJson;
         if (createPedidoDto?.chatId) {
