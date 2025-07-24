@@ -193,6 +193,9 @@ export async function sendMessageWithTools(
     `ESPACIOS_DISPONIBLES: ${esp_text}\n`
     ;
 
+    console.log('empezare con ', formatedText);
+    
+
   let currentMessages = [...messages];
   if (msg) {
     currentMessages.push({ role: 'user', content: msg });

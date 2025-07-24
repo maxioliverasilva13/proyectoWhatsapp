@@ -110,6 +110,24 @@ export class GreenApiService {
       false,
     );
 
+    console.log('los datos de la empresa son',
+        threadId,
+        clienteId,
+        empresaId,
+        empresaType,
+        clientName,
+        numberSender,
+        chatIdWhatsapp,
+        originalChatId,
+        retiroEnSucursalEnabled,
+        envioADomicilioEnabled,
+        timeZone,
+        senderName,
+        clienteId,
+        direccion,
+    );
+    
+
     const openAIResponse = await sendMessageWithTools(
       textMessage,
       messages,
