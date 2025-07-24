@@ -170,6 +170,8 @@ export async function sendMessageWithTools(
   services: Services,
   context: Context,
 ): Promise<string> {
+  console.log('se llamo a sendMessageWithTools');
+  
   // Fetch static data in parallel
   const [usersEmpresa, menuImagesCount] = await Promise.all([
     services.clienteService.findUsersByEmpresa(context.empresaId),
@@ -198,7 +200,7 @@ export async function sendMessageWithTools(
     `CURRENT_TIME: ${getCurrentDate()}\n` +
     `CANT_IMAGES_PROD: ${menuImagesCount}\n` +
     `CURRENT_EMPLEADOS: ${JSON.stringify(usersEmpresa ?? [])}\n` +
-    `ESPACIOS_DISPONIBLES: ${esp_text}\n`
+    `ESPACIOS_DISPONIBLES: ${esp_text ?? "No hay espacios disponibles"}\n`
     ;
 
     console.log('empezare con ', formatedText);

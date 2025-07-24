@@ -110,6 +110,9 @@ export class GreenApiService {
       false,
     );
 
+    console.log('llamare a sendMessageWithTools');
+    
+
     const openAIResponse = await sendMessageWithTools(
       textMessage,
       messages,
