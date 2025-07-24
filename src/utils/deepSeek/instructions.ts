@@ -13,6 +13,10 @@ export async function getInstructions(empresaType: any): Promise<string> {
   console.log("me llega", empresaType, TIPO_SERVICIO_DELIVERY_ID)
   const isDelivery = empresaType === "DELIVERY"
   const isReserva = empresaType === 'RESERVA'
+  console.log('isDelivery',isDelivery);
+    console.log('isReserva',isReserva);
+
+  
   try {
     const storageFIle =
       isDelivery
