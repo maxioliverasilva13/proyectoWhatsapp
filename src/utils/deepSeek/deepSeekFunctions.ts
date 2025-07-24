@@ -176,7 +176,15 @@ export async function sendMessageWithTools(
     services.menuImageService.getCantidadImages(),
   ]);
 
-  const esp_text = await services.espacioService.findAllPlainText()
+
+  let esp_text = '';
+  try {
+    esp_text = await services.espacioService.findAllPlainText()
+    
+  } catch (error) {
+    console.log('error al encontrar espacios',error );
+    
+  }
 
   // Prepare base formatted text string once
   const formatedText =
