@@ -14,3 +14,4 @@ export async function connectToGreenApi(): Promise < void> {
         console.error('Error al conectar con Green API:', JSON.stringify(error));
     }
 }
+
