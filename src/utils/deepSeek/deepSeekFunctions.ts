@@ -69,7 +69,7 @@ async function executeToolByName(
     espacioService
   } = services;
 
-  
+
   const {
     threadId,
     clienteId,
@@ -92,7 +92,7 @@ async function executeToolByName(
   if (name === 'getProductosImgs') {
     console.log('getProductosImgs');
     toolResult = await menuImageService.listProductsImages(chatIdExist);
-  } else if(name === 'getEspaciosDisponibles') {
+  } else if (name === 'getEspaciosDisponibles') {
     console.log("getEspaciosDisponibles");
     toolResult = await espacioService.findAllPlainText()
   } else if (name === 'getProductsByEmpresa') {
@@ -178,7 +178,7 @@ export async function sendMessageWithTools(
   context: Context,
 ): Promise<string> {
   console.log('se llamo a sendMessageWithTools');
-  
+
   // Fetch static data in parallel
   const [usersEmpresa, menuImagesCount] = await Promise.all([
     services.clienteService.findUsersByEmpresa(context.empresaId),
@@ -196,10 +196,10 @@ export async function sendMessageWithTools(
     `CURRENT_DATE: ${getCurrentDate()}\n` +
     `CANT_IMAGES_PROD: ${menuImagesCount}\n` +
     `CURRENT_EMPLEADOS: ${JSON.stringify(usersEmpresa ?? [])}\n`
-    ;    
-  
+    ;
+
   console.log('enviare primero', formatedText);
-    
+
 
   let currentMessages = [...messages];
   if (msg) {
@@ -216,12 +216,19 @@ export async function sendMessageWithTools(
     }
 
     const instructions = await getInstructions(context.empresaType);
-    
+
     const chatMessages = sanitizeMessages([
       { role: 'system', content: instructions },
-      { role: 'system', content: "Variables iniciales: \n",formatedText },
+      { role: 'system', content: "Variables iniciales: \n", formatedText },
       ...currentMessages,
     ]);
+    const CURRENT_DATE = "2025-07-25"; 
+    const systemDateMessage = {
+      role: "system",
+      content: `CURRENT_DATE = "${CURRENT_DATE}".  
+Toda referencia a "hoy", "mañana", "pasado mañana", etc., debe resolverse con base en esta fecha en formato YYYY-MM-DD.`
+    };
+
     const allTools = Customtools(context.empresaType)
     console.log('[Enviando solicitud DeepSeek] Iteración restante:', maxIterations);
     const response = await fetch('https://api.deepseek.com/chat/completions', {
@@ -232,7 +239,7 @@ export async function sendMessageWithTools(
       },
       body: JSON.stringify({
         model: 'deepseek-chat',
-        messages: chatMessages,
+        messages: [systemDateMessage, ...chatMessages],
         tools: allTools,
         tool_choice: 'auto',
         max_tokens: 4096,

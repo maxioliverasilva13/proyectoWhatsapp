@@ -88,12 +88,16 @@ export class InfolineService implements OnModuleDestroy {
     try {
       const tipoServicioExist = await this.tipoServicioRepository.findOne({ where: { tipo: empresaType } })
 
+      console.log('los tipo de serviccio para', empresaType, ' son', tipoServicioExist);
+      
       if (!tipoServicioExist) {
         throw new BadRequestException('no existe el tipo de servicio proporcionado');
       }
 
       const allInfoLines = await this.infoLineRepository.find({ where: { id_tipo_servicio: tipoServicioExist.id } })
       let text = []
+      console.log('los infoLines osn');
+      
 
       allInfoLines.map((infoLine) => {
         text.push({

@@ -180,7 +180,6 @@ export const Customtools = (empresaType: string) => {
             "function": {
                 "name": "getInfoLines",
                 "description": "Busca los INFO-LINES items de la empresa actual, los info lines son los datos que se requieren para hacer una orden/pedido/reserva",
-
                 "parameters": {
                     "type": "object",
                     "properties": {},
@@ -352,5 +351,4 @@ export const Customtools = (empresaType: string) => {
         });
     }
     return tools;
-
 }
