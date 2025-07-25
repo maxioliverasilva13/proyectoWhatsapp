@@ -1,10 +1,15 @@
 import getCurrentDate from '../getCurrentDate';
 import { getInstructions } from './instructions';
 import { Customtools } from './tools';
-
+import * as moment from 'moment-timezone'
 type ToolCallFunction = {
   name: string;
   arguments: string;
+};
+
+
+const formatearFecha = (fecha: string): string => {
+  return moment(fecha).format('YYYY-MM-DD');
 };
 
 interface Services {
@@ -60,7 +65,8 @@ async function executeToolByName(
     paymentMethodService,
     greenApiService,
     infoLineService,
-    menuImageService
+    menuImageService,
+    espacioService
   } = services;
 
   
@@ -86,6 +92,9 @@ async function executeToolByName(
   if (name === 'getProductosImgs') {
     console.log('getProductosImgs');
     toolResult = await menuImageService.listProductsImages(chatIdExist);
+  } else if(name === 'getEspaciosDisponibles') {
+    console.log("getEspaciosDisponibles");
+    toolResult = await espacioService.findAllPlainText()
   } else if (name === 'getProductsByEmpresa') {
     console.log('getProductsByEmpresa');
     toolResult = await productoService.findAllInText(chatIdExist);
@@ -119,8 +128,6 @@ async function executeToolByName(
     toolResult = await productoService.getCurrencies();
   } else if (name === 'confirmOrder') {
     console.log('confirmOrder');
-    console.log('intentando crear orden con', args, args?.info?.data);
-
     toolResult = await greenApiService.hacerPedido({
       currentThreadId: threadId,
       transferUrl: args?.transferUrl ?? '',
@@ -145,7 +152,7 @@ async function executeToolByName(
   } else if (name === 'getAvailability') {
     console.log('getAvailability');
     toolResult = await pedidoService.obtenerDisponibilidadActivasByFecha(
-      args.date,
+      formatearFecha(args.date),
       false,
       args.empleadoId ? args.empleadoId : args.espacio_id,
       empresaType === 'RESERVAS DE ESPACIO'
@@ -178,17 +185,6 @@ export async function sendMessageWithTools(
     services.menuImageService.getCantidadImages(),
   ]);
 
-
-  let esp_text = '';
-  try {
-    esp_text = await services.espacioService.findAllPlainText()
-    
-  } catch (error) {
-    console.log('error al encontrar espacios',error );
-    
-  }
-
-  // Prepare base formatted text string once
   const formatedText =
     `DIRECCION_EMPRESA: ${context.direccion}\n` +
     `RETIRO_SUCURSAL_ENABLED: ${context.retiroEnSucursalEnabled ? 'true' : 'false'}\n` +
@@ -197,13 +193,12 @@ export async function sendMessageWithTools(
     `EmpresaType: ${context.empresaType}\n` +
     `UserId: ${context.userId}\n` +
     `Nombre de usuario: ${context.senderName}\n` +
-    `CURRENT_TIME: ${getCurrentDate()}\n` +
+    `CURRENT_DATE: ${getCurrentDate()}\n` +
     `CANT_IMAGES_PROD: ${menuImagesCount}\n` +
-    `CURRENT_EMPLEADOS: ${JSON.stringify(usersEmpresa ?? [])}\n` +
-    `ESPACIOS_DISPONIBLES: ${esp_text ?? "No hay espacios disponibles"}\n`
-    ;
-
-    console.log('empezare con ', formatedText);
+    `CURRENT_EMPLEADOS: ${JSON.stringify(usersEmpresa ?? [])}\n`
+    ;    
+  
+  console.log('enviare primero', formatedText);
     
 
   let currentMessages = [...messages];
@@ -221,13 +216,13 @@ export async function sendMessageWithTools(
     }
 
     const instructions = await getInstructions(context.empresaType);
-
+    
     const chatMessages = sanitizeMessages([
       { role: 'system', content: instructions },
-      { role: 'system', content: formatedText },
+      { role: 'system', content: "Variables iniciales: \n",formatedText },
       ...currentMessages,
     ]);
-
+    const allTools = Customtools(context.empresaType)
     console.log('[Enviando solicitud DeepSeek] Iteración restante:', maxIterations);
     const response = await fetch('https://api.deepseek.com/chat/completions', {
       method: 'POST',
@@ -238,10 +233,10 @@ export async function sendMessageWithTools(
       body: JSON.stringify({
         model: 'deepseek-chat',
         messages: chatMessages,
-        tools: Customtools(context.empresaType),
+        tools: allTools,
         tool_choice: 'auto',
         max_tokens: 4096,
-        temperature: 0.1,
+        temperature: 0.3,
         stream: false,
       }),
     });

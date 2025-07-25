@@ -104,7 +104,6 @@ export class GrenApiController {
           // if (orderPlanStatus?.slotsToCreate <= 0) {
           //   return;
           // }
-
           const senderData = body?.senderData;
           const sender = senderData?.sender;
           const chatId = senderData?.chatId;

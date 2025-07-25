@@ -42,7 +42,6 @@ import { Reclamo } from './entities/reclamo.entity';
 import { PaymentMethod } from 'src/paymentMethod/entities/paymentMethod.entity';
 import { HorarioService } from 'src/horario/horario.service';
 import { CierreProvisorio } from 'src/cierreProvisorio/entities/cierreProvisorio.entitty';
-import { SalesByCategoryDto } from './dto/sales-by-category.dto';
 import { Espacio } from 'src/espacio/entities/espacio';
 
 @Injectable()
@@ -587,11 +586,9 @@ export class PedidoService implements OnModuleDestroy {
       let globalTotal = 0;
 
       const crearNuevoPedido = async (products) => {
-        const fechaFinal = moment.tz(
-          createPedidoDto.fecha || products[0].fecha,
-          'YYYY-MM-DD HH:mm',
-          createPedidoDto?.timeZone
-        ).toDate();
+        const fechaFinal = moment.parseZone(
+          createPedidoDto.fecha || products[0].fecha
+        ).toDate(); 
 
         let total = 0;
         const infoLineToJson = createPedidoDto.infoLinesJson;
@@ -1068,20 +1065,17 @@ export class PedidoService implements OnModuleDestroy {
     userId?: any,
     isEmpresaReservaEsp?: boolean
   ): Promise<string[]> {
+
     const empresa = await this.empresaRepository.findOne({
       where: { db_name: process.env.SUBDOMAIN },
     });
-
-    console.log('recibo', fecha)
-    console.log('recibo', withPast)
-    console.log('userId', userId)
-    console.log('isEmpresaReservaEsp', isEmpresaReservaEsp)
-
 
     let espacio;
 
     if (isEmpresaReservaEsp) {
       espacio = await this.espacioRepository.findOne({ where: { id: userId } })
+      console.log("el espacio es", espacio);
+
     }
 
     const { intervaloTiempoCalendario, timeZone = 'America/Montevideo' } =
@@ -1108,7 +1102,7 @@ export class PedidoService implements OnModuleDestroy {
     };
 
     if (isEmpresaReservaEsp) {
-      where.espacio = espacio;
+      where.espacio = { id: espacio.id }
     } else {
       where.owner_user_id = userId;
     }
@@ -1123,23 +1117,19 @@ export class PedidoService implements OnModuleDestroy {
     });
 
     for (const horario of horariosDia) {
-      const apertura = moment.tz(
-        `${fecha} ${horario.hora_inicio}`,
-        'YYYY-MM-DD HH:mm',
-        timeZone,
-      );
-      let cierre = moment.tz(
-        `${fecha} ${horario.hora_fin}`,
-        'YYYY-MM-DD HH:mm',
-        timeZone,
-      );
+      const apertura = moment.tz(`${fecha} ${horario.hora_inicio}`, 'YYYY-MM-DD HH:mm', timeZone);
+      let cierre = moment.tz(`${fecha} ${horario.hora_fin}`, 'YYYY-MM-DD HH:mm', timeZone);
 
-      // Si cierra después de medianoche
+      console.log('apertura original:', apertura.format());
+      console.log('cierre original:', cierre.format());
+
       if (cierre.isBefore(apertura)) {
         cierre.add(1, 'day');
+        console.log('cierre corregido:', cierre.format());
       }
 
       let actual = apertura.clone();
+
 
       while (actual.isBefore(cierre)) {
         const actualDate = actual.clone().format('YYYY-MM-DD HH:mm');
@@ -1168,7 +1158,7 @@ export class PedidoService implements OnModuleDestroy {
         actual.add(intervaloTiempoCalendario, 'minutes');
       }
     }
-
+    console.log('la disp es ', disponibilidad)
     return disponibilidad;
   }
 
@@ -1209,7 +1199,6 @@ export class PedidoService implements OnModuleDestroy {
       const where: any = {
         finalizado: false,
         available: true,
-        owner_user_id: userId,
         fecha: Between(
           moment.tz(`${fecha} 00:00`, timeZone).utc().toDate(),
           moment.tz(`${fecha} 23:59:59`, timeZone).utc().toDate(),
