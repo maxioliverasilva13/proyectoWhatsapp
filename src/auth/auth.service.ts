@@ -207,6 +207,7 @@ export class AuthService implements OnModuleDestroy {
         notificarReservaHoras,
         notificarMenuDiario: notificarMenuDiario,
         isAdmin: user.isAdmin,
+        isSuperAdmin: user?.isSuperAdmin,
         abierto,
         retiroEnSucursal: retiroEnSucursal,
         empresaName: empresaName,
