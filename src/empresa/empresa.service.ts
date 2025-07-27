@@ -281,8 +281,13 @@ export class EmpresaService {
       const instanceId = empresaData.greenApiInstance;
       const token = empresaData.greenApiInstanceToken;
 
-      const res = await fetch(`https://api.green-api.com/waInstance${instanceId}/getSettings/${token}`);
-      const data = await res.json();
+      let data = { wid: null };
+      try {
+        const res = await fetch(`https://api.green-api.com/waInstance${instanceId}/getSettings/${token}`);
+        data = await res.json();
+      } catch (error) {
+        console.log(`[DEBUG] Error al obtener configuración de Green API para empresa ${domain}:`, error?.message);
+      }
 
       const usuariosEmpresa = await this.usuarioRepository.find({
         where: { id_empresa: empresaData.id, firstUser: true }
