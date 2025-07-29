@@ -222,12 +222,12 @@ export async function sendMessageWithTools(
       { role: 'system', content: "Variables iniciales: \n", formatedText },
       ...currentMessages,
     ]);
-    const CURRENT_DATE = "2025-07-25"; 
+    const CURRENT_DATE = moment().tz(context.timeZone).format("YYYY-MM-DD HH:mm:ss");;
     const systemDateMessage = {
       role: "system",
       content: `CURRENT_DATE = "${CURRENT_DATE}".  
 Toda referencia a "hoy", "mañana", "pasado mañana", etc., debe resolverse con base en esta fecha en formato YYYY-MM-DD.`
-    };
+    };    
 
     const allTools = Customtools(context.empresaType)
     console.log('[Enviando solicitud DeepSeek] Iteración restante:', maxIterations);

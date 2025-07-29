@@ -1,4 +1,5 @@
 import { Category } from 'src/category/entities/category.entity';
+import { Espacio } from 'src/espacio/entities/espacio';
 import { ProductoPedido } from 'src/productopedido/entities/productopedido.entity';
 import {
   Entity,
@@ -67,4 +68,7 @@ export class Producto extends BaseEntity {
 
   @Column({ default: 0, nullable: true })
   diaSemana: number;
+
+  @ManyToOne(() => Espacio, (espacio) => espacio.producto)
+  espacio: Espacio;
 }

@@ -341,7 +341,7 @@ export const Customtools = (empresaType: string) => {
             "type": "function",
             "function": {
                 "name": "getEspaciosDisponibles",
-                "description": "trae todos los espacios fisicos dispinibles para hacer reservass.",
+                "description": "trae todos los espacios fisicos dispinibles para hacer reservas junto con los producctos disponibles para ese espacio.",
                 "parameters": {
                     "type": "object",
                     "properties": {},

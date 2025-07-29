@@ -1,4 +1,5 @@
 import { Pedido } from 'src/pedido/entities/pedido.entity';
+import { Producto } from 'src/producto/entities/producto.entity';
 import {
   Entity,
   Column,
@@ -15,6 +16,9 @@ export class Espacio extends BaseEntity {
   @Column()
   nombre: string;
 
+  @Column({nullable:true})
+  image: string;
+
   @Column()
   descripcion: string;
 
@@ -26,4 +30,7 @@ export class Espacio extends BaseEntity {
 
   @OneToMany(()=> Pedido, (p)=> p.espacio)
   pedido: Pedido[]
+
+  @OneToMany(() => Producto, (p) => p.espacio)
+  producto: Producto[];
 }

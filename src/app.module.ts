@@ -195,6 +195,7 @@ export class AppModule {
         { path: "/usuario/workers", method: RequestMethod.GET },
         { path: "/payment-methods", method: RequestMethod.GET },
         { path: "/plan", method: RequestMethod.GET },
+        { path: "/espacios", method: RequestMethod.GET}
       )
       .forRoutes('*');
   }

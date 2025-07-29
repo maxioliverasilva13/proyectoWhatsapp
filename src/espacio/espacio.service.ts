@@ -64,15 +64,10 @@ export class EspacioService {
     }
   }
 
-  async findAllPlainText(): Promise<string> {
+  async findAllPlainText() {
     try {
-      const espacios = await this.espacioRepository.find();
+      const espacios = await this.espacioRepository.find({ relations: ['producto'] });
       return espacios
-        .map(
-          (espacio) =>
-            `ID: ${espacio.id}, Nombre: ${espacio.nombre}, Descripción: ${espacio.descripcion}, Ubicación: ${espacio.ubicacion}, Capacidad: ${espacio.capacidad ?? 'N/A'}`
-        )
-        .join('\n');
     } catch (error) {
       throw new BadRequestException({
         ok: false,
