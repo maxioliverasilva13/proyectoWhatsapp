@@ -12,7 +12,7 @@ export class EspacioService {
 
   async findAll(): Promise<Espacio[]> {
     try {
-      return await this.espacioRepository.find();
+      return await this.espacioRepository.find({ relations: ['producto'] });
     } catch (error) {
       throw new BadRequestException({
         ok: false,
