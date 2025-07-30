@@ -103,8 +103,34 @@ async function executeToolByName(
     console.log('getPaymentMethods');
     toolResult = await paymentMethodService.findAll();
   } else if (name === 'getInfoLines') {
-    console.log('getInfoLines');
-    toolResult = await infoLineService.findAllFormatedText(empresaType);
+    if (empresaType === 'RESERVAS DE ESPACIO') {
+      console.log('getInfoLines');
+      const infoLinesResult = await infoLineService.findAllFormatedText(empresaType);
+      try {
+        const infoLines = JSON.parse(infoLinesResult);
+        const requeridos = infoLines.filter(info => info.requerido).map(info => info.nombre);
+        const opcionales = infoLines.filter(info => !info.requerido).map(info => info.nombre);
+        
+        toolResult = {
+          infoLines: infoLines,
+          resumen: {
+            total: infoLines.length,
+            requeridos: requeridos.length,
+            opcionales: opcionales.length
+          },
+          camposRequeridos: requeridos,
+          camposOpcionales: opcionales,
+          mensaje: `Hay ${requeridos.length} campos OBLIGATORIOS que deben proporcionarse: ${requeridos.join(', ')}`
+        };
+      } catch (e) {
+        console.error('Error parseando infoLines:', e);
+        toolResult = infoLinesResult;
+        console.log("xd5", infoLinesResult)
+      }
+    } else {
+      toolResult = await infoLineService.findAllFormatedText(empresaType);
+    }
+   
   } else if (name === 'editOrder') {
     console.log('editOrder');
     toolResult = await pedidoService.update(args.orderId, args.order);
@@ -237,13 +263,11 @@ export async function sendMessageWithTools(
     const chatMessages = sanitizeMessages([
       {
         role: 'system',
-        content: `Variables iniciales: \n ${formatedText} \n ${instructions}`,
+        content: `${instructions}\n\nVariables iniciales:\n${formatedText}`,
       },
-      { role: 'system', content: 'Variables iniciales: \n', formatedText },
       ...currentMessages,
     ]);
 
-    console.log('Messages', JSON.stringify(chatMessages));
     const CURRENT_DATE = moment()
       .tz(context.timeZone)
       .format('YYYY-MM-DD HH:mm:ss');
