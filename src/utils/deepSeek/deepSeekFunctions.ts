@@ -198,7 +198,7 @@ export async function sendMessageWithTools(
     `CURRENT_EMPLEADOS: ${JSON.stringify(usersEmpresa ?? [])}\n`
     ;
 
-  console.log('enviare primero', formatedText);
+  console.log('enviare primero', JSON.stringify(formatedText));
 
 
   let currentMessages = [...messages];
@@ -222,6 +222,8 @@ export async function sendMessageWithTools(
       { role: 'system', content: "Variables iniciales: \n", formatedText },
       ...currentMessages,
     ]);
+
+    console.log("Messages", JSON.stringify(chatMessages))
     const CURRENT_DATE = moment().tz(context.timeZone).format("YYYY-MM-DD HH:mm:ss");;
     const systemDateMessage = {
       role: "system",
@@ -230,8 +232,6 @@ Toda referencia a "hoy", "mañana", "pasado mañana", etc., debe resolverse con 
     };    
 
     const allTools = Customtools(context.empresaType)
-    console.log("allTools", JSON.stringify(allTools));
-    console.log('[Enviando solicitud DeepSeek] Iteración restante:', maxIterations);
     const response = await fetch('https://api.deepseek.com/chat/completions', {
       method: 'POST',
       headers: {
