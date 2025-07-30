@@ -217,7 +217,10 @@ export async function sendMessageWithTools(
     const instructions = await getInstructions(context.empresaType);
 
     const chatMessages = sanitizeMessages([
-      { role: 'system', content: instructions },
+      {
+        role: 'system',
+        content: `Variables iniciales: \n ${formatedText} \n ${instructions}`,
+      },
       { role: 'system', content: 'Variables iniciales: \n', formatedText },
       ...currentMessages,
     ]);
