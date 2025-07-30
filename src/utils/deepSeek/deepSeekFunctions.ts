@@ -1,12 +1,11 @@
 import getCurrentDate from '../getCurrentDate';
 import { getInstructions } from './instructions';
 import { Customtools } from './tools';
-import * as moment from 'moment-timezone'
+import * as moment from 'moment-timezone';
 type ToolCallFunction = {
   name: string;
   arguments: string;
 };
-
 
 const formatearFecha = (fecha: string): string => {
   return moment(fecha).format('YYYY-MM-DD');
@@ -21,7 +20,7 @@ interface Services {
   messagesService: any;
   clienteService: any;
   menuImageService: any;
-  espacioService: any
+  espacioService: any;
 }
 
 interface Context {
@@ -66,9 +65,8 @@ async function executeToolByName(
     greenApiService,
     infoLineService,
     menuImageService,
-    espacioService
+    espacioService,
   } = services;
-
 
   const {
     threadId,
@@ -93,8 +91,8 @@ async function executeToolByName(
     console.log('getProductosImgs');
     toolResult = await menuImageService.listProductsImages(chatIdExist);
   } else if (name === 'getEspaciosDisponibles') {
-    console.log("getEspaciosDisponibles");
-    toolResult = await espacioService.findAllPlainText()
+    console.log('getEspaciosDisponibles');
+    toolResult = await espacioService.findAllPlainText();
   } else if (name === 'getProductsByEmpresa') {
     console.log('getProductsByEmpresa');
     toolResult = await productoService.findAllInText(chatIdExist);
@@ -147,7 +145,7 @@ async function executeToolByName(
       userId: args?.info?.empleadoId,
       isDomicilio: args?.isDomicilio ?? false,
       espacio_id: args?.espacio_id ?? null,
-      timeZone
+      timeZone,
     });
   } else if (name === 'getAvailability') {
     console.log('getAvailability');
@@ -155,14 +153,14 @@ async function executeToolByName(
       formatearFecha(args.date),
       false,
       args.empleadoId ? args.empleadoId : args.espacio_id,
-      empresaType === 'RESERVAS DE ESPACIO'
+      empresaType === 'RESERVAS DE ESPACIO',
     );
   } else if (name === 'getNextAvailability') {
     console.log('getNextAvailability');
     toolResult = await pedidoService.getNextDateTimeAvailable(
       timeZone,
       args.empleadoId ? args.empleadoId : args.espacio_id,
-      empresaType === 'RESERVAS DE ESPACIO'
+      empresaType === 'RESERVAS DE ESPACIO',
     );
   } else {
     toolResult = { error: `Tool ${name} no implementada` };
@@ -195,11 +193,10 @@ export async function sendMessageWithTools(
     `Nombre de usuario: ${context.senderName}\n` +
     `CURRENT_DATE: ${getCurrentDate()}\n` +
     `CANT_IMAGES_PROD: ${menuImagesCount}\n` +
-    `CURRENT_EMPLEADOS: ${JSON.stringify(usersEmpresa ?? [])}\n`
-    ;
-
+    `⚠️ EMPLEADOS DISPONIBLES (OBLIGATORIO PARA RESERVAS): ${JSON.stringify(usersEmpresa ?? [])}\n` +
+    `TOTAL_EMPLEADOS: ${(usersEmpresa ?? []).length}\n` +
+    `EMPLEADO_UNICO: ${(usersEmpresa ?? []).length === 1 ? 'true' : 'false'}\n`;
   console.log('enviare primero', JSON.stringify(formatedText));
-
 
   let currentMessages = [...messages];
   if (msg) {
@@ -211,7 +208,9 @@ export async function sendMessageWithTools(
 
   while (maxIterations-- > 0) {
     if (hasUnrespondedToolCalls(currentMessages)) {
-      console.warn('[⚠️] Tool calls pendientes sin responder. Deteniendo el ciclo.');
+      console.warn(
+        '[⚠️] Tool calls pendientes sin responder. Deteniendo el ciclo.',
+      );
       break;
     }
 
@@ -219,19 +218,21 @@ export async function sendMessageWithTools(
 
     const chatMessages = sanitizeMessages([
       { role: 'system', content: instructions },
-      { role: 'system', content: "Variables iniciales: \n", formatedText },
+      { role: 'system', content: 'Variables iniciales: \n', formatedText },
       ...currentMessages,
     ]);
 
-    console.log("Messages", JSON.stringify(chatMessages))
-    const CURRENT_DATE = moment().tz(context.timeZone).format("YYYY-MM-DD HH:mm:ss");;
+    console.log('Messages', JSON.stringify(chatMessages));
+    const CURRENT_DATE = moment()
+      .tz(context.timeZone)
+      .format('YYYY-MM-DD HH:mm:ss');
     const systemDateMessage = {
-      role: "system",
+      role: 'system',
       content: `CURRENT_DATE = "${CURRENT_DATE}".  
-Toda referencia a "hoy", "mañana", "pasado mañana", etc., debe resolverse con base en esta fecha en formato YYYY-MM-DD.`
-    };    
+Toda referencia a "hoy", "mañana", "pasado mañana", etc., debe resolverse con base en esta fecha en formato YYYY-MM-DD.`,
+    };
 
-    const allTools = Customtools(context.empresaType)
+    const allTools = Customtools(context.empresaType);
     const response = await fetch('https://api.deepseek.com/chat/completions', {
       method: 'POST',
       headers: {
@@ -284,7 +285,8 @@ Toda referencia a "hoy", "mañana", "pasado mañana", etc., debe resolverse con 
           services,
           context,
         );
-        const content = typeof output === 'string' ? output : JSON.stringify(output);
+        const content =
+          typeof output === 'string' ? output : JSON.stringify(output);
 
         await services.messagesService.createToolMessage({
           mensaje: content,
@@ -308,7 +310,10 @@ Toda referencia a "hoy", "mañana", "pasado mañana", etc., debe resolverse con 
     }
   }
 
-  console.log('[Fin sin respuesta clara] Último contenido:', lastMessageContent);
+  console.log(
+    '[Fin sin respuesta clara] Último contenido:',
+    lastMessageContent,
+  );
   return lastMessageContent || 'No pude generar una respuesta';
 }
 
