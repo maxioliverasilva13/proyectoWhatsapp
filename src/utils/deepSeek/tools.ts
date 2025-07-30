@@ -66,7 +66,7 @@ export const Customtools = (empresaType: string) => {
     } else {
         additionalConfirmOrderProperties.empleadoId = {
             "type": "string",
-            "description": "Id del empleado que va a atender, solo si la empresa es de tipo Reserva"
+            "description": "Id del empleado que va a atender la reserva."
         };
         additionalConfirmOrderRequired.push("empleadoId");
     }
@@ -87,7 +87,7 @@ export const Customtools = (empresaType: string) => {
     } else {
         getAvailabilityProperties.empleadoId = {
             "type": "string",
-            "description": "Id del empleado (solo si la empresa es de tipo reserva)"
+            "description": "Id del empleado que va a atender la reserva."
         };
     }
 
