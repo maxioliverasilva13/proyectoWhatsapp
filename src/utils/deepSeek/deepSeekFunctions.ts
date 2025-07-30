@@ -290,7 +290,7 @@ Toda referencia a "hoy", "mañana", "pasado mañana", etc., debe resolverse con 
         tools: allTools,
         tool_choice: 'auto',
         max_tokens: 4096,
-        temperature: 0.3,
+        temperature: 0.6,
         stream: false,
       }),
     });
