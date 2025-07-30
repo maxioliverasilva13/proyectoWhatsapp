@@ -211,7 +211,7 @@ export async function sendMessageWithTools(
     `Nombre de usuario: ${context.senderName}\n` +
     `CURRENT_DATE: ${getCurrentDate()}\n` +
     `CANT_IMAGES_PROD: ${menuImagesCount}\n` +
-    `⚠️ EMPLEADOS DISPONIBLES (OBLIGATORIO para reservas):\n  ${formatEmpleados(usersEmpresa ?? [])}\n` +
+    `⚠️CURRENT_EMPLEADOS (EMPLEADOS DISPONIBLES):\n  ${formatEmpleados(usersEmpresa ?? [])}\n` +
     `TOTAL_EMPLEADOS: ${(usersEmpresa ?? []).length}\n` +
     `EMPLEADO_UNICO: ${(usersEmpresa ?? []).length === 1 ? 'true' : 'false'}\n`;
   console.log('enviare primero', JSON.stringify(formatedText));
