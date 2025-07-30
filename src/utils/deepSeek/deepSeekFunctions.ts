@@ -183,6 +183,24 @@ export async function sendMessageWithTools(
     services.menuImageService.getCantidadImages(),
   ]);
 
+  const formatEmpleados = (empleados: any[]) => {
+    if (!empleados || empleados.length === 0) {
+      return 'NINGUNO - No hay empleados disponibles';
+    }
+
+    if (empleados.length === 1) {
+      const emp = empleados[0];
+      return `UN SOLO EMPLEADO - ID: ${emp.id}, Nombre: "${emp.nombre} ${emp.apellido}" (USAR AUTOMATICAMENTE)`;
+    }
+
+    return empleados
+      .map(
+        (emp, index) =>
+          `${index + 1}. ID: ${emp.id} - "${emp.nombre} ${emp.apellido}"`,
+      )
+      .join('\n  ');
+  };
+
   const formatedText =
     `DIRECCION_EMPRESA: ${context.direccion}\n` +
     `RETIRO_SUCURSAL_ENABLED: ${context.retiroEnSucursalEnabled ? 'true' : 'false'}\n` +
@@ -193,7 +211,7 @@ export async function sendMessageWithTools(
     `Nombre de usuario: ${context.senderName}\n` +
     `CURRENT_DATE: ${getCurrentDate()}\n` +
     `CANT_IMAGES_PROD: ${menuImagesCount}\n` +
-    `⚠️ EMPLEADOS DISPONIBLES (OBLIGATORIO PARA RESERVAS): ${JSON.stringify(usersEmpresa ?? [])}\n` +
+    `⚠️ EMPLEADOS DISPONIBLES (OBLIGATORIO para reservas):\n  ${formatEmpleados(usersEmpresa ?? [])}\n` +
     `TOTAL_EMPLEADOS: ${(usersEmpresa ?? []).length}\n` +
     `EMPLEADO_UNICO: ${(usersEmpresa ?? []).length === 1 ? 'true' : 'false'}\n`;
   console.log('enviare primero', JSON.stringify(formatedText));
