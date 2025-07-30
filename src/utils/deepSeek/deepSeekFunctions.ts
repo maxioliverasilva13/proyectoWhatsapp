@@ -230,6 +230,7 @@ Toda referencia a "hoy", "mañana", "pasado mañana", etc., debe resolverse con 
     };    
 
     const allTools = Customtools(context.empresaType)
+    console.log("allTools", allTools);
     console.log('[Enviando solicitud DeepSeek] Iteración restante:', maxIterations);
     const response = await fetch('https://api.deepseek.com/chat/completions', {
       method: 'POST',

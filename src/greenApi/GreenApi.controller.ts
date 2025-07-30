@@ -99,7 +99,7 @@ export class GrenApiController {
         const empresaType = request['empresaType'];
         const { typeWebhook, messageData } = body;
         if (typeWebhook === 'incomingMessageReceived') {
-          console.log("aca 3")
+          console.log('aca 3');
           // const orderPlanStatus = await this.pedidoService.orderPlanStatus();
           // if (orderPlanStatus?.slotsToCreate <= 0) {
           //   return;
@@ -116,10 +116,10 @@ export class GrenApiController {
             50,
             900,
           );
-          console.log("aca 4")
+          console.log('aca 4');
 
           if (isSpammer) {
-            console.log("aca 5")
+            console.log('aca 5');
             await this.messageQueue.add(
               'send',
               {
@@ -133,7 +133,7 @@ export class GrenApiController {
             );
             return;
           }
-          console.log("aca 6")
+          console.log('aca 6');
 
           const numberExist = await this.numeroConfianza.getOne(
             numberSender,
@@ -146,8 +146,7 @@ export class GrenApiController {
             relations: ['payment', 'payment.plan'],
           });
 
-
-          console.log("aca 7", InfoCompany.assistentEnabled)
+          console.log('aca 7', InfoCompany.assistentEnabled);
           if (!InfoCompany.assistentEnabled) {
             return;
           }
@@ -162,15 +161,18 @@ export class GrenApiController {
             if (numberExist?.data) {
               return;
             } else {
-              let estaDentroDeHorario = await estaAbierto(InfoCompany?.timeZone, this.horarioService);
+              let estaDentroDeHorario = await estaAbierto(
+                InfoCompany?.timeZone,
+                this.horarioService,
+              );
               if (empresaType === TIPO_SERVICIO_DELIVERY_ID) {
-                console.log("entor a ver si es delivery", empresaType);
+                console.log('entor a ver si es delivery', empresaType);
                 estaDentroDeHorario = await estaAbierto(
                   InfoCompany?.timeZone,
                   this.horarioService,
                 );
               }
-              console.log("estaDentroDeHorario", estaDentroDeHorario)
+              console.log('estaDentroDeHorario', estaDentroDeHorario);
 
               if (estaDentroDeHorario === true) {
                 let messageToSend;
@@ -317,7 +319,7 @@ export class GrenApiController {
                 } else {
                   textResponse = translations[lang]?.closed ?? '';
                 }
-                console.log("textResponse", textResponse)
+                console.log('textResponse', textResponse);
 
                 await this.messageQueue.add(
                   'send',

@@ -20,6 +20,8 @@ export async function getInstructions(empresaType: any): Promise<string> {
         isReserva ?
           SUPABASE_INSTRUCTIONS_FILE_PATH_RESERVA
           : SUPABASE_INSTRUCTIONS_FILE_PATH_RESERVA_ESPACIOS;
+    
+          console.log("storageFIle", storageFIle)
     const res = await fetch(storageFIle);
     return await res.text();
   } catch (error) {
