@@ -103,34 +103,39 @@ async function executeToolByName(
     console.log('getPaymentMethods');
     toolResult = await paymentMethodService.findAll();
   } else if (name === 'getInfoLines') {
-    if (empresaType === 'RESERVAS DE ESPACIO') {
+    if (empresaType === 'RESERVA') {
       console.log('getInfoLines');
-      const infoLinesResult = await infoLineService.findAllFormatedText(empresaType);
+      const infoLinesResult =
+        await infoLineService.findAllFormatedText(empresaType);
       try {
         const infoLines = JSON.parse(infoLinesResult);
-        const requeridos = infoLines.filter(info => info.requerido).map(info => info.nombre);
-        const opcionales = infoLines.filter(info => !info.requerido).map(info => info.nombre);
-        
+        const requeridos = infoLines
+          .filter((info) => info.requerido)
+          .map((info) => info.nombre);
+        const opcionales = infoLines
+          .filter((info) => !info.requerido)
+          .map((info) => info.nombre);
+
         toolResult = {
           infoLines: infoLines,
           resumen: {
             total: infoLines.length,
             requeridos: requeridos.length,
-            opcionales: opcionales.length
+            opcionales: opcionales.length,
           },
           camposRequeridos: requeridos,
           camposOpcionales: opcionales,
-          mensaje: `Hay ${requeridos.length} campos OBLIGATORIOS que deben proporcionarse: ${requeridos.join(', ')}`
+          mensaje: `Hay ${requeridos.length} campos OBLIGATORIOS que deben proporcionarse: ${requeridos.join(', ')}`,
         };
+        console.log("xd4", toolResult)
       } catch (e) {
         console.error('Error parseando infoLines:', e);
         toolResult = infoLinesResult;
-        console.log("xd5", infoLinesResult)
+        console.log('xd5', infoLinesResult);
       }
     } else {
       toolResult = await infoLineService.findAllFormatedText(empresaType);
     }
-   
   } else if (name === 'editOrder') {
     console.log('editOrder');
     toolResult = await pedidoService.update(args.orderId, args.order);
@@ -168,7 +173,7 @@ async function executeToolByName(
       originalChatId,
       withIA: true,
       paymentMethodId: args?.paymentMethodId,
-      userId: args?.info?.empleadoId,
+      userId: args?.empleadoId,
       isDomicilio: args?.isDomicilio ?? false,
       espacio_id: args?.espacio_id ?? null,
       timeZone,
