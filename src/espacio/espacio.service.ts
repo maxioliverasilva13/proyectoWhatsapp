@@ -43,7 +43,16 @@ export class EspacioService {
 
   async create(data: any) {
     try {
-      const { products, ...rest } = data;
+      let { products, ...rest } = data;
+
+      // Asegurar que products sea array
+      if (!Array.isArray(products)) {
+        try {
+          products = JSON.parse(products); // en caso de que venga como string JSON
+        } catch {
+          products = []; // fallback
+        }
+      }
 
       const productos = await this.productoRepository.find({
         where: { id: In(products) },
@@ -51,10 +60,12 @@ export class EspacioService {
 
       const espacio = this.espacioRepository.create({
         ...rest,
+        producto: productos,
       });
 
       return await this.espacioRepository.save(espacio);
     } catch (error) {
+      console.error('CREATE ERROR:', error);
       throw new BadRequestException({
         ok: false,
         statusCode: 400,
@@ -63,7 +74,7 @@ export class EspacioService {
       });
     }
   }
-
+  
   async update(id: number, data: any): Promise<Espacio> {
     try {
       const { products, ...rest } = data;
@@ -74,7 +85,7 @@ export class EspacioService {
 
       await this.espacioRepository.update(id, {
         ...rest,
-        producto: productos, 
+        producto: productos,
       });
 
       return await this.findOne(id);
