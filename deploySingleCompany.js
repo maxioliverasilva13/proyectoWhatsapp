@@ -70,8 +70,6 @@ RESEND_KEY=${process.env.RESEND_KEY}
 DEEPSEEK_TOKEN=${process.env.DEEPSEEK_TOKEN}
 `;
 
-fs.writeFileSync(`.contentexample`, process.env.SSH_PRIVATE_KEY);
-
   fs.writeFileSync(`.env.${empresa.db_name}`, envContent);
 }
 
