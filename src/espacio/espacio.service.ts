@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Espacio } from './entities/espacio';
 import { Producto } from 'src/producto/entities/producto.entity';
 import { CreateEspacioDto } from './dto/create-espacio.dto';
+import { CreateEmpresaDto } from 'src/empresa/dto/create-empresa.dto';
 
 @Injectable()
 export class EspacioService {
@@ -41,25 +42,20 @@ export class EspacioService {
     }
   }
 
-  async create(data: any) {
+  async create(data: CreateEspacioDto) {
     try {
-      let { products, ...rest } = data;
-
       // Asegurar que products sea array
-      if (!Array.isArray(products)) {
-        try {
-          products = JSON.parse(products); // en caso de que venga como string JSON
-        } catch {
-          products = []; // fallback
-        }
-      }
 
       const productos = await this.productoRepository.find({
-        where: { id: In(products) },
+        where: { id: In(data.products) },
       });
 
       const espacio = this.espacioRepository.create({
-        ...rest,
+        nombre: data.nombre,
+        image: data.image,
+        capacidad: Number(data.capacidad),
+        descripcion: data.descripcion,
+        ubicacion: data.ubicacion,
         producto: productos,
       });
 
@@ -74,17 +70,16 @@ export class EspacioService {
       });
     }
   }
-  
-  async update(id: number, data: any): Promise<Espacio> {
+
+  async update(id: number, data: CreateEspacioDto): Promise<Espacio> {
     try {
-      const { products, ...rest } = data;
 
       const productos = await this.productoRepository.find({
-        where: { id: In(products) },
+        where: { id: In(data.products) },
       });
 
       await this.espacioRepository.update(id, {
-        ...rest,
+        ...data,
         producto: productos,
       });
 
