@@ -66,6 +66,5 @@ jobs:
         FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
         RESEND_KEY: ${{ secrets.RESEND_KEY}}
         DEEPSEEK_TOKEN: ${{ secrets.DEEPSEEK_TOKEN }}
-        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
       run: node deploySingleCompany.js "$EMPRESA_DB_NAME"

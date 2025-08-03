@@ -68,7 +68,6 @@ DOCKER_BUILDKIT=1
 SUBDOMAIN=${empresa.db_name}
 RESEND_KEY=${process.env.RESEND_KEY}
 DEEPSEEK_TOKEN=${process.env.DEEPSEEK_TOKEN}
-SSH_PRIVATE_KEY=${process.env.SSH_PRIVATE_KEY}
 `;
 
   fs.writeFileSync(`.env.${empresa.db_name}`, envContent);
