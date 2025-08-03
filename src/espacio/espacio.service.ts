@@ -31,7 +31,10 @@ export class EspacioService {
 
   async findOne(id: number): Promise<Espacio> {
     try {
-      return await this.espacioRepository.findOneBy({ id });
+      return await this.espacioRepository.findOne({
+        where: { id },
+        relations: ['productos'],
+      });
     } catch (error) {
       throw new BadRequestException({
         ok: false,
@@ -41,6 +44,7 @@ export class EspacioService {
       });
     }
   }
+
 
   async create(data: CreateEspacioDto) {
     try {
@@ -73,17 +77,27 @@ export class EspacioService {
 
   async update(id: number, data: CreateEspacioDto): Promise<Espacio> {
     try {
-
-      const productos = await this.productoRepository.find({
-        where: { id: In(data.products) },
+      const espacio = await this.espacioRepository.findOne({
+        where: { id },
+        relations: ['productos'],
       });
 
-      await this.espacioRepository.update(id, {
-        ...data,
-        productos,
-      });
+      if (!espacio) {
+        throw new BadRequestException('Espacio no encontrado');
+      }
 
-      return await this.findOne(id);
+      const productos = Array.isArray(data.products)
+        ? await this.productoRepository.find({ where: { id: In(data.products) } })
+        : [];
+
+      espacio.nombre = data.nombre;
+      espacio.image = data.image;
+      espacio.capacidad = Number(data.capacidad);
+      espacio.descripcion = data.descripcion;
+      espacio.ubicacion = data.ubicacion;
+      espacio.productos = productos;
+
+      return await this.espacioRepository.save(espacio);
     } catch (error) {
       throw new BadRequestException({
         ok: false,
