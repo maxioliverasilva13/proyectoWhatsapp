@@ -1,13 +1,18 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Espacio } from './entities/espacio';
+import { Producto } from 'src/producto/entities/producto.entity';
+import { CreateEspacioDto } from './dto/create-espacio.dto';
 
 @Injectable()
 export class EspacioService {
   constructor(
     @InjectRepository(Espacio)
     private readonly espacioRepository: Repository<Espacio>,
+
+    @InjectRepository(Producto)
+    private readonly productoRepository: Repository<Producto>,
   ) { }
 
   async findAll(): Promise<Espacio[]> {
@@ -36,9 +41,18 @@ export class EspacioService {
     }
   }
 
-  async create(data: Partial<Espacio>): Promise<Espacio> {
+  async create(data: any) {
     try {
-      const espacio = this.espacioRepository.create(data);
+      const { products, ...rest } = data;
+
+      const productos = await this.productoRepository.find({
+        where: { id: In(products) },
+      });
+
+      const espacio = this.espacioRepository.create({
+        ...rest,
+      });
+
       return await this.espacioRepository.save(espacio);
     } catch (error) {
       throw new BadRequestException({
@@ -50,9 +64,19 @@ export class EspacioService {
     }
   }
 
-  async update(id: number, data: Partial<Espacio>): Promise<Espacio> {
+  async update(id: number, data: any): Promise<Espacio> {
     try {
-      await this.espacioRepository.update(id, data);
+      const { products, ...rest } = data;
+
+      const productos = await this.productoRepository.find({
+        where: { id: In(products) },
+      });
+
+      await this.espacioRepository.update(id, {
+        ...rest,
+        producto: productos, 
+      });
+
       return await this.findOne(id);
     } catch (error) {
       throw new BadRequestException({

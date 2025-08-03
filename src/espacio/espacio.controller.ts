@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { EspacioService } from './espacio.service';
 import { Espacio } from './entities/espacio';
+import { CreateEspacioDto } from './dto/create-espacio.dto';
 
 @Controller('espacios')
 export class EspacioController {
@@ -26,7 +27,7 @@ export class EspacioController {
   }
 
   @Post()
-  create(@Body() data: Partial<Espacio>): Promise<Espacio> {
+  create(@Body() data: CreateEspacioDto) {
     return this.espacioService.create(data);
   }
 
