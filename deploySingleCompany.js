@@ -42,6 +42,8 @@ async function getEmpresaByDbName(dbName) {
 }
 
 function createEnvFile(empresa) {
+
+  console.log("xd44", process.env.SSH_PRIVATE_KEY)
   const envContent = `
 POSTGRES_USER=${process.env.POSTGRES_USER_GLOBAL}
 POSTGRES_PASSWORD=${process.env.POSTGRES_PASSWORD_GLOBAL}
