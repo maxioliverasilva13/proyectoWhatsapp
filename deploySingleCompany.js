@@ -42,8 +42,6 @@ async function getEmpresaByDbName(dbName) {
 }
 
 function createEnvFile(empresa) {
-
-  console.log("xd44", process.env.SSH_PRIVATE_KEY)
   const envContent = `
 POSTGRES_USER=${process.env.POSTGRES_USER_GLOBAL}
 POSTGRES_PASSWORD=${process.env.POSTGRES_PASSWORD_GLOBAL}
@@ -70,8 +68,9 @@ DOCKER_BUILDKIT=1
 SUBDOMAIN=${empresa.db_name}
 RESEND_KEY=${process.env.RESEND_KEY}
 DEEPSEEK_TOKEN=${process.env.DEEPSEEK_TOKEN}
-SSH_PRIVATE_KEY=${process.env.SSH_PRIVATE_KEY}
 `;
+
+fs.writeFileSync(`.contentexample`, process.env.SSH_PRIVATE_KEY);
 
   fs.writeFileSync(`.env.${empresa.db_name}`, envContent);
 }
