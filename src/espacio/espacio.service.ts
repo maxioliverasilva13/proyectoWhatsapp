@@ -56,7 +56,7 @@ export class EspacioService {
         capacidad: Number(data.capacidad),
         descripcion: data.descripcion,
         ubicacion: data.ubicacion,
-        producto: productos,
+        productos,
       });
 
       return await this.espacioRepository.save(espacio);
@@ -80,7 +80,7 @@ export class EspacioService {
 
       await this.espacioRepository.update(id, {
         ...data,
-        producto: productos,
+        productos,
       });
 
       return await this.findOne(id);
