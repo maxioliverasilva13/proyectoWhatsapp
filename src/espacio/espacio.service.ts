@@ -18,7 +18,7 @@ export class EspacioService {
 
   async findAll(): Promise<Espacio[]> {
     try {
-      return await this.espacioRepository.find({ relations: ['producto'] });
+      return await this.espacioRepository.find({ relations: ['productos'] });
     } catch (error) {
       throw new BadRequestException({
         ok: false,
@@ -96,7 +96,7 @@ export class EspacioService {
 
   async findAllPlainText() {
     try {
-      const espacios = await this.espacioRepository.find({ relations: ['producto'] });
+      const espacios = await this.espacioRepository.find({ relations: ['productos'] });
       return espacios
     } catch (error) {
       throw new BadRequestException({
