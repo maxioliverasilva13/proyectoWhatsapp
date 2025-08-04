@@ -69,6 +69,6 @@ export class Producto extends BaseEntity {
   @Column({ default: 0, nullable: true })
   diaSemana: number;
 
-  @ManyToOne(() => Espacio, (espacio) => espacio.producto)
-  espacio: Espacio;
+  @ManyToMany(() => Espacio, (espacio) => espacio.productos)
+  espacios: Espacio[];
 }

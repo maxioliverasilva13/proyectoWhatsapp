@@ -6,6 +6,8 @@ import {
   PrimaryGeneratedColumn,
   BaseEntity,
   OneToMany,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
 
 @Entity('espacio')
@@ -16,7 +18,7 @@ export class Espacio extends BaseEntity {
   @Column()
   nombre: string;
 
-  @Column({nullable:true})
+  @Column({ nullable: true })
   image: string;
 
   @Column()
@@ -28,9 +30,10 @@ export class Espacio extends BaseEntity {
   @Column({ nullable: true })
   capacidad: number;
 
-  @OneToMany(()=> Pedido, (p)=> p.espacio)
+  @OneToMany(() => Pedido, (p) => p.espacio)
   pedido: Pedido[]
 
-  @OneToMany(() => Producto, (p) => p.espacio)
-  producto: Producto[];
+  @ManyToMany(() => Producto, (producto) => producto.espacios, { cascade: true })
+  @JoinTable()
+  productos: Producto[];
 }

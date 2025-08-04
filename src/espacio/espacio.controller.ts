@@ -34,7 +34,7 @@ export class EspacioController {
   @Put(':id')
   update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() data: Partial<Espacio>,
+    @Body() data: CreateEspacioDto,
   ): Promise<Espacio> {
     return this.espacioService.update(id, data);
   }
