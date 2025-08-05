@@ -62,7 +62,6 @@ function executeRsync(source, destination, maxRetries = 3) {
     '-avz',
     '--delete',
     '--timeout=300',
-    '--contimeout=60',
     '-e', `"ssh ${SSH_OPTIONS.join(' ')}"`,
     '--exclude=node_modules',
     '--exclude=letsencrypt',
