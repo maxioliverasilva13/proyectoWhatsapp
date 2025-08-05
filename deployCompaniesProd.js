@@ -113,18 +113,23 @@ async function deployCompany(empresa) {
 
   await execSync(
     `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'mkdir -p /projects/${empresa?.db_name}'`,
+    { maxBuffer: 1024 * 1024 * 10 },
   );
   await execSync(
     `rsync -avz --delete -e "ssh -i private_key -o StrictHostKeyChecking=no" --exclude='node_modules' --exclude='letsencrypt' ./ root@${dropletIp}:/projects/${empresa?.db_name}/`,
+    { maxBuffer: 1024 * 1024 * 10 },
   );
   await execSync(
     `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'rm -f /projects/${empresa?.db_name}/.env'`,
+    { maxBuffer: 1024 * 1024 * 10 },
   );
   await execSync(
     `scp -i private_key -o StrictHostKeyChecking=no -r .env.${empresa.db_name} root@${dropletIp}:/projects/${empresa?.db_name}/.env`,
+    { maxBuffer: 1024 * 1024 * 10 },
   );
   await execSync(
     `ssh -i private_key root@${dropletIp} 'cd /projects/${empresa?.db_name} && docker compose -f docker-compose.yml up -d --build  --remove-orphans'`,
+    { maxBuffer: 1024 * 1024 * 10 },
   );
 }
 
@@ -135,25 +140,33 @@ async function deployApp() {
 
   await execSync(
     `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'mkdir -p /projects/app'`,
+    { maxBuffer: 1024 * 1024 * 10 },
   );
   await execSync(
     `rsync --delete -avz -e "ssh -i private_key -o StrictHostKeyChecking=no" --exclude='node_modules' --exclude='letsencrypt' ./ root@${dropletIp}:/projects/app/`,
+    { maxBuffer: 1024 * 1024 * 10 },
   );
   await execSync(
     `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'rm -f /projects/app/.env'`,
+    { maxBuffer: 1024 * 1024 * 10 },
   );
   await execSync(
     `scp -i private_key -o StrictHostKeyChecking=no -r .env.app root@${dropletIp}:/projects/app/.env`,
+    { maxBuffer: 1024 * 1024 * 10 },
   );
-  await execSync(`
+  await execSync(
+    `
   ssh -i private_key root@${dropletIp} '
     mkdir -p /projects/app/letsencrypt &&
     touch /projects/app/letsencrypt/acme.json &&
     chmod 600 /projects/app/letsencrypt/acme.json
   '
-`);
+`,
+    { maxBuffer: 1024 * 1024 * 10 },
+  );
   await execSync(
     `ssh -i private_key root@${dropletIp} 'cd /projects/app && docker compose -f docker-compose-app-prod.yml up -d --build '`,
+    { maxBuffer: 1024 * 1024 * 10 },
   );
 }
 
