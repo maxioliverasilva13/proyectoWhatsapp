@@ -27,7 +27,9 @@ const SSH_OPTIONS = [
   '-o', 'TCPKeepAlive=yes',
   '-o', 'ControlMaster=auto',
   '-o', 'ControlPath=/tmp/ssh_%h_%p_%r',
-  '-o', 'ControlPersist=600'
+  '-o', 'ControlPersist=600',
+  '-T', // Disable pseudo-terminal allocation
+  '-o', 'LogLevel=ERROR' // Reduce verbose SSH output
 ];
 
 // Función para ejecutar comandos SSH con mejor manejo de errores
@@ -224,13 +226,7 @@ async function deployCompany(empresa) {
     executeScp(`.env.${empresa.db_name}`, `root@${dropletIp}:/projects/${empresa?.db_name}/.env`);
 
     // Comando combinado para evitar múltiples conexiones SSH
-    const deploymentCommand = `
-      cd /projects/${empresa?.db_name} && \\
-      echo "🐳 Iniciando Docker Compose..." && \\
-      docker compose -f docker-compose.yml down --remove-orphans || true && \\
-      docker compose -f docker-compose.yml up -d --build --remove-orphans && \\
-      echo "✅ Deployment completado para ${empresa.db_name}"
-    `;
+    const deploymentCommand = `cd /projects/${empresa?.db_name} && echo "🐳 Iniciando Docker Compose..." && docker compose -f docker-compose.yml down --remove-orphans || true && docker compose -f docker-compose.yml up -d --build --remove-orphans && echo "✅ Deployment completado para ${empresa.db_name}"`;
     
     executeSSHCommand(dropletIp, deploymentCommand);
     console.log(`✅ Empresa ${empresa.db_name} deployada exitosamente`);
@@ -263,16 +259,7 @@ async function deployApp() {
 
     // Comando combinado para configurar letsencrypt y hacer deployment
     console.log(`🐳 Configurando SSL y deployando app principal...`);
-    const deploymentCommand = `
-      cd /projects/app && \\
-      mkdir -p /projects/app/letsencrypt && \\
-      touch /projects/app/letsencrypt/acme.json && \\
-      chmod 600 /projects/app/letsencrypt/acme.json && \\
-      echo "🐳 Iniciando Docker Compose para app principal..." && \\
-      docker compose -f docker-compose-app-prod.yml down --remove-orphans || true && \\
-      docker compose -f docker-compose-app-prod.yml up -d --build --remove-orphans && \\
-      echo "✅ Deployment de app principal completado"
-    `;
+    const deploymentCommand = `cd /projects/app && mkdir -p /projects/app/letsencrypt && touch /projects/app/letsencrypt/acme.json && chmod 600 /projects/app/letsencrypt/acme.json && echo "🐳 Iniciando Docker Compose para app principal..." && docker compose -f docker-compose-app-prod.yml down --remove-orphans || true && docker compose -f docker-compose-app-prod.yml up -d --build --remove-orphans && echo "✅ Deployment de app principal completado"`;
     
     executeSSHCommand(dropletIp, deploymentCommand);
     console.log(`✅ Aplicación principal deployada exitosamente`);
