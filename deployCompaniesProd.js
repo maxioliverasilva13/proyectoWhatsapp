@@ -226,7 +226,7 @@ async function deployCompany(empresa) {
     executeScp(`.env.${empresa.db_name}`, `root@${dropletIp}:/projects/${empresa?.db_name}/.env`);
 
     // Comando combinado para evitar múltiples conexiones SSH
-    const deploymentCommand = `cd /projects/${empresa?.db_name} && echo "🐳 Iniciando Docker Compose..." && docker compose -f docker-compose.yml down --remove-orphans || true && docker compose -f docker-compose.yml up -d --build --remove-orphans && echo "✅ Deployment completado para ${empresa.db_name}"`;
+    const deploymentCommand = `cd /projects/${empresa?.db_name} && echo "🔌 Verificando redes Docker..." && docker network create app-network || true && echo "🐳 Iniciando Docker Compose..." && docker compose -f docker-compose.yml down --remove-orphans || true && docker compose -f docker-compose.yml up -d --build --remove-orphans && echo "✅ Deployment completado para ${empresa.db_name}"`;
     
     executeSSHCommand(dropletIp, deploymentCommand);
     console.log(`✅ Empresa ${empresa.db_name} deployada exitosamente`);
@@ -260,7 +260,7 @@ async function deployApp() {
 
     // Comando combinado para configurar letsencrypt y hacer deployment
     console.log(`🐳 Configurando SSL y deployando app principal...`);
-    const deploymentCommand = `cd /projects/app && sudo mkdir -p letsencrypt && touch letsencrypt/acme.json && chmod 600 letsencrypt/acme.json && echo "🐳 Iniciando Docker Compose para app principal..." && docker compose -f docker-compose-app-prod.yml down --remove-orphans || true && docker compose -f docker-compose-app-prod.yml up -d --build --remove-orphans && echo "✅ Deployment de app principal completado"`;
+    const deploymentCommand = `cd /projects/app && sudo mkdir -p letsencrypt && touch letsencrypt/acme.json && chmod 600 letsencrypt/acme.json && echo "🔌 Creando redes Docker..." && docker network create app-network || true && echo "🐳 Iniciando Docker Compose para app principal..." && docker compose -f docker-compose-app-prod.yml down --remove-orphans || true && docker compose -f docker-compose-app-prod.yml up -d --build --remove-orphans && echo "✅ Deployment de app principal completado"`;
     
     executeSSHCommand(dropletIp, deploymentCommand);
     console.log(`✅ Aplicación principal deployada exitosamente`);
