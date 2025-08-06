@@ -16,12 +16,17 @@ const client = new Client({
 // Función para ejecutar comando SSH optimizado
 async function executeSSH(host, command) {
   try {
-    execSync(`ssh -i private_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 root@${host} '${command}'`, {
+    const result = execSync(`ssh -i private_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 root@${host} '${command}'`, {
       stdio: ['pipe', 'pipe', 'pipe'],
-      timeout: 600000 // 10 minutos timeout
+      timeout: 600000, // 10 minutos timeout
+      encoding: 'utf8'
     });
+    return result;
   } catch (error) {
-    throw new Error(`SSH command failed: ${error.message}`);
+    console.error('❌ SSH Command Output:', error.stdout?.toString() || 'No stdout');
+    console.error('❌ SSH Command Error:', error.stderr?.toString() || 'No stderr');
+    console.error('❌ SSH Command Status:', error.status);
+    throw new Error(`SSH command failed: ${error.message}\nSTDOUT: ${error.stdout}\nSTDERR: ${error.stderr}`);
   }
 }
 
