@@ -15,13 +15,14 @@ const client = new Client({
 
 // Función para ejecutar comando SSH optimizado
 async function executeSSH(host, command) {
-  return new Promise((resolve, reject) => {
+  try {
     execSync(`ssh -i private_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 root@${host} '${command}'`, {
       stdio: ['pipe', 'pipe', 'pipe'],
-      timeout: 600000 // 5 minutos timeout
+      timeout: 600000 // 10 minutos timeout
     });
-    resolve();
-  }).catch(reject);
+  } catch (error) {
+    throw new Error(`SSH command failed: ${error.message}`);
+  }
 }
 
 async function getCompanies() {
