@@ -125,7 +125,7 @@ class SSHConnection {
         this.connection.stdout.removeListener('data', onData);
         this.connection.stderr.removeListener('data', onError);
         reject(new Error(`Command timeout after 10 minutes: ${command}`));
-      }, 600000);
+      }, 6000000);
     });
   }
 
