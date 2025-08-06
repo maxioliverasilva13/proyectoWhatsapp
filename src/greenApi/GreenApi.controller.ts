@@ -24,44 +24,6 @@ import { HorarioService } from 'src/horario/horario.service';
 import { estaAbierto } from 'src/horario/utils';
 import { TIPO_SERVICIO_DELIVERY_ID } from 'src/database/seeders/app/tipopedido.seed';
 
-function extractMessage(respText: any): { message: string | undefined } {
-  let info = { message: undefined };
-
-  try {
-    const rawMsg =
-      typeof respText === 'object' && respText !== null && 'message' in respText
-        ? respText.message
-        : respText;
-
-    if (typeof rawMsg !== 'string') {
-      info.message = rawMsg;
-      return info;
-    }
-
-    let parsed: any = rawMsg;
-    for (let i = 0; i < 2; i++) {
-      try {
-        const temp = JSON.parse(parsed);
-        parsed = temp;
-      } catch {
-        break;
-      }
-    }
-
-    if (parsed && typeof parsed === 'object' && 'message' in parsed) {
-      info.message = parsed.message;
-    } else if (typeof parsed === 'string') {
-      info.message = parsed;
-    } else {
-      info.message = rawMsg;
-    }
-  } catch (e) {
-    console.warn('Error procesando respText:', e);
-    info.message = typeof respText === 'string' ? respText : undefined;
-  }
-
-  return info;
-}
 @Controller()
 export class GrenApiController {
   constructor(
