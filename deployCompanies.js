@@ -213,7 +213,7 @@ async function deployCompany(empresa) {
   try {
     // Paso 1: Crear directorio remoto con permisos adecuados
     console.log(`📁 Creando directorio para ${empresa.db_name}...`);
-    executeSSHCommand(dropletIp, `test -d /projects || mkdir -p /projects; mkdir -p /projects/${empresa?.db_name}; chmod 755 /projects /projects/${empresa?.db_name}`);
+    executeSSHCommand(dropletIp, `sudo test -d /projects || sudo mkdir -p /projects; sudo mkdir -p /projects/${empresa?.db_name}; sudo chmod 755 /projects /projects/${empresa?.db_name}`);
 
     // Paso 2: Sincronizar archivos del proyecto
     console.log(`📤 Sincronizando archivos del proyecto...`);
@@ -246,7 +246,7 @@ async function deployApp() {
     // Paso 1: Crear directorio remoto con permisos adecuados
     console.log(`📁 Creando directorio para app principal...`);
     // Verificar y crear directorio con permisos correctos
-    executeSSHCommand(dropletIp, 'test -d /projects || mkdir -p /projects; mkdir -p /projects/app; chmod 755 /projects /projects/app');
+    executeSSHCommand(dropletIp, 'sudo test -d /projects || sudo mkdir -p /projects; sudo mkdir -p /projects/app; sudo chmod 755 /projects /projects/app');
 
     // Paso 2: Sincronizar archivos del proyecto
     console.log(`📤 Sincronizando archivos del proyecto principal...`);
@@ -258,7 +258,7 @@ async function deployApp() {
 
     // Comando combinado para configurar letsencrypt y hacer deployment
     console.log(`🐳 Configurando SSL y deployando app principal...`);
-    const deploymentCommand = `cd /projects/app && mkdir -p letsencrypt && touch letsencrypt/acme.json && chmod 600 letsencrypt/acme.json && echo "🐳 Iniciando Docker Compose para app principal..." && docker compose -f docker-compose-app.yml down --remove-orphans || true && docker compose -f docker-compose-app.yml up -d --build --remove-orphans && echo "✅ Deployment de app principal completado"`;
+    const deploymentCommand = `cd /projects/app && sudo mkdir -p letsencrypt && touch letsencrypt/acme.json && chmod 600 letsencrypt/acme.json && echo "🐳 Iniciando Docker Compose para app principal..." && docker compose -f docker-compose-app.yml down --remove-orphans || true && docker compose -f docker-compose-app.yml up -d --build --remove-orphans && echo "✅ Deployment de app principal completado"`;
     
     executeSSHCommand(dropletIp, deploymentCommand);
     console.log(`✅ Aplicación principal deployada exitosamente`);
