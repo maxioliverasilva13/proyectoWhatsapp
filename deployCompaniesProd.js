@@ -16,88 +16,15 @@ const client = new Client({
 
 const escapeEnvValue = (val) => val;
 
-// Clase para manejar conexión SSH persistente
-class SSHConnection {
-  constructor(host, privateKeyPath) {
-    this.host = host;
-    this.privateKeyPath = privateKeyPath;
-    this.sshProcess = null;
-  }
-
-  async connect() {
-    return new Promise((resolve, reject) => {
-      this.sshProcess = spawn('ssh', [
-        '-i', this.privateKeyPath,
-        '-o', 'StrictHostKeyChecking=no',
-        '-o', 'ServerAliveInterval=30',
-        '-o', 'ServerAliveCountMax=3',
-        `root@${this.host}`
-      ], {
-        stdio: ['pipe', 'pipe', 'pipe']
-      });
-
-      this.sshProcess.on('error', reject);
-      
-      // Esperar a que la conexión esté lista
-      setTimeout(() => {
-        if (this.sshProcess && !this.sshProcess.killed) {
-          resolve();
-        } else {
-          reject(new Error('Failed to establish SSH connection'));
-        }
-      }, 2000);
+// Función para ejecutar comando SSH optimizado
+async function executeSSH(host, command) {
+  return new Promise((resolve, reject) => {
+    execSync(`ssh -i private_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 root@${host} '${command}'`, {
+      stdio: ['pipe', 'pipe', 'pipe'],
+      timeout: 300000 // 5 minutos timeout
     });
-  }
-
-  async executeCommand(command) {
-    return new Promise((resolve, reject) => {
-      if (!this.sshProcess || this.sshProcess.killed) {
-        reject(new Error('SSH connection not established'));
-        return;
-      }
-
-      let output = '';
-      let errorOutput = '';
-
-      const dataHandler = (data) => {
-        output += data.toString();
-      };
-
-      const errorHandler = (data) => {
-        errorOutput += data.toString();
-      };
-
-      this.sshProcess.stdout.on('data', dataHandler);
-      this.sshProcess.stderr.on('data', errorHandler);
-
-      // Enviar comando
-      this.sshProcess.stdin.write(`${command} && echo "COMMAND_FINISHED_SUCCESS" || echo "COMMAND_FINISHED_ERROR"\n`);
-
-      // Esperar respuesta
-      const checkForCompletion = () => {
-        if (output.includes('COMMAND_FINISHED_SUCCESS')) {
-          this.sshProcess.stdout.off('data', dataHandler);
-          this.sshProcess.stderr.off('data', errorHandler);
-          resolve(output.replace('COMMAND_FINISHED_SUCCESS', '').trim());
-        } else if (output.includes('COMMAND_FINISHED_ERROR')) {
-          this.sshProcess.stdout.off('data', dataHandler);
-          this.sshProcess.stderr.off('data', errorHandler);
-          reject(new Error(`Command failed: ${errorOutput}`));
-        } else {
-          setTimeout(checkForCompletion, 100);
-        }
-      };
-
-      setTimeout(checkForCompletion, 100);
-    });
-  }
-
-  async disconnect() {
-    if (this.sshProcess && !this.sshProcess.killed) {
-      this.sshProcess.stdin.write('exit\n');
-      this.sshProcess.kill();
-    }
-  }
+    resolve();
+  }).catch(reject);
 }
 
 async function getCompanies() {
@@ -186,7 +113,7 @@ function createEnvFileApp() {
   fs.writeFileSync(`.env.app`, envContent);
 }
 
-async function deployCompany(empresa, sshConnection) {
+async function deployCompany(empresa) {
   const dropletIp = process.env.DROPLET_IP;
   createEnvFile(empresa);
 
@@ -196,7 +123,9 @@ async function deployCompany(empresa, sshConnection) {
   require('dotenv').config({ path: `.env.${empresa.db_name}` });
 
   console.log(`Preparando directorios para ${empresa.db_name}...`);
-  await sshConnection.executeCommand(`
+  
+  // Ejecutar todos los comandos SSH en batch para máxima velocidad
+  await executeSSH(dropletIp, `
     mkdir -p /projects/${empresa?.db_name} &&
     rm -f /projects/${empresa?.db_name}/.env
   `);
@@ -206,13 +135,12 @@ async function deployCompany(empresa, sshConnection) {
     `rsync -avz --delete -e "ssh -i private_key -o StrictHostKeyChecking=no" --exclude='node_modules' --exclude='letsencrypt' ./ root@${dropletIp}:/projects/${empresa?.db_name}/`,
   );
   
-  console.log(`Copiando .env para ${empresa.db_name}...`);
+  console.log(`Copiando .env y ejecutando docker para ${empresa.db_name}...`);
   await execSync(
     `scp -i private_key -o StrictHostKeyChecking=no -r .env.${empresa.db_name} root@${dropletIp}:/projects/${empresa?.db_name}/.env`,
   );
   
-  console.log(`Ejecutando docker compose para ${empresa.db_name}...`);
-  await sshConnection.executeCommand(`
+  await executeSSH(dropletIp, `
     cd /projects/${empresa?.db_name} &&
     docker compose -f docker-compose.yml up -d --build --remove-orphans
   `);
@@ -220,13 +148,13 @@ async function deployCompany(empresa, sshConnection) {
   console.log(`✅ Deploy completado para ${empresa.db_name}`);
 }
 
-async function deployApp(sshConnection) {
+async function deployApp() {
   const dropletIp = process.env.DROPLET_IP;
   createEnvFileApp();
   require('dotenv').config({ path: `.env.app` });
 
   console.log('Preparando directorios para app principal...');
-  await sshConnection.executeCommand(`
+  await executeSSH(dropletIp, `
     mkdir -p /projects/app &&
     rm -f /projects/app/.env &&
     mkdir -p /projects/app/letsencrypt &&
@@ -239,13 +167,12 @@ async function deployApp(sshConnection) {
     `rsync --delete -avz -e "ssh -i private_key -o StrictHostKeyChecking=no" --exclude='node_modules' --exclude='letsencrypt' ./ root@${dropletIp}:/projects/app/`,
   );
   
-  console.log('Copiando .env para app principal...');
+  console.log('Copiando .env y ejecutando docker para app principal...');
   await execSync(
     `scp -i private_key -o StrictHostKeyChecking=no -r .env.app root@${dropletIp}:/projects/app/.env`,
   );
   
-  console.log('Ejecutando docker compose para app principal...');
-  await sshConnection.executeCommand(`
+  await executeSSH(dropletIp, `
     cd /projects/app &&
     docker compose -f docker-compose-app-prod.yml up -d --build
   `);
@@ -254,16 +181,9 @@ async function deployApp(sshConnection) {
 }
 
 (async () => {
-  const dropletIp = process.env.DROPLET_IP;
-  const sshConnection = new SSHConnection(dropletIp, 'private_key');
-  
   try {
-    console.log('🔌 Estableciendo conexión SSH persistente...');
-    await sshConnection.connect();
-    console.log('✅ Conexión SSH establecida');
-    
     console.log('🚀 Iniciando deploy de app principal...');
-    await deployApp(sshConnection);
+    await deployApp();
     
     console.log('📋 Obteniendo lista de empresas...');
     const empresas = await getCompanies();
@@ -272,7 +192,7 @@ async function deployApp(sshConnection) {
     for (let i = 0; i < empresas.length; i++) {
       const empresa = empresas[i];
       console.log(`\n🏢 Deployando empresa ${i + 1}/${empresas.length}: ${empresa.db_name}`);
-      await deployCompany(empresa, sshConnection);
+      await deployCompany(empresa);
     }
     
     console.log('\n🎉 ¡Todos los deploys completados exitosamente!');
@@ -280,8 +200,6 @@ async function deployApp(sshConnection) {
     console.error('❌ Error durante el deploy:', error);
     process.exit(1);
   } finally {
-    console.log('🔌 Cerrando conexión SSH...');
-    await sshConnection.disconnect();
     process.exit(0);
   }
 })();

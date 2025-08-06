@@ -1,5 +1,5 @@
 const { Client } = require('pg');
-const { execSync } = require('child_process');
+const { execSync, spawn } = require('child_process');
 const fs = require('fs');
 
 const client = new Client({
@@ -12,6 +12,17 @@ const client = new Client({
     rejectUnauthorized: false,
   },
 });
+
+// Función para ejecutar comando SSH optimizado
+async function executeSSH(host, command) {
+  return new Promise((resolve, reject) => {
+    execSync(`ssh -i private_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 root@${host} '${command}'`, {
+      stdio: ['pipe', 'pipe', 'pipe'],
+      timeout: 600000 // 5 minutos timeout
+    });
+    resolve();
+  }).catch(reject);
+}
 
 async function getCompanies() {
   try {
@@ -109,23 +120,30 @@ async function deployCompany(empresa) {
 
   require('dotenv').config({ path: `.env.${empresa.db_name}` });
 
-  await execSync(
-    `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'mkdir -p /projects/${empresa?.db_name}'`,
-  );
-
+  console.log(`Preparando directorios para ${empresa.db_name}...`);
+  
+  // Ejecutar todos los comandos SSH en batch para máxima velocidad
+  await executeSSH(dropletIp, `
+    mkdir -p /projects/${empresa?.db_name} &&
+    rm -f /projects/${empresa?.db_name}/.env
+  `);
+ 
+  console.log(`Sincronizando archivos para ${empresa.db_name}...`);
   await execSync(
     `rsync -avz --delete -e "ssh -i private_key -o StrictHostKeyChecking=no" --exclude='node_modules' ./ root@${dropletIp}:/projects/${empresa?.db_name}/`,
   );
-  await execSync(
-    `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'rm -f /projects/${empresa?.db_name}/.env'`,
-  );
+ 
+  console.log(`Copiando .env y ejecutando docker para ${empresa.db_name}...`);
   await execSync(
     `scp -i private_key -o StrictHostKeyChecking=no -r .env.${empresa.db_name} root@${dropletIp}:/projects/${empresa?.db_name}/.env`,
   );
-
-  await execSync(
-    `ssh -i private_key root@${dropletIp} 'cd /projects/${empresa?.db_name} && docker compose -f docker-compose.yml up -d --build  --remove-orphans'`,
-  );
+ 
+  await executeSSH(dropletIp, `
+    cd /projects/${empresa?.db_name} &&
+    docker compose -f docker-compose.yml up -d --build --remove-orphans
+  `);
+ 
+  console.log(`✅ Deploy completado para ${empresa.db_name}`);
 }
 
 async function deployApp() {
@@ -133,39 +151,53 @@ async function deployApp() {
   createEnvFileApp();
   require('dotenv').config({ path: `.env.app` });
 
-  await execSync(
-    `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'mkdir -p /projects/app'`,
-  );
-  await execSync(
-    `rsync --delete -avz -e "ssh -i private_key -o StrictHostKeyChecking=no" --exclude='node_modules' ./ root@${dropletIp}:/projects/app/`,
-  );
-  await execSync(
-    `ssh -i private_key -o StrictHostKeyChecking=no root@${dropletIp} 'rm -f /projects/app/.env'`,
-  );
-  await execSync(
-    `scp -i private_key -o StrictHostKeyChecking=no -r .env.app root@${dropletIp}:/projects/app/.env`,
-  );
-  await execSync(`
-  ssh -i private_key root@${dropletIp} '
+  console.log('Preparando directorios para app principal...');
+  await executeSSH(dropletIp, `
+    mkdir -p /projects/app &&
+    rm -f /projects/app/.env &&
     mkdir -p /projects/app/letsencrypt &&
     touch /projects/app/letsencrypt/acme.json &&
     chmod 600 /projects/app/letsencrypt/acme.json
-  '
-`);
+  `);
+ 
+  console.log('Sincronizando archivos para app principal...');
   await execSync(
-    `ssh -i private_key root@${dropletIp} 'cd /projects/app && docker compose -f docker-compose-app.yml up -d --build '`,
+    `rsync --delete -avz -e "ssh -i private_key -o StrictHostKeyChecking=no" --exclude='node_modules' ./ root@${dropletIp}:/projects/app/`,
   );
+ 
+  console.log('Copiando .env y ejecutando docker para app principal...');
+  await execSync(
+    `scp -i private_key -o StrictHostKeyChecking=no -r .env.app root@${dropletIp}:/projects/app/.env`,
+  );
+ 
+  await executeSSH(dropletIp, `
+    cd /projects/app &&
+    docker compose -f docker-compose-app.yml up -d --build
+  `);
+ 
+  console.log('✅ Deploy completado para app principal');
 }
 
 (async () => {
   try {
+    console.log('🚀 Iniciando deploy de app principal...');
     await deployApp();
+ 
+    console.log('📋 Obteniendo lista de empresas...');
     const empresas = await getCompanies();
-    for (const empresa of empresas) {
+    console.log(`Found ${empresas.length} empresas para deploy`);
+ 
+    for (let i = 0; i < empresas.length; i++) {
+      const empresa = empresas[i];
+      console.log(
+        `\n🏢 Deployando empresa ${i + 1}/${empresas.length}: ${empresa.db_name}`,
+      );
       await deployCompany(empresa);
     }
+ 
+    console.log('\n🎉 ¡Todos los deploys completados exitosamente!');
   } catch (error) {
-    console.log('error', error);
+    console.error('❌ Error durante el deploy:', error);
     process.exit(1);
   } finally {
     process.exit(0);
