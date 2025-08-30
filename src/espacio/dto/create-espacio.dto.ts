@@ -4,5 +4,9 @@ export class CreateEspacioDto {
   capacidad: number;
   image: string;
   ubicacion: string;
-  products: string[]; // IDs de productos
+  precios?: {
+    tipo_intervalo: 'minutos' | 'horas' | 'dias';
+    duracion_intervalo: number;
+    precio: number;
+  }[];
 }

@@ -291,8 +291,7 @@ export class EmpresaService {
 
       const usuariosEmpresa = await this.usuarioRepository.find({
         where: { id_empresa: empresaData.id, firstUser: true }
-      })
-
+      })      
       const connection = await handleGetConnectionByEmpresa(
         empresaData.db_name,
       );
@@ -300,7 +299,6 @@ export class EmpresaService {
       const categoryRepository = await connection.getRepository(Category);
       const infoLineRepository = await connection.getRepository(Infoline);
       const horariosRepository = await connection.getRepository(Horario);
-
 
       const allProducts = await categoryRepository.find({ relations: ["producto"] });
       const allInfoLines = await infoLineRepository.find({
@@ -312,14 +310,14 @@ export class EmpresaService {
         'app',
         empresaData?.db_name,
       )}`;
-
+      
       connection.destroy();
       return {
         ok: true,
         data: {
           ...empresaData,
           numero: data.wid?.split('@')[0],
-          userContact: usuariosEmpresa[0].correo ?? "No hay usuario",
+          userContact: usuariosEmpresa[0]?.correo ?? "No hay usuario",
           tipoServicioId: empresaData.tipoServicioId.id,
           apiUrl
         },

@@ -2,6 +2,7 @@ import { Cambioestadopedido } from 'src/cambioestadopedido/entities/cambioestado
 import { Chat } from 'src/chat/entities/chat.entity';
 import { Cliente } from 'src/cliente/entities/cliente.entity';
 import { Espacio } from 'src/espacio/entities/espacio';
+import { Precio } from 'src/espacio/entities/precio';
 import { Estado } from 'src/estado/entities/estado.entity';
 import { PaymentMethod } from 'src/paymentMethod/entities/paymentMethod.entity';
 import { ProductoPedido } from 'src/productopedido/entities/productopedido.entity';
@@ -63,7 +64,7 @@ export class Pedido extends BaseEntity {
   @JoinColumn()
   chat: Chat;
 
-  @ManyToOne(() => Espacio, (esp) => esp.pedido)
+  @ManyToOne(() => Espacio, (esp) => esp.pedidos)
   espacio: Espacio;
 
   @OneToMany(() => ProductoPedido, (prod) => prod.pedido)
@@ -89,4 +90,20 @@ export class Pedido extends BaseEntity {
 
   @Column({ nullable: true, default: true })
   isDomicilio: boolean;
+
+  @Column({ type: 'timestamp with time zone', nullable: true })
+  fecha_inicio: Date;
+
+  @Column({ type: 'timestamp with time zone', nullable: true })
+  fecha_fin: Date;
+
+  @Column({ type: 'int', nullable: true })
+  cantidad_espacio_precio: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  precio_total: number;
+
+  @ManyToOne(() => Precio, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn()
+  precio: Precio;
 }

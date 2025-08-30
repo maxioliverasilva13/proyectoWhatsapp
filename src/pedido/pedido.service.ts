@@ -522,9 +522,6 @@ export class PedidoService implements OnModuleDestroy {
         where: { tipo: createPedidoDto.empresaType },
       });
 
-
-      console.log('el tipo de servicio es', tipoServicio);
-
       let existsPedido;
 
       if (tipoServicio.id === TIPO_SERVICIO_RESERVA_ID) {
@@ -533,19 +530,6 @@ export class PedidoService implements OnModuleDestroy {
             fecha: createPedidoDto.fecha,
             available: true,
             owner_user_id: createPedidoDto.userId,
-          },
-        });
-        if (existsPedido) {
-          throw new BadRequestException(
-            'El horario seleccionado esta ocupado.',
-          );
-        }
-      } else if (tipoServicio.id === TIPO_SERVICIO_RESERVA_ESPACIO_ID) {
-        existsPedido = await this.pedidoRepository.findOne({
-          where: {
-            fecha: createPedidoDto.fecha,
-            available: true,
-            espacio: { id: createPedidoDto.espacio_id },
           },
         });
         if (existsPedido) {
@@ -807,7 +791,8 @@ export class PedidoService implements OnModuleDestroy {
           'estado',
           'cambioEstados.pedido',
           'cambioEstados.estado',
-          'espacio'
+          'espacio',
+          'espacio.precio'
         ],
       });
       if (!pedidoExist) {
@@ -1075,7 +1060,6 @@ export class PedidoService implements OnModuleDestroy {
     if (isEmpresaReservaEsp) {
       espacio = await this.espacioRepository.findOne({ where: { id: userId } })
       console.log("el espacio es", espacio);
-
     }
 
     const { intervaloTiempoCalendario, timeZone = 'America/Montevideo' } =
@@ -1446,9 +1430,8 @@ export class PedidoService implements OnModuleDestroy {
       let espacioExist;
 
       if (isEmpresaReservaEsp) {
-        espacioExist = await this.espacioRepository.findOne({ where: { id: userId } })
+        espacioExist = await this.espacioRepository.findOne({ where: { id: userId, }, relations: ['precio'] })
       }
-
 
       const conditions: any = {
         where: {

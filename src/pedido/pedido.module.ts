@@ -22,6 +22,9 @@ import { Reclamo } from './entities/reclamo.entity';
 import { PaymentMethod } from 'src/paymentMethod/entities/paymentMethod.entity';
 import { HorarioModule } from 'src/horario/horario.module';
 import { Espacio } from 'src/espacio/entities/espacio';
+import { PedidoEspaciosService } from './pedidoEspacios.service';
+import { Precio } from 'src/espacio/entities/precio';
+import { PedidoEspacioController } from './pedidoEspacios.controller';
 
 @Module({
   imports: [
@@ -39,7 +42,8 @@ import { Espacio } from 'src/espacio/entities/espacio';
       Mensaje,
       Cliente,
       Reclamo,
-      Espacio
+      Espacio,
+      Precio
     ]),
     ProductopedidoModule,
     DeviceModule,
@@ -56,8 +60,8 @@ import { Espacio } from 'src/espacio/entities/espacio';
       },
     }),
   ],
-  controllers: [PedidoController],
-  providers: [PedidoService],
-  exports: [PedidoService],
+  controllers: [PedidoController, PedidoEspacioController],
+  providers: [PedidoService, PedidoEspaciosService],
+  exports: [PedidoService, PedidoEspaciosService],
 })
 export class PedidoModule { }

@@ -64,6 +64,7 @@ import { MenuImageModule } from './menuImg/menuImg.module';
 import { MenuImageController } from './menuImg/menuImg.controller';
 import { EspacioModule } from './espacio/espacio.module';
 import { EspacioController } from './espacio/espacio.controller';
+import { PedidoEspacioController } from './pedido/pedidoEspacios.controller';
 
 ConfigModule.forRoot();
 
@@ -159,6 +160,7 @@ export class AppModule {
         ProductoController,
         GrenApiController,
         PedidoController,
+        PedidoEspacioController,
         InfolineController,
         EspacioController,
         ChatGptThreadsController,
@@ -195,9 +197,12 @@ export class AppModule {
         { path: "/usuario/workers", method: RequestMethod.GET },
         { path: "/payment-methods", method: RequestMethod.GET },
         { path: "/plan", method: RequestMethod.GET },
-        { path: "/espacios", method: RequestMethod.GET}
+        { path: "/espacios", method: RequestMethod.GET },
+        { path: "/pedidoEspacio/getAvailability", method: RequestMethod.GET },
+        { path: "/pedidoEspacio/getAvailabilityForRange", method: RequestMethod.GET }
       )
       .forRoutes('*');
+      
   }
 }
 

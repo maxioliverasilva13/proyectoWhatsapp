@@ -25,6 +25,7 @@ import { PaymentMethod } from "src/paymentMethod/entities/paymentMethod.entity";
 import { Horario } from "src/horario/entities/horario.entity";
 import { MenuImage } from "src/menuImg/entities/menu";
 import { Espacio } from "src/espacio/entities/espacio";
+import { Precio } from "src/espacio/entities/precio";
 
 export const ENTITIES_TO_MAP_GLOBAL_DB = [
   Plan,
@@ -55,12 +56,12 @@ export const ENTITIES_TO_MAP_EMPRESA_DB = [
   Cliente,
   Reclamo,
   MenuImage,
-  Espacio
+  Espacio,
+  Precio
 ];
 
 export const SEEDERS_TO_MAP_GLOBAL_DB = 'src/database/seeders/app/*{.ts,.js}'
 
 export const SEEDERS_TO_MAP_EMPRESA = 'src/database/seeders/empresa/*{.ts,.js}'
-
 
 export const isDev = process.env.ENV == "dev";

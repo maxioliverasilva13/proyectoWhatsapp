@@ -198,4 +198,9 @@ export class PedidoController {
     const text = body?.reason;
     return this.pedidoService.remove(+id, text);
   }
+
+  // peddiso espaciso service 
+
+
+  
 }

@@ -8,6 +8,7 @@ import { MensajeService } from 'src/mensaje/mensaje.service';
 import { MenuImageService } from 'src/menuImg/menuImg.service';
 import { PaymentMethodService } from 'src/paymentMethod/paymentMethod.service';
 import { PedidoService } from 'src/pedido/pedido.service';
+import { PedidoEspaciosService } from 'src/pedido/pedidoEspacios.service';
 import { ProductoService } from 'src/producto/producto.service';
 import { sendMessageWithTools } from 'src/utils/deepSeek/deepSeekFunctions';
 import { connectToGreenApi } from 'src/utils/greenApi';
@@ -27,7 +28,8 @@ export class GreenApiService {
     @Inject(forwardRef(() => MenuImageService))
     private readonly menuImageService: MenuImageService,
     private readonly espacioService: EspacioService,
-  ) {}
+    private readonly pedidoEspaciosService: PedidoEspaciosService
+  ) { }
 
   async onModuleInit() {
     const subdomain = process.env.SUBDOMAIN;
@@ -111,7 +113,7 @@ export class GreenApiService {
     );
 
     console.log('llamare a sendMessageWithTools');
-    
+
 
     const openAIResponse = await sendMessageWithTools(
       textMessage,
@@ -125,7 +127,8 @@ export class GreenApiService {
         messagesService: this.messagesService,
         clienteService: this.clienteService,
         menuImageService: this.menuImageService,
-        espacioService: this.espacioService
+        espacioService: this.espacioService,
+        pedidoEspaciosService: this.pedidoEspaciosService
       },
       {
         threadId,
@@ -204,10 +207,15 @@ export class GreenApiService {
     userId = '',
     isDomicilio = false,
     espacio_id = null,
-    timeZone
+    timeZone,
+    fecha_inicio,
+    fecha_fin,
+    cantidad_precios_reservados,
+    precio_id
   }: any) {
     try {
-      const newOrder = await this.pedidoService.create({
+
+      const objetToSend = {
         clienteId: clienteId,
         clientName: clientName,
         confirmado: false,
@@ -227,9 +235,24 @@ export class GreenApiService {
         userId: userId,
         isDomicilio: isDomicilio,
         espacio_id: espacio_id,
-        timeZone: timeZone
-      });
-      // await this.chatGptThreadsService.deleteThread(currentThreadId);
+        timeZone: timeZone,
+        precio_id: precio_id
+      }
+      let newOrder;
+
+      if (empresaType === 'RESERVAS DE ESPACIO') {
+        newOrder = await this.pedidoEspaciosService.crearPedidoEspacio({
+          ...objetToSend,
+          fecha_inicio: fecha_inicio,
+          fecha_fin: fecha_fin,
+          cantidad_precios_reservados: cantidad_precios_reservados,
+          precio_id: precio_id
+        });
+
+      } else {
+        newOrder = await this.pedidoService.create(objetToSend);
+      }
+
       await this.deviceService.sendNotificationEmpresa(
         empresaId,
         messagePushTitle,

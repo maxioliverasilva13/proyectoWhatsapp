@@ -21,6 +21,7 @@ interface Services {
   clienteService: any;
   menuImageService: any;
   espacioService: any;
+  pedidoEspaciosService: any
 }
 
 interface Context {
@@ -66,6 +67,7 @@ async function executeToolByName(
     infoLineService,
     menuImageService,
     espacioService,
+    pedidoEspaciosService
   } = services;
 
   const {
@@ -177,22 +179,41 @@ async function executeToolByName(
       isDomicilio: args?.isDomicilio ?? false,
       espacio_id: args?.espacio_id ?? null,
       timeZone,
+      fecha_inicio: args.fecha_inicio ?? new Date(),
+      fecha_fin: args.fecha_fin ?? new Date(),
+      cantidad_precios_reservados: args.cantidad_precios_reservados ?? 1,
+      precio_id: args.precio_id ?? null
     });
   } else if (name === 'getAvailability') {
     console.log('getAvailability');
-    toolResult = await pedidoService.obtenerDisponibilidadActivasByFecha(
-      formatearFecha(args.date),
-      false,
-      args.empleadoId ? args.empleadoId : args.espacio_id,
-      empresaType === 'RESERVAS DE ESPACIO',
-    );
+    if(empresaType === "RESERVAS DE ESPACIO") {
+      toolResult = await pedidoEspaciosService.calcularDisponibilidadEspacio(
+        args.espacio_id, 
+        formatearFecha(args.date),
+        false,
+      );
+    } else {
+      toolResult = await pedidoService.obtenerDisponibilidadActivasByFecha(
+        formatearFecha(args.date),
+        false,
+        args.empleadoId ? args.empleadoId : args.espacio_id,
+        empresaType === 'RESERVAS DE ESPACIO',
+      );
+    }
   } else if (name === 'getNextAvailability') {
     console.log('getNextAvailability');
-    toolResult = await pedidoService.getNextDateTimeAvailable(
-      timeZone,
-      args.empleadoId ? args.empleadoId : args.espacio_id,
-      empresaType === 'RESERVAS DE ESPACIO',
-    );
+    if(empresaType === 'RESERVAS DE ESPACIO') {
+      toolResult = await pedidoEspaciosService.getNextDateTimeAvailableByEspacio(
+        args.empleadoId ? args.empleadoId : args.espacio_id,
+        timeZone
+      );
+    } else {
+      toolResult = await pedidoService.getNextDateTimeAvailable(
+        timeZone,
+        args.empleadoId ? args.empleadoId : args.espacio_id,
+        empresaType === 'RESERVAS DE ESPACIO',
+      );
+    }
   } else {
     toolResult = { error: `Tool ${name} no implementada` };
   }
@@ -295,7 +316,7 @@ Toda referencia a "hoy", "mañana", "pasado mañana", etc., debe resolverse con 
         tools: allTools,
         tool_choice: 'auto',
         max_tokens: 4096,
-        temperature: 0.6,
+        temperature: 0.3,
         stream: false,
       }),
     });

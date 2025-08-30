@@ -6,9 +6,8 @@ import {
   PrimaryGeneratedColumn,
   BaseEntity,
   OneToMany,
-  ManyToMany,
-  JoinTable,
 } from 'typeorm';
+import { Precio } from './precio';
 
 @Entity('espacio')
 export class Espacio extends BaseEntity {
@@ -31,9 +30,9 @@ export class Espacio extends BaseEntity {
   capacidad: number;
 
   @OneToMany(() => Pedido, (p) => p.espacio)
-  pedido: Pedido[]
+  pedidos: Pedido[];
 
-  @ManyToMany(() => Producto, (producto) => producto.espacios, { cascade: true })
-  @JoinTable()
-  productos: Producto[];
+  @OneToMany(() => Precio, (precio) => precio.espacio, { cascade: true })
+  precios: Precio[];
 }
+

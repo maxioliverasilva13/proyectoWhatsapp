@@ -2,153 +2,154 @@ export const Customtools = (empresaType: string) => {
     const isReserva = empresaType === 'RESERVAS DE ESPACIO';
 
     const confirmOrderInfoProperties: any = {
-        "fecha": {
-            "type": "string",
-            "format": "date",
-            "description": "Fecha de confirmación del pedido en formato YYYY-MM-DD HH:mm"
+        fecha: {
+            type: "string",
+            format: "date",
+            description: "Fecha de confirmación del pedido en formato YYYY-MM-DD HH:mm"
         },
-        "messageToUser": {
-            "type": "string",
-            "description": "Mensaje de confirmación que se le enviará al usuario"
+        messageToUser: {
+            type: "string",
+            description: "Mensaje de confirmación que se le enviará al usuario"
         },
-        "infoLines": {
-            "type": "object",
-            "additionalProperties": {
-                "type": "string"
-            },
-            "description": "Líneas informativas adicionales, como dirección u otros datos"
+        infoLines: {
+            type: "object",
+            additionalProperties: { type: "string" },
+            description: "Líneas informativas adicionales, como dirección u otros datos"
         },
-        "detalles": {
-            "type": "string",
-            "description": "Detalles específicos proporcionados por el usuario sobre la orden, es MUY importante captar lo que el usuario quiere"
+        detalles: {
+            type: "string",
+            description: "Detalles específicos proporcionados por el usuario sobre la orden, es MUY importante captar lo que el usuario quiere"
         },
-        "data": {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "productoId": {
-                        "type": "number",
-                        "description": "ID del producto solicitado"
+        data: {
+            type: "array",
+            items: {
+                type: "object",
+                properties: {
+                    productoId: {
+                        type: "number",
+                        description: "ID del producto solicitado"
                     },
-                    "fecha": {
-                        "type": "string",
-                        "format": "date",
-                        "description": "Fecha específica de este producto dentro del pedido"
+                    fecha: {
+                        type: "string",
+                        format: "date",
+                        description: "Fecha específica de este producto dentro del pedido"
                     },
-                    "cantidad": {
-                        "type": "number",
-                        "description": "Cantidad del producto solicitado"
+                    cantidad: {
+                        type: "number",
+                        description: "Cantidad del producto solicitado"
                     }
                 },
-                "required": ["productoId", "cantidad"]
+                required: ["productoId", "cantidad"]
             },
-            "description": "Listado de productos en la orden"
+            description: "Listado de productos en la orden"
         }
     };
-
-    const confirmOrderInfoRequired = [
-        "fecha",
-        "messageToUser",
-        "infoLines",
-        "data"
-    ];
+    const confirmOrderInfoRequired = ["fecha", "messageToUser", "infoLines", "data"];
 
     const additionalConfirmOrderProperties: any = {};
     const additionalConfirmOrderRequired: string[] = [];
 
     if (isReserva) {
         additionalConfirmOrderProperties.espacio_id = {
-            "type": "string",
-            "description": "Id del espacio al cual crearemos la reserva"
+            type: "string",
+            description: "Id del espacio al cual crearemos la reserva"
         };
-        additionalConfirmOrderRequired.push("espacio_id");
     } else {
         additionalConfirmOrderProperties.empleadoId = {
-            "type": "string",
-            "description": "Id del empleado que va a atender la reserva."
+            type: "string",
+            description: "Id del empleado que va a atender la reserva."
         };
         additionalConfirmOrderRequired.push("empleadoId");
     }
 
-
-    const getAvailabilityProperties: any = {
-        "date": {
-            "type": "string",
-            "description": "fecha a chequear la disponibilidad, solo fecha, en formato YY:MM:DD HH:mm, esta es la fecha solicitada por el usuario para una reserva"
-        }
-    };
-
     if (isReserva) {
-        getAvailabilityProperties.espacio_id = {
-            "type": "string",
-            "description": "Id del espacio al cual consultaremos la disponibilidad"
+        additionalConfirmOrderProperties.fecha_inicio = {
+            type: "string",
+            description: "Fecha y hora de inicio de la reserva en formato YYYY-MM-DD HH:mm"
         };
-    } else {
-        getAvailabilityProperties.empleadoId = {
-            "type": "string",
-            "description": "Id del empleado que va a atender la reserva."
+        additionalConfirmOrderProperties.fecha_fin = {
+            type: "string",
+            description: "Fecha y hora de fin de la reserva en formato YYYY-MM-DD HH:mm"
         };
+        additionalConfirmOrderProperties.cantidad_precios_reservados = {
+            type: "number",
+            description: "Duración de la reserva en unidades de intervalo del espacio"
+        };
+        additionalConfirmOrderProperties.precio_id = {
+            type: "string",
+            description: "Identificador del precio asociado a la reserva. Cada precio siempre pertenece a un espacio específico."
+        };
+
+        additionalConfirmOrderRequired.push("fecha_inicio", "fecha_fin", "cantidad_precios_reservados", "precio_id");
     }
 
     const tools = [
         {
-            "type": "function",
-            "function": {
-                "name": "getAvailability",
-                "description": "Busca un conjunto de disponibilidades para hacer una reserva en base a cierta fecha",
-                "parameters": {
-                    "type": "object",
-                    "properties": getAvailabilityProperties,
-                    "required": ["date"]
+            type: "function",
+            function: {
+                name: "getAvailability",
+                description: "Devuelve los bloques de tiempo disponibles para un espacio específico en la fecha indicada.",
+                parameters: {
+                    type: "object",
+                    properties: {
+                        date: {
+                            type: "string",
+                            description: "fecha a chequear la disponibilidad, solo fecha, en formato YY:MM:DD HH:mm, esta es la fecha solicitada por el usuario para una reserva"
+                        },
+                        ...(isReserva
+                            ? { espacio_id: { type: "string", description: "Id del espacio al cual consultaremos la disponibilidad" } }
+                            : { empleadoId: { type: "string", description: "Id del empleado que va a atender la reserva." } })
+                    },
+                    required: ["date"]
                 }
             }
         },
 
         {
-            "type": "function",
-            "function": {
-                "name": "confirmOrder",
-                "description": "Confirma una orden o reserva de productos con la información proporcionada por el usuario",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "info": {
-                            "type": "object",
-                            "properties": confirmOrderInfoProperties,
-                            "required": confirmOrderInfoRequired
+            type: "function",
+            function: {
+                name: "confirmOrder",
+                description: "Confirma una orden o reserva de productos con la información proporcionada por el usuario",
+                parameters: {
+                    type: "object",
+                    properties: {
+                        info: {
+                            type: "object",
+                            properties: confirmOrderInfoProperties,
+                            required: confirmOrderInfoRequired
                         },
-                        "messagePushTitle": {
-                            "type": "string",
-                            "description": "Título de la notificación push para esta orden"
+                        messagePushTitle: {
+                            type: "string",
+                            description: "Título de la notificación push para esta orden"
                         },
-                        "transferUrl": {
-                            "type": "string",
-                            "description": "Url de la imagen de la transferencia (Opcional)"
+                        transferUrl: {
+                            type: "string",
+                            description: "Url de la imagen de la transferencia (Opcional)"
                         },
-                        "messagePush": {
-                            "type": "string",
-                            "description": "Mensaje descriptivo de la notificación push para esta orden"
+                        messagePush: {
+                            type: "string",
+                            description: "Mensaje descriptivo de la notificación push para esta orden"
                         },
-                        "detalles": {
-                            "type": "string",
-                            "description": "Detalles generales del pedido"
+                        detalles: {
+                            type: "string",
+                            description: "Detalles generales del pedido"
                         },
-                        "paymentMethodId": {
-                            "type": "string",
-                            "description": "ID de el metodo de pago elejido por el usuario en caso de ser proporcionado"
+                        paymentMethodId: {
+                            type: "string",
+                            description: "ID de el metodo de pago elegido por el usuario en caso de ser proporcionado"
                         },
                         ...additionalConfirmOrderProperties
                     },
-                    "required": [
+                    required: Array.from(new Set([
                         "info",
                         "messagePushTitle",
                         "messagePush",
                         ...additionalConfirmOrderRequired
-                    ]
+                    ]))
                 }
             }
         },
+
         {
             "type": "function",
             "function": {
