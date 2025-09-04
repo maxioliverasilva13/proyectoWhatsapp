@@ -1,1 +1,7 @@
-export class CreateEmailDto {firstName : string; lastName : string; email: string; message: string}
+export class CreateEmailDto {
+  from: string;
+  to: string;
+  subject: string;
+  message: string;
+  isHtml?: boolean;
+}
