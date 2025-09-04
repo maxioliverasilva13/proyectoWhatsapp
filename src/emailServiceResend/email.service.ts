@@ -59,4 +59,46 @@ export class EmailServiceResend {
       });
     }
   }
+
+  async sendCustomEmail(from: string, to: string, subject: string, message: string, isHtml: boolean = false) {
+    try {
+      if (!this.resend) {
+        throw new BadRequestException('Resend service not initialized. Check RESEND_KEY environment variable.');
+      }
+
+      const emailData: any = {
+        from,
+        to: [to],
+        subject,
+      };
+
+      if (isHtml) {
+        emailData.html = message;
+      } else {
+        emailData.text = message;
+      }
+
+      const { data, error } = await this.resend.emails.send(emailData);
+
+      console.log(data, error)
+
+      if (error) {
+        throw new BadRequestException(`Error sending email: ${error.message} ${JSON.stringify(error ?? "{}")} ${JSON.stringify(data ?? "{}")}`);
+      }
+
+      return { 
+        success: true, 
+        data,
+        message: `Email sent successfully to ${to}` 
+      };
+
+    } catch (error: any) {
+      throw new BadRequestException({
+        ok: false,
+        statusCode: 400,
+        message: error?.message || 'Error sending custom email',
+        error: 'Bad Request',
+      });
+    }
+  }
 }

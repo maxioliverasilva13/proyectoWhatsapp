@@ -34,6 +34,7 @@ import { AuthController } from './auth/auth.controller';
 import { CierreProvisorioModule } from './cierreProvisorio/cierreProvisorio.module';
 import { EmailQueueModule } from './emailqueue/emailqueue.module';
 import { EmailModule } from './emailqueue/nodemailer.module';
+import { EmailModuleResend } from './emailServiceResend/email.module';
 import { BullModule } from '@nestjs/bullmq';
 import { PlanEmpresaModule } from './planEmpresa/planEmpresa.module';
 import { EmailCOntroller } from './emailqueue/email.controller';
@@ -89,6 +90,7 @@ const connection = handleGetConnection();
     }),
     EmailModule,
     EmailQueueModule,
+    EmailModuleResend,
     ScheduleModule.forRoot(),
     EmpresaModule,
     BullModule.registerQueue({
@@ -128,7 +130,7 @@ const connection = handleGetConnection();
     HorarioModule,
     PaymentsModule,
     PaymentsModule,
-    MenuImageModule
+    MenuImageModule,
   ],
   controllers: [
     AppController,
@@ -170,7 +172,7 @@ export class AppModule {
         PaymentMethodController,
         ClienteController,
         OpenaiController,
-        MenuImageController
+        MenuImageController,
       );
 
     //JWT MIDDLEWARE
@@ -187,25 +189,30 @@ export class AppModule {
         { path: '/empresa', method: RequestMethod.ALL },
         { path: '/upload', method: RequestMethod.ALL },
         { path: '/upload/image', method: RequestMethod.ALL },
-        { path: "auth/sendLinkToGmail", method: RequestMethod.ALL },
-        { path: "auth/open-reset-link", method: RequestMethod.ALL },
-        { path: "/pedido/calendar/next-date-avaiable", method: RequestMethod.ALL },
-        { path: "/pedido/calendar/dates-avaiable", method: RequestMethod.ALL },
-        { path: "/pedido/calendar/dates-avaiable-by-month", method: RequestMethod.GET },
-        { path: "/horario", method: RequestMethod.GET },
-        { path: "/usuario/workers/:empresaId", method: RequestMethod.GET },
-        { path: "/usuario/workers", method: RequestMethod.GET },
-        { path: "/payment-methods", method: RequestMethod.GET },
-        { path: "/plan", method: RequestMethod.GET },
-        { path: "/espacios", method: RequestMethod.GET },
-        { path: "/pedidoEspacio/getAvailability", method: RequestMethod.GET },
-        { path: "/pedidoEspacio/getAvailabilityForRange", method: RequestMethod.GET }
+        { path: 'auth/sendLinkToGmail', method: RequestMethod.ALL },
+        { path: 'auth/open-reset-link', method: RequestMethod.ALL },
+        {
+          path: '/pedido/calendar/next-date-avaiable',
+          method: RequestMethod.ALL,
+        },
+        { path: '/pedido/calendar/dates-avaiable', method: RequestMethod.ALL },
+        {
+          path: '/pedido/calendar/dates-avaiable-by-month',
+          method: RequestMethod.GET,
+        },
+        { path: '/horario', method: RequestMethod.GET },
+        { path: '/usuario/workers/:empresaId', method: RequestMethod.GET },
+        { path: '/usuario/workers', method: RequestMethod.GET },
+        { path: '/payment-methods', method: RequestMethod.GET },
+        { path: '/plan', method: RequestMethod.GET },
+        { path: '/espacios', method: RequestMethod.GET },
+        { path: '/pedidoEspacio/getAvailability', method: RequestMethod.GET },
+        {
+          path: '/pedidoEspacio/getAvailabilityForRange',
+          method: RequestMethod.GET,
+        },
+        { path: '/send-email', method: RequestMethod.POST },
       )
       .forRoutes('*');
-      
   }
 }
-
-
-
-
