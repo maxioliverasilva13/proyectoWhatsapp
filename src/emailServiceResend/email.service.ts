@@ -80,6 +80,8 @@ export class EmailServiceResend {
 
       const { data, error } = await this.resend.emails.send(emailData);
 
+      console.log(data, error)
+
       if (error) {
         throw new BadRequestException(`Error sending email: ${error.message} ${JSON.stringify(error ?? "{}")} ${JSON.stringify(data ?? "{}")}`);
       }
