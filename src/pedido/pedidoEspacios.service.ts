@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreatePedidoEspacioDto } from './dto/create-pedido-reservaEspacio.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, Repository , LessThanOrEqual, MoreThanOrEqual} from 'typeorm';
+import { Between, Repository, LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
 import { Pedido } from './entities/pedido.entity';
 import { Estado } from 'src/estado/entities/estado.entity';
 import { Cambioestadopedido } from 'src/cambioestadopedido/entities/cambioestadopedido.entity';
@@ -173,15 +173,13 @@ export class PedidoEspaciosService {
         const dayStart = moment.tz(fecha, timeZone).startOf('day').toDate();
         const dayEnd = moment.tz(fecha, timeZone).endOf('day').toDate();
 
-        // MODIFICACIÓN CLAVE: Buscar pedidos que se superponen con el día
         const pedidosExistentes = await this.pedidoRepository.find({
             where: {
                 available: true,
                 finalizado: false,
                 espacio: { id: espacio.id },
-                // Pedidos que comienzan O terminan durante el día, o que abarcan todo el día
-                fecha_inicio: LessThanOrEqual(dayEnd), // Comienzan antes del final del día
-                fecha_fin: MoreThanOrEqual(dayStart), // Terminan después del inicio del día
+                fecha_inicio: LessThanOrEqual(dayEnd),
+                fecha_fin: MoreThanOrEqual(dayStart),
             },
             relations: { espacio: true },
         });
@@ -201,7 +199,13 @@ export class PedidoEspaciosService {
             if (!apertura.isValid() || !cierre.isValid()) continue;
             if (cierre.isBefore(apertura)) cierre.add(1, 'day');
 
-            let actual = withPast ? apertura.clone() : moment.max(apertura, now.clone());
+            let actual: moment.Moment;
+            if (withPast) {
+                actual = apertura.clone();
+            } else {
+                const isToday = moment(fecha, "YYYY-MM-DD").isSame(now, "day");
+                actual = isToday ? moment.max(apertura, now.clone()) : apertura.clone();
+            }
 
             for (const pedido of pedidosOrdenados) {
                 if (pedido.fin.isSameOrBefore(actual)) continue;
