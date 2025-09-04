@@ -165,8 +165,11 @@ export class PedidoEspaciosService {
         if (!espacio) return [];
 
         const timeZone = 'America/Montevideo';
+        const fmt = ['YYYY-MM-DD HH:mm', 'YYYY-MM-DD HH:mm:ss'];
+
         const diaSemana = moment.tz(fecha, timeZone).isoWeekday();
         const horariosDia = await this.horarioService.findByDay(diaSemana);
+        
         if (!horariosDia || horariosDia.length === 0) return [];
 
         const now = moment.tz(timeZone);
@@ -186,24 +189,24 @@ export class PedidoEspaciosService {
 
         const pedidosOrdenados = pedidosExistentes
             .map((p) => ({
-                inicio: moment(p.fecha_inicio),
-                fin: moment(p.fecha_fin),
+                inicio: moment.tz(p.fecha_inicio, timeZone),
+                fin: moment.tz(p.fecha_fin, timeZone),
             }))
             .sort((a, b) => a.inicio.valueOf() - b.inicio.valueOf());
 
         const disponibilidadRaw: { start: moment.Moment; end: moment.Moment }[] = [];
 
         for (const horario of horariosDia) {
-            const apertura = moment(`${fecha} ${horario.hora_inicio}`, 'YYYY-MM-DD HH:mm');
-            let cierre = moment(`${fecha} ${horario.hora_fin}`, 'YYYY-MM-DD HH:mm');
+            const apertura = moment.tz(`${fecha} ${horario.hora_inicio}`, fmt, timeZone);
+            let cierre = moment.tz(`${fecha} ${horario.hora_fin}`, fmt, timeZone);
             if (!apertura.isValid() || !cierre.isValid()) continue;
-            if (cierre.isBefore(apertura)) cierre.add(1, 'day');
+            if (cierre.isBefore(apertura)) cierre.add(1, 'day'); // franja nocturna
 
             let actual: moment.Moment;
             if (withPast) {
                 actual = apertura.clone();
             } else {
-                const isToday = moment(fecha, "YYYY-MM-DD").isSame(now, "day");
+                const isToday = moment.tz(fecha, 'YYYY-MM-DD', timeZone).isSame(now, 'day');
                 actual = isToday ? moment.max(apertura, now.clone()) : apertura.clone();
             }
 
@@ -216,7 +219,7 @@ export class PedidoEspaciosService {
                     if (huecoFin.isAfter(actual)) {
                         disponibilidadRaw.push({
                             start: actual.clone(),
-                            end: huecoFin.clone().subtract(1, 'minute')
+                            end: huecoFin.clone().subtract(1, 'minute'),
                         });
                     }
                 }
@@ -229,14 +232,13 @@ export class PedidoEspaciosService {
                 disponibilidadRaw.push({ start: actual.clone(), end: cierre.clone() });
             }
         }
-
         return disponibilidadRaw
-            .map(({ start, end }) => `${start.format('YYYY-MM-DD HH:mm')} - ${end.format('YYYY-MM-DD HH:mm')}`)
-            .filter((s) => {
-                const end = moment(s.split(' - ')[1], 'YYYY-MM-DD HH:mm');
-                return end.isAfter(moment());
-            });
+            .filter(({ end }) => end.isAfter(now))
+            .map(({ start, end }) =>
+                `${start.tz(timeZone).format('YYYY-MM-DD HH:mm')} - ${end.tz(timeZone).format('YYYY-MM-DD HH:mm')}`
+            );
     }
+
 
 
     async getNextDateTimeAvailableByEspacio(
