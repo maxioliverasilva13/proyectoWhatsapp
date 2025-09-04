@@ -169,7 +169,7 @@ export class PedidoEspaciosService {
 
         const diaSemana = moment.tz(fecha, timeZone).isoWeekday();
         const horariosDia = await this.horarioService.findByDay(diaSemana);
-        
+
         if (!horariosDia || horariosDia.length === 0) return [];
 
         const now = moment.tz(timeZone);
@@ -189,8 +189,8 @@ export class PedidoEspaciosService {
 
         const pedidosOrdenados = pedidosExistentes
             .map((p) => ({
-                inicio: moment.tz(p.fecha_inicio, timeZone),
-                fin: moment.tz(p.fecha_fin, timeZone),
+                inicio: moment(p.fecha_inicio).tz(timeZone, true),
+                fin: moment(p.fecha_fin).tz(timeZone, true),
             }))
             .sort((a, b) => a.inicio.valueOf() - b.inicio.valueOf());
 
@@ -200,7 +200,7 @@ export class PedidoEspaciosService {
             const apertura = moment.tz(`${fecha} ${horario.hora_inicio}`, fmt, timeZone);
             let cierre = moment.tz(`${fecha} ${horario.hora_fin}`, fmt, timeZone);
             if (!apertura.isValid() || !cierre.isValid()) continue;
-            if (cierre.isBefore(apertura)) cierre.add(1, 'day'); // franja nocturna
+            if (cierre.isBefore(apertura)) cierre.add(1, 'day');
 
             let actual: moment.Moment;
             if (withPast) {
@@ -214,7 +214,7 @@ export class PedidoEspaciosService {
                 if (pedido.fin.isSameOrBefore(actual)) continue;
                 if (pedido.inicio.isSameOrAfter(cierre)) break;
 
-                if (pedido.inicio.isAfter(actual)) {
+                if (pedido.inicio.isSameOrAfter(actual)) {
                     const huecoFin = moment.min(pedido.inicio, cierre);
                     if (huecoFin.isAfter(actual)) {
                         disponibilidadRaw.push({
