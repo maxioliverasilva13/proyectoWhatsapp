@@ -68,4 +68,4 @@ jobs:
         DEEPSEEK_TOKEN: ${{ secrets.DEEPSEEK_TOKEN }}
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      run: node deploySingleCompany.js "$EMPRESA_DB_NAME"
+      run: node deploySignleCompanyProd.js "$EMPRESA_DB_NAME"
