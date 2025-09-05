@@ -192,7 +192,10 @@ export class PedidoEspaciosService {
                 inicio: moment(p.fecha_inicio).tz(timeZone, true),
                 fin: moment(p.fecha_fin).tz(timeZone, true),
             }))
-            .sort((a, b) => a.inicio.valueOf() - b.inicio.valueOf());
+            .sort((a, b) => a.inicio.valueOf() - b.inicio.valueOf());    
+            
+            console.log('pedidosOrdenados',pedidosOrdenados);
+            
 
         const disponibilidadRaw: { start: moment.Moment; end: moment.Moment }[] = [];
 
