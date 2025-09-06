@@ -572,11 +572,10 @@ export class PedidoService implements OnModuleDestroy {
       const crearNuevoPedido = async (products) => {
         const fechaFinal = moment.parseZone(
           createPedidoDto.fecha || products[0].fecha
-        ).toDate(); 
+        ).toDate();
 
         let total = 0;
         const infoLineToJson = createPedidoDto.infoLinesJson;
-        let espacioExist;
         const newPedido = new Pedido();
         newPedido.confirmado = createPedidoDto.confirmado || false;
         newPedido.cliente_id = createPedidoDto.clienteId;
@@ -597,12 +596,6 @@ export class PedidoService implements OnModuleDestroy {
           newPedido.chatIdWhatsapp = createPedidoDto.chatId.toString();
         }
         newPedido.detalle_pedido = createPedidoDto?.detalles ?? '';
-        if (createPedidoDto.espacio_id) {
-          espacioExist = await this.espacioRepository.findOne({ where: { id: createPedidoDto.espacio_id } })
-          if (espacioExist) {
-            newPedido.espacio = espacioExist;
-          }
-        }
 
         if (clientExist) {
           newPedido.client = clientExist;
@@ -856,7 +849,12 @@ export class PedidoService implements OnModuleDestroy {
           cambiosEstado: pedidoExist.cambioEstados,
           detalle_pedido: pedidoExist?.detalle_pedido,
           total,
-          espacio: pedidoExist?.espacio ?? {},
+          espacio: pedidoExist?.espacio
+            ? {
+              ...pedidoExist.espacio,
+              precio: pedidoExist.espacio?.precios ?? null,
+            }
+            : {},
           infoLines: JSON.parse(pedidoExist.infoLinesJson),
         },
       };
