@@ -66,6 +66,7 @@ import { MenuImageController } from './menuImg/menuImg.controller';
 import { EspacioModule } from './espacio/espacio.module';
 import { EspacioController } from './espacio/espacio.controller';
 import { PedidoEspacioController } from './pedido/pedidoEspacios.controller';
+import { PrecioController } from './espacio/prrecio.controller';
 
 ConfigModule.forRoot();
 
@@ -173,6 +174,7 @@ export class AppModule {
         ClienteController,
         OpenaiController,
         MenuImageController,
+        PrecioController
       );
 
     //JWT MIDDLEWARE
