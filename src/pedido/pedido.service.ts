@@ -785,7 +785,8 @@ export class PedidoService implements OnModuleDestroy {
           'cambioEstados.pedido',
           'cambioEstados.estado',
           'espacio',
-          'espacio.precio'
+          'espacio.precios',
+          'precio',
         ],
       });
       if (!pedidoExist) {
@@ -856,6 +857,9 @@ export class PedidoService implements OnModuleDestroy {
             }
             : {},
           infoLines: JSON.parse(pedidoExist.infoLinesJson),
+          precio: pedidoExist?.precio ?? {},
+          fecha_inicio: pedidoExist.fecha_inicio,
+          fecha_fin: pedidoExist.fecha_fin,
         },
       };
     } catch (error) {

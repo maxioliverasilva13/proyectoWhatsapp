@@ -192,10 +192,10 @@ export class PedidoEspaciosService {
                 inicio: moment(p.fecha_inicio).tz(timeZone, true),
                 fin: moment(p.fecha_fin).tz(timeZone, true),
             }))
-            .sort((a, b) => a.inicio.valueOf() - b.inicio.valueOf());    
-            
-            console.log('pedidosOrdenados',pedidosOrdenados);
-            
+            .sort((a, b) => a.inicio.valueOf() - b.inicio.valueOf());
+
+        console.log('pedidosOrdenados', pedidosOrdenados);
+
 
         const disponibilidadRaw: { start: moment.Moment; end: moment.Moment }[] = [];
 
@@ -241,8 +241,6 @@ export class PedidoEspaciosService {
                 `${start.tz(timeZone).format('YYYY-MM-DD HH:mm')} - ${end.tz(timeZone).format('YYYY-MM-DD HH:mm')}`
             );
     }
-
-
 
     async getNextDateTimeAvailableByEspacio(
         espacioId: number,
@@ -328,7 +326,9 @@ export class PedidoEspaciosService {
                         fecha: pedido.fecha,
                         status: pedido.confirmado,
                         espacio: espacioExist ?? {},
-                        precio: pedido.precio
+                        precio: pedido.precio,
+                        fecha_inicio: pedido.fecha_inicio,
+                        fecha_fin: pedido.fecha_fin
                     };
 
                     if (formattedDate in dates) {
