@@ -1840,15 +1840,20 @@ Para más información, por favor contactanos.`;
         order: { id: 'DESC' },
         where: { available: true, finalizado: false },
         take: 3,
-        relations: ['pedidosprod', 'pedidosprod.producto'],
+        relations: ['pedidosprod', 'pedidosprod.producto', 'espacio', 'precio'],
       });
+      
 
       const ordersWithTotal = lastOrders.map((element) => {
         let total = 0;
 
-        element.pedidosprod.forEach((pedidoProd) => {
-          total += pedidoProd.cantidad * pedidoProd.precio;
-        });
+        if(element.precio && element.espacio) {
+          total = element.precio.precio * element.cantidad_espacio_precio
+        } else {
+          element.pedidosprod.forEach((pedidoProd) => {
+            total += pedidoProd.cantidad * pedidoProd.precio;
+          });
+        }
 
         return {
           ...element,
