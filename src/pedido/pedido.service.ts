@@ -827,6 +827,10 @@ export class PedidoService implements OnModuleDestroy {
         }),
       );
 
+      if(pedidoExist.espacio && pedidoExist.fecha_inicio && pedidoExist.fecha_fin) {
+        total = pedidoExist.precio.precio * pedidoExist.cantidad_espacio_precio
+      }
+
       return {
         ok: true,
         statusCode: 200,
