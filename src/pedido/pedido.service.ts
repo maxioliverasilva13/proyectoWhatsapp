@@ -827,7 +827,7 @@ export class PedidoService implements OnModuleDestroy {
         }),
       );
 
-      if(pedidoExist.espacio && pedidoExist.fecha_inicio && pedidoExist.fecha_fin) {
+      if (pedidoExist.espacio && pedidoExist.fecha_inicio && pedidoExist.fecha_fin) {
         total = pedidoExist.precio.precio * pedidoExist.cantidad_espacio_precio
       }
 
@@ -1842,13 +1842,15 @@ Para más información, por favor contactanos.`;
         take: 3,
         relations: ['pedidosprod', 'pedidosprod.producto', 'espacio', 'precio'],
       });
-      
+
 
       const ordersWithTotal = lastOrders.map((element) => {
         let total = 0;
+        let direccion;
 
-        if(element.precio && element.espacio) {
-          total = element.precio.precio * element.cantidad_espacio_precio
+        if (element.precio && element.espacio) {
+          total = element.precio.precio * element.cantidad_espacio_precio;
+          direccion = element.espacio.nombre;
         } else {
           element.pedidosprod.forEach((pedidoProd) => {
             total += pedidoProd.cantidad * pedidoProd.precio;
@@ -1858,6 +1860,7 @@ Para más información, por favor contactanos.`;
         return {
           ...element,
           total,
+          direccion
         };
       });
 
