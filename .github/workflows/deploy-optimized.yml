@@ -1,0 +1,140 @@
+name: Deploy Optimized to PROD
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [prod]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+      image-digest: ${{ steps.build.outputs.digest }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      with:
+        driver-opts: |
+          network=host
+
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+
+    - name: Build and push Docker image
+      id: build
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile.optimized
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        platforms: linux/amd64
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    environment: prod
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci --only=production
+
+    - name: Setup SSH
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      run: |
+        echo "${SSH_PRIVATE_KEY}" > private_key
+        chmod 600 private_key
+
+    - name: Prepare server
+      env:
+        DROPLET_IP: ${{ secrets.DROPLET_IP }}
+      run: |
+        ssh -i private_key -o StrictHostKeyChecking=no root@${DROPLET_IP} '
+          # Crear red si no existe
+          docker network create app-network 2>/dev/null || true
+          
+          # Login al registry
+          echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          
+          # Pre-pull de la imagen para acelerar deploys
+          docker pull ${{ needs.build-and-push.outputs.image-tag }}
+        '
+
+    - name: Execute Optimized Deployment
+      env:
+        POSTGRES_USER_GLOBAL: ${{ secrets.POSTGRES_USER_GLOBAL }}
+        POSTGRES_PASSWORD_GLOBAL: ${{ secrets.POSTGRES_PASSWORD_GLOBAL }}
+        POSTGRES_DB_GLOBAL: ${{ secrets.POSTGRES_DB_GLOBAL }}
+        POSTGRES_GLOBAL_DB_HOST: ${{ secrets.POSTGRES_GLOBAL_DB_HOST }}
+        POSTGRES_GLOBAL_DB_PORT: ${{ secrets.POSTGRES_GLOBAL_DB_PORT }}
+        JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+        OPEN_AI_TOKEN: ${{ secrets.OPEN_AI_TOKEN }}
+        ASSISTANT_ID: ${{ secrets.ASSISTANT_ID }}
+        DROPLET_IP: ${{ secrets.DROPLET_IP }}
+        REDIS_HOST: ${{ secrets.REDIS_HOST }}
+        REDIS_PORT: ${{ secrets.REDIS_PORT }}
+        REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+        FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+        FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
+        FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
+        RESEND_KEY: ${{ secrets.RESEND_KEY }}
+        DEEPSEEK_TOKEN: ${{ secrets.DEEPSEEK_TOKEN }}
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        GITHUB_SHA: ${{ github.sha }}
+        REGISTRY: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+      run: node deployOptimized.js
+
+    - name: Cleanup
+      if: always()
+      run: |
+        rm -f private_key
+        rm -f .env.*
+
+    - name: Deploy Summary
+      if: always()
+      run: |
+        echo "## 🚀 Deploy Summary" >> $GITHUB_STEP_SUMMARY
+        echo "- **Image**: ${{ needs.build-and-push.outputs.image-tag }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Triggered by**: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY

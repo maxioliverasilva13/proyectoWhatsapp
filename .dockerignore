@@ -1,7 +1,62 @@
+# Archivos y directorios a ignorar en el build de Docker
 node_modules
-dist
-*.log
-Dockerfile
-docker-compose.yml
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Archivos de desarrollo
+.env*
+!.env.example
 .git
 .gitignore
+README.md
+DEPLOYMENT_README.md
+
+# Archivos de test
+test/
+coverage/
+*.test.js
+*.spec.js
+
+# Archivos de IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Archivos de deploy
+deploy*.js
+docker-compose*.yml
+Dockerfile*
+!Dockerfile.optimized
+
+# Logs
+logs/
+*.log
+
+# Archivos temporales
+tmp/
+temp/
+.tmp/
+
+# Certificados SSL
+letsencrypt/
+*.pem
+*.key
+*.crt
+
+# Archivos de backup
+*.backup
+*.bak
+
+# Archivos de distribución
+dist/
+build/
+
+# Cache
+.cache/
+.parcel-cache/

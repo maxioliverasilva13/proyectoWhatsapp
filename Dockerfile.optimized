@@ -1,0 +1,85 @@
+# Multi-stage build optimizado para máxima eficiencia
+FROM node:18-alpine AS base
+
+# Instalar dependencias del sistema una sola vez
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/cache/apk/*
+
+WORKDIR /app
+
+# ================================
+# Stage 1: Dependencies
+# ================================
+FROM base AS deps
+
+# Copiar archivos de dependencias
+COPY package*.json ./
+COPY yarn.lock* ./
+
+# Configurar npm para builds más rápidos
+RUN npm config set fund false && \
+    npm config set audit false && \
+    npm config set progress false
+
+# Instalar dependencias con cache mount para máxima velocidad
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --only=production --ignore-scripts && \
+    npm cache clean --force
+
+# ================================
+# Stage 2: Build
+# ================================
+FROM base AS builder
+
+WORKDIR /app
+
+# Copiar dependencias desde stage anterior
+COPY --from=deps /app/node_modules ./node_modules
+COPY package*.json ./
+
+# Instalar dependencias de desarrollo necesarias para build
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --ignore-scripts
+
+# Copiar código fuente
+COPY . .
+
+# Build de la aplicación
+RUN npm run build && \
+    npm prune --production
+
+# ================================
+# Stage 3: Runtime
+# ================================
+FROM node:18-alpine AS runtime
+
+# Crear usuario no-root para seguridad
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nestjs -u 1001
+
+WORKDIR /app
+
+# Copiar solo lo necesario para runtime
+COPY --from=builder --chown=nestjs:nodejs /app/dist ./dist
+COPY --from=builder --chown=nestjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nestjs:nodejs /app/package*.json ./
+
+# Configuración de producción
+ENV NODE_ENV=production
+ENV NODE_OPTIONS="--max-old-space-size=512"
+
+# Exponer puerto
+EXPOSE 3000
+
+# Cambiar a usuario no-root
+USER nestjs
+
+# Health check endpoint
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
+
+# Comando de inicio
+CMD ["node", "dist/main"]
