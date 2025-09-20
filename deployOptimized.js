@@ -2,10 +2,56 @@ const { Client } = require('pg');
 const { execSync } = require('child_process');
 const fs = require('fs');
 
+/**
+ * Deploy Optimizado - Versión mejorada con Docker Registry
+ * 
+ * USO:
+ * - Deploy completo:     node deployOptimized.js
+ * - Deploy específico:   node deployOptimized.js <db_name>
+ * - Con tag específico:  node deployOptimized.js <db_name> <image_tag>
+ * 
+ * EJEMPLOS:
+ * - node deployOptimized.js                    # Todas las empresas
+ * - node deployOptimized.js empresa1           # Solo empresa1
+ * - node deployOptimized.js empresa1 v1.2.3    # empresa1 con tag específico
+ */
+
+// Obtener parámetros
+const dbNameArg = process.argv[2]; // Opcional: deploy específico
+const forceImageTag = process.argv[3]; // Opcional: tag específico
+
+// Mostrar ayuda si se solicita
+if (dbNameArg === '--help' || dbNameArg === '-h') {
+  console.log(`
+🚀 Deploy Optimizado - Uso:
+
+COMANDOS:
+  node deployOptimized.js                    # Deploy completo (todas las empresas)
+  node deployOptimized.js <db_name>          # Deploy específico de una empresa
+  node deployOptimized.js <db_name> <tag>    # Deploy con tag específico de imagen
+
+EJEMPLOS:
+  node deployOptimized.js                    # Todas las empresas con imagen latest
+  node deployOptimized.js empresa1           # Solo empresa1 con imagen latest
+  node deployOptimized.js empresa1 v1.2.3    # Solo empresa1 con imagen v1.2.3
+
+CONFIGURACIÓN:
+  - MAX_PARALLEL_DEPLOYS: ${3} empresas simultáneas
+  - TIMEOUT: ${300000/1000}s por deploy
+  - REGISTRY: Configurar en línea 13
+
+VARIABLES DE ENTORNO REQUERIDAS:
+  - POSTGRES_USER_GLOBAL, POSTGRES_PASSWORD_GLOBAL, etc.
+  - DROPLET_IP, SSH_PRIVATE_KEY
+  - GITHUB_SHA (opcional, para tag automático)
+`);
+  process.exit(0);
+}
+
 // Configuración optimizada
 const MAX_PARALLEL_DEPLOYS = 3; // Limitar concurrencia para no sobrecargar servidor
 const DEPLOY_TIMEOUT = 300000; // 5 minutos por deploy
-const IMAGE_TAG = process.env.GITHUB_SHA || 'latest';
+const IMAGE_TAG = process.env.GITHUB_SHA || forceImageTag || 'latest';
 const REGISTRY = 'ghcr.io/tu-usuario/proyecto-whatsapp'; // Cambiar por tu registry
 
 const client = new Client({
@@ -41,7 +87,16 @@ async function executeSSH(host, command, retries = 3) {
 async function getCompanies() {
   try {
     await client.connect();
-    const res = await client.query('SELECT * FROM empresa WHERE deploy = TRUE');
+    let query = 'SELECT * FROM empresa WHERE deploy = TRUE';
+    let params = [];
+    
+    // Si se especifica una empresa específica, filtrar por ella
+    if (dbNameArg) {
+      query = 'SELECT * FROM empresa WHERE db_name = $1';
+      params = [dbNameArg];
+    }
+    
+    const res = await client.query(query, params);
     return res.rows;
   } catch (error) {
     console.error('❌ Error obteniendo empresas:', error);
@@ -186,19 +241,43 @@ async function deployCompaniesParallel(empresas) {
     console.log('🎯 Iniciando deploy optimizado...');
     console.log(`📦 Usando imagen: ${REGISTRY}:${IMAGE_TAG}`);
     
+    if (dbNameArg) {
+      console.log(`🎯 Deploy específico para empresa: ${dbNameArg}`);
+    } else {
+      console.log('🌐 Deploy completo para todas las empresas');
+    }
+    
     // Obtener empresas
     console.log('📋 Obteniendo lista de empresas...');
     const empresas = await getCompanies();
     
     if (empresas.length === 0) {
-      console.log('⚠️  No se encontraron empresas para deploy');
-      return;
+      if (dbNameArg) {
+        console.error(`❌ No se encontró la empresa "${dbNameArg}" o no está habilitada para deploy`);
+        process.exit(1);
+      } else {
+        console.log('⚠️  No se encontraron empresas para deploy');
+        return;
+      }
     }
     
-    console.log(`🏢 Encontradas ${empresas.length} empresas para deploy`);
+    if (dbNameArg) {
+      console.log(`✅ Empresa encontrada: ${empresas[0].nombre || empresas[0].db_name}`);
+    } else {
+      console.log(`🏢 Encontradas ${empresas.length} empresas para deploy`);
+    }
     
-    // Deploy paralelo
-    const results = await deployCompaniesParallel(empresas);
+    // Deploy (paralelo o individual)
+    let results;
+    if (dbNameArg) {
+      // Deploy individual
+      console.log(`\n🚀 Desplegando empresa individual: ${empresas[0].db_name}`);
+      const result = await deployCompany(empresas[0]);
+      results = [result];
+    } else {
+      // Deploy paralelo
+      results = await deployCompaniesParallel(empresas);
+    }
     
     // Estadísticas finales
     const successful = results.filter(r => r.success);
@@ -217,6 +296,11 @@ async function deployCompaniesParallel(empresas) {
     if (failed.length > 0) {
       console.log('\n❌ Empresas fallidas:');
       failed.forEach(f => console.log(`  - ${f.empresa}: ${f.error}`));
+    }
+    
+    if (dbNameArg && successful.length > 0) {
+      console.log(`\n🌐 URL: https://${empresas[0].db_name}.measyapp.com`);
+      console.log(`🔍 Health check: https://${empresas[0].db_name}.measyapp.com/health`);
     }
     
     console.log('\n🎉 Deploy optimizado completado!');

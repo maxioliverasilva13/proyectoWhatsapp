@@ -39,9 +39,19 @@
 ```bash
 # En lugar de:
 node deployCompaniesProd.js
+node deploySingleCompanyProd.js empresa1
 
-# Usar:
+# Usar (deploy completo):
 node deployOptimized.js
+
+# Usar (deploy específico):
+node deployOptimized.js empresa1
+
+# Usar (con tag específico):
+node deployOptimized.js empresa1 v1.2.3
+
+# Ver ayuda:
+node deployOptimized.js --help
 ```
 
 ### 2. **Configurar GitHub Registry**
@@ -56,14 +66,23 @@ node deployOptimized.js
 # Solo asegúrate de que GITHUB_TOKEN tenga permisos de packages
 ```
 
-### 4. **Activar el workflow**
+### 4. **Activar el workflow (SOLO MANUAL)**
 ```bash
-# Opción 1: Push a branch 'prod'
-git push origin prod
+# ⚠️  IMPORTANTE: El deploy es SOLO MANUAL para evitar accidentes
 
-# Opción 2: Ejecutar manualmente
+# Ejecutar desde GitHub Actions:
 # GitHub > Actions > "Deploy Optimized to PROD" > Run workflow
+# - Deploy completo: dejar campos vacíos
+# - Deploy específico: llenar "db_name" con nombre de empresa
+# - Tag específico: llenar "image_tag" con versión deseada
 ```
+
+#### **Ejemplos de Workflow Manual:**
+- **Deploy completo**: `db_name` vacío, `image_tag` vacío
+- **Deploy específico**: `db_name` = "empresa1", `image_tag` vacío  
+- **Deploy con rollback**: `db_name` = "empresa1", `image_tag` = "v1.2.0"
+
+> 🛡️ **Seguridad**: No hay triggers automáticos. Todos los deploys requieren acción manual deliberada.
 
 ## 📈 Optimizaciones Implementadas
 

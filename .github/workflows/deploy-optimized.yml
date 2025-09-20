@@ -2,8 +2,16 @@ name: Deploy Optimized to PROD
 
 on:
   workflow_dispatch:
-  push:
-    branches: [prod]
+    inputs:
+      db_name:
+        description: 'Nombre de la empresa específica (opcional - deja vacío para deploy completo)'
+        required: false
+        type: string
+      image_tag:
+        description: 'Tag específico de imagen (opcional - usa latest por defecto)'
+        required: false
+        type: string
+        default: 'latest'
 
 env:
   REGISTRY: ghcr.io
@@ -122,7 +130,19 @@ jobs:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         GITHUB_SHA: ${{ github.sha }}
         REGISTRY: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-      run: node deployOptimized.js
+      run: |
+        if [ -n "${{ github.event.inputs.db_name }}" ]; then
+          echo "🎯 Deploy específico para empresa: ${{ github.event.inputs.db_name }}"
+          if [ -n "${{ github.event.inputs.image_tag }}" ] && [ "${{ github.event.inputs.image_tag }}" != "latest" ]; then
+            echo "📦 Usando tag específico: ${{ github.event.inputs.image_tag }}"
+            node deployOptimized.js "${{ github.event.inputs.db_name }}" "${{ github.event.inputs.image_tag }}"
+          else
+            node deployOptimized.js "${{ github.event.inputs.db_name }}"
+          fi
+        else
+          echo "🌐 Deploy completo para todas las empresas"
+          node deployOptimized.js
+        fi
 
     - name: Cleanup
       if: always()
@@ -138,3 +158,13 @@ jobs:
         echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Triggered by**: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+        if [ -n "${{ github.event.inputs.db_name }}" ]; then
+          echo "- **Deploy Type**: Específico para empresa \`${{ github.event.inputs.db_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **URL**: https://${{ github.event.inputs.db_name }}.measyapp.com" >> $GITHUB_STEP_SUMMARY
+          echo "- **Health Check**: https://${{ github.event.inputs.db_name }}.measyapp.com/health" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "- **Deploy Type**: Completo (todas las empresas)" >> $GITHUB_STEP_SUMMARY
+        fi
+        if [ -n "${{ github.event.inputs.image_tag }}" ] && [ "${{ github.event.inputs.image_tag }}" != "latest" ]; then
+          echo "- **Custom Tag**: ${{ github.event.inputs.image_tag }}" >> $GITHUB_STEP_SUMMARY
+        fi
