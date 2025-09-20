@@ -174,11 +174,21 @@ async function deployCompany(empresa) {
     
     // 4. Deploy usando imagen pre-construida (súper rápido)
     console.log(`🐳 Desplegando contenedor para ${empresa.db_name}...`);
-    await executeSSH(dropletIp, `
+    console.log(`📦 Pulling imagen: ${REGISTRY}:${IMAGE_TAG}`);
+    
+    const deployResult = await executeSSH(dropletIp, `
       cd /projects/${empresa.db_name} && 
+      echo "=== PULLING IMAGE ===" &&
       docker pull ${REGISTRY}:${IMAGE_TAG} && 
-      docker compose up -d --remove-orphans
+      echo "=== STOPPING OLD CONTAINERS ===" &&
+      docker compose down --remove-orphans || true &&
+      echo "=== STARTING NEW CONTAINERS ===" &&
+      docker compose up -d --force-recreate &&
+      echo "=== CONTAINERS STATUS ===" &&
+      docker ps --filter "name=${empresa.db_name}-app"
     `);
+    
+    console.log(`📋 Deploy output para ${empresa.db_name}:`, deployResult);
     
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
     console.log(`✅ Deploy completado para ${empresa.db_name} en ${duration}s`);
