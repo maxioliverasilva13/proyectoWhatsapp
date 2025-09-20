@@ -4,8 +4,8 @@ const fs = require('fs');
 
 // Obtener parámetros
 const dbNameArg = process.argv[2];
-const IMAGE_TAG = process.env.GITHUB_SHA || process.argv[3] || 'latest';
-const REGISTRY = 'ghcr.io/tu-usuario/proyecto-whatsapp'; // Cambiar por tu registry
+const IMAGE_TAG = process.env.GITHUB_SHA || process.argv[3] || 'main';
+const REGISTRY = 'ghcr.io/maxioliverasilva13/proyectowhatsapp'; // Tu registry real
 
 console.log('🚀 Deploy optimizado para empresa:', dbNameArg);
 console.log('📦 Usando imagen:', `${REGISTRY}:${IMAGE_TAG}`);

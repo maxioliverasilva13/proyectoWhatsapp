@@ -51,8 +51,8 @@ VARIABLES DE ENTORNO REQUERIDAS:
 // Configuración optimizada
 const MAX_PARALLEL_DEPLOYS = 3; // Limitar concurrencia para no sobrecargar servidor
 const DEPLOY_TIMEOUT = 300000; // 5 minutos por deploy
-const IMAGE_TAG = process.env.GITHUB_SHA || forceImageTag || 'latest';
-const REGISTRY = 'ghcr.io/tu-usuario/proyecto-whatsapp'; // Cambiar por tu registry
+const IMAGE_TAG = process.env.GITHUB_SHA || forceImageTag || 'main';
+const REGISTRY = 'ghcr.io/maxioliverasilva13/proyectowhatsapp'; // Tu registry real
 
 const client = new Client({
   user: process.env.POSTGRES_USER_GLOBAL,
