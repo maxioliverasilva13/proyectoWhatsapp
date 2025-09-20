@@ -1,10 +1,10 @@
-name: Deploy Optimized to PROD
+name: Deploy to QA
 
 on:
   workflow_dispatch:
     inputs:
       deploy_app:
-        description: '¿Deployar la app principal? (app.measyapp.com)'
+        description: '¿Deployar la app principal? (app.qa.measyapp.com)'
         required: false
         type: boolean
         default: false
@@ -57,8 +57,8 @@ jobs:
         tags: |
           type=ref,event=branch
           type=ref,event=pr
-          type=sha,prefix={{branch}}-
-          type=raw,value=latest,enable={{is_default_branch}}
+          type=sha,prefix=qa-{{branch}}-
+          type=raw,value=qa-latest,enable={{is_default_branch}}
 
     - name: Build and push Docker image
       id: build
@@ -76,7 +76,7 @@ jobs:
   deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
-    environment: prod
+    environment: qa
     
     steps:
     - name: Checkout code
@@ -93,14 +93,14 @@ jobs:
 
     - name: Setup SSH
       env:
-        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY_QA }}
       run: |
         echo "${SSH_PRIVATE_KEY}" > private_key
         chmod 600 private_key
 
     - name: Prepare server
       env:
-        DROPLET_IP: ${{ secrets.DROPLET_IP }}
+        DROPLET_IP: ${{ secrets.DROPLET_IP_QA }}
       run: |
         ssh -i private_key -o StrictHostKeyChecking=no root@${DROPLET_IP} '
           # Crear red si no existe
@@ -112,47 +112,48 @@ jobs:
 
     - name: Execute Optimized Deployment
       env:
-        POSTGRES_USER_GLOBAL: ${{ secrets.POSTGRES_USER_GLOBAL }}
-        POSTGRES_PASSWORD_GLOBAL: ${{ secrets.POSTGRES_PASSWORD_GLOBAL }}
-        POSTGRES_DB_GLOBAL: ${{ secrets.POSTGRES_DB_GLOBAL }}
-        POSTGRES_GLOBAL_DB_HOST: ${{ secrets.POSTGRES_GLOBAL_DB_HOST }}
-        POSTGRES_GLOBAL_DB_PORT: ${{ secrets.POSTGRES_GLOBAL_DB_PORT }}
-        JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
-        OPEN_AI_TOKEN: ${{ secrets.OPEN_AI_TOKEN }}
-        ASSISTANT_ID: ${{ secrets.ASSISTANT_ID }}
-        DROPLET_IP: ${{ secrets.DROPLET_IP }}
-        REDIS_HOST: ${{ secrets.REDIS_HOST }}
-        REDIS_PORT: ${{ secrets.REDIS_PORT }}
-        REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
-        FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
-        FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
-        FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
-        RESEND_KEY: ${{ secrets.RESEND_KEY }}
-        DEEPSEEK_TOKEN: ${{ secrets.DEEPSEEK_TOKEN }}
-        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        POSTGRES_USER_GLOBAL: ${{ secrets.POSTGRES_USER_GLOBAL_QA }}
+        POSTGRES_PASSWORD_GLOBAL: ${{ secrets.POSTGRES_PASSWORD_GLOBAL_QA }}
+        POSTGRES_DB_GLOBAL: ${{ secrets.POSTGRES_DB_GLOBAL_QA }}
+        POSTGRES_GLOBAL_DB_HOST: ${{ secrets.POSTGRES_GLOBAL_DB_HOST_QA }}
+        POSTGRES_GLOBAL_DB_PORT: ${{ secrets.POSTGRES_GLOBAL_DB_PORT_QA }}
+        JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY_QA }}
+        OPEN_AI_TOKEN: ${{ secrets.OPEN_AI_TOKEN_QA }}
+        ASSISTANT_ID: ${{ secrets.ASSISTANT_ID_QA }}
+        DROPLET_IP: ${{ secrets.DROPLET_IP_QA }}
+        REDIS_HOST: ${{ secrets.REDIS_HOST_QA }}
+        REDIS_PORT: ${{ secrets.REDIS_PORT_QA }}
+        REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD_QA }}
+        FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID_QA }}
+        FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY_QA }}
+        FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL_QA }}
+        RESEND_KEY: ${{ secrets.RESEND_KEY_QA }}
+        DEEPSEEK_TOKEN: ${{ secrets.DEEPSEEK_TOKEN_QA }}
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY_QA }}
         GITHUB_SHA: ${{ github.sha }}
         REGISTRY: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-        EMAIL_USER: ${{ secrets.EMAIL_USER }}
-        EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
-        EMAIL_PORT: ${{ secrets.EMAIL_PORT }}
-        EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
-        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-        SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-        SUPABASE_BUCKET: ${{ secrets.SUPABASE_BUCKET }}
-        TOKEN_CONNECT_GIT: ${{ secrets.TOKEN_CONNECT_GIT }}
-        GOOGLE_CLIENT_EMAIL: ${{ secrets.GOOGLE_CLIENT_EMAIL }}
-        GOOGLE_PRIVATE_KEY: ${{ secrets.GOOGLE_PRIVATE_KEY }}
-        DROPLET_USER: ${{ secrets.DROPLET_USER }}
+        # Variables adicionales para la app principal QA
+        EMAIL_USER: ${{ secrets.EMAIL_USER_QA }}
+        EMAIL_HOST: ${{ secrets.EMAIL_HOST_QA }}
+        EMAIL_PORT: ${{ secrets.EMAIL_PORT_QA }}
+        EMAIL_PASS: ${{ secrets.EMAIL_PASS_QA }}
+        SUPABASE_URL: ${{ secrets.SUPABASE_URL_QA }}
+        SUPABASE_KEY: ${{ secrets.SUPABASE_KEY_QA }}
+        SUPABASE_BUCKET: ${{ secrets.SUPABASE_BUCKET_QA }}
+        TOKEN_CONNECT_GIT: ${{ secrets.TOKEN_CONNECT_GIT_QA }}
+        GOOGLE_CLIENT_EMAIL: ${{ secrets.GOOGLE_CLIENT_EMAIL_QA }}
+        GOOGLE_PRIVATE_KEY: ${{ secrets.GOOGLE_PRIVATE_KEY_QA }}
+        DROPLET_USER: ${{ secrets.DROPLET_USER_QA }}
       run: |
-        # Deploy de la app principal si está marcado
+        # Deploy de la app principal QA si está marcado
         if [ "${{ github.event.inputs.deploy_app }}" == "true" ]; then
-          echo "🏠 Desplegando app principal (app.measyapp.com)..."
+          echo "🏠 Desplegando app principal QA (app.qa.measyapp.com)..."
           node deployAppOptimized.js
         fi
         
-        # Deploy de empresas
+        # Deploy de empresas QA
         if [ -n "${{ github.event.inputs.db_name }}" ]; then
-          echo "🎯 Deploy específico para empresa: ${{ github.event.inputs.db_name }}"
+          echo "🎯 Deploy específico para empresa QA: ${{ github.event.inputs.db_name }}"
           if [ -n "${{ github.event.inputs.image_tag }}" ] && [ "${{ github.event.inputs.image_tag }}" != "latest" ]; then
             echo "📦 Usando tag específico: ${{ github.event.inputs.image_tag }}"
             node deployOptimized.js "${{ github.event.inputs.db_name }}" "${{ github.event.inputs.image_tag }}"
@@ -160,7 +161,7 @@ jobs:
             node deployOptimized.js "${{ github.event.inputs.db_name }}"
           fi
         elif [ "${{ github.event.inputs.deploy_app }}" != "true" ]; then
-          echo "🌐 Deploy completo para todas las empresas"
+          echo "🌐 Deploy completo QA para todas las empresas"
           node deployOptimized.js
         fi
 
@@ -173,31 +174,32 @@ jobs:
     - name: Deploy Summary
       if: always()
       run: |
-        echo "## 🚀 Deploy Summary" >> $GITHUB_STEP_SUMMARY
+        echo "## 🚀 Deploy QA Summary" >> $GITHUB_STEP_SUMMARY
+        echo "- **Environment**: QA" >> $GITHUB_STEP_SUMMARY
         echo "- **Image**: ${{ needs.build-and-push.outputs.image-tag }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Triggered by**: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
         
-        # App principal
+        # App principal QA
         if [ "${{ github.event.inputs.deploy_app }}" == "true" ]; then
-          echo "- **App Principal**: ✅ Desplegada" >> $GITHUB_STEP_SUMMARY
-          echo "- **App URL**: https://app.measyapp.com" >> $GITHUB_STEP_SUMMARY
-          echo "- **App Health**: https://app.measyapp.com/health" >> $GITHUB_STEP_SUMMARY
+          echo "- **App Principal QA**: ✅ Desplegada" >> $GITHUB_STEP_SUMMARY
+          echo "- **App URL**: https://app.qa.measyapp.com" >> $GITHUB_STEP_SUMMARY
+          echo "- **App Health**: https://app.qa.measyapp.com/health" >> $GITHUB_STEP_SUMMARY
         else
-          echo "- **App Principal**: ⏭️ Omitida" >> $GITHUB_STEP_SUMMARY
+          echo "- **App Principal QA**: ⏭️ Omitida" >> $GITHUB_STEP_SUMMARY
         fi
         
-        # Empresas
+        # Empresas QA
         if [ -n "${{ github.event.inputs.db_name }}" ]; then
           echo "- **Deploy Type**: Específico para empresa \`${{ github.event.inputs.db_name }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **URL**: https://${{ github.event.inputs.db_name }}.measyapp.com" >> $GITHUB_STEP_SUMMARY
-          echo "- **Health Check**: https://${{ github.event.inputs.db_name }}.measyapp.com/health" >> $GITHUB_STEP_SUMMARY
+          echo "- **URL**: https://${{ github.event.inputs.db_name }}.qa.measyapp.com" >> $GITHUB_STEP_SUMMARY
+          echo "- **Health Check**: https://${{ github.event.inputs.db_name }}.qa.measyapp.com/health" >> $GITHUB_STEP_SUMMARY
         else
           if [ "${{ github.event.inputs.deploy_app }}" != "true" ]; then
-            echo "- **Deploy Type**: Completo (todas las empresas)" >> $GITHUB_STEP_SUMMARY
+            echo "- **Deploy Type**: Completo (todas las empresas QA)" >> $GITHUB_STEP_SUMMARY
           else
-            echo "- **Deploy Type**: Solo app principal" >> $GITHUB_STEP_SUMMARY
+            echo "- **Deploy Type**: Solo app principal QA" >> $GITHUB_STEP_SUMMARY
           fi
         fi
         

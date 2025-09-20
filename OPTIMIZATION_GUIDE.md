@@ -70,19 +70,29 @@ node deployOptimized.js --help
 ```bash
 # ⚠️  IMPORTANTE: El deploy es SOLO MANUAL para evitar accidentes
 
-# Ejecutar desde GitHub Actions:
+# PRODUCCIÓN - Ejecutar desde GitHub Actions:
 # GitHub > Actions > "Deploy Optimized to PROD" > Run workflow
+
+# QA - Ejecutar desde GitHub Actions:
+# GitHub > Actions > "Deploy Optimized to QA" > Run workflow
+
+# Parámetros disponibles:
 # - Deploy completo: dejar campos vacíos
 # - Deploy específico: llenar "db_name" con nombre de empresa
 # - Tag específico: llenar "image_tag" con versión deseada
 ```
 
-#### **Ejemplos de Workflow Manual:**
-- **Deploy completo**: `db_name` vacío, `image_tag` vacío
-- **Deploy específico**: `db_name` = "empresa1", `image_tag` vacío  
+#### **Workflows Disponibles:**
+- **`Deploy Optimized to PROD`**: Deploy a producción
+- **`Deploy Optimized to QA`**: Deploy a ambiente de pruebas
+
+#### **Ejemplos de Uso:**
+- **Deploy completo PROD**: `db_name` vacío, `image_tag` vacío
+- **Deploy específico QA**: `db_name` = "empresa1", `image_tag` vacío  
 - **Deploy con rollback**: `db_name` = "empresa1", `image_tag` = "v1.2.0"
 
 > 🛡️ **Seguridad**: No hay triggers automáticos. Todos los deploys requieren acción manual deliberada.
+> 🔧 **Limpieza**: Se eliminaron todos los workflows antiguos, solo quedan los optimizados.
 
 ## 📈 Optimizaciones Implementadas
 
