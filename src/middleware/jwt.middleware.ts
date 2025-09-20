@@ -11,7 +11,7 @@ export class JwtMiddleware implements NestMiddleware {
     const token = req.headers['authorization']?.split(' ')[1];
 
     if (!token) {
-      return res.status(401).json({ message: 'Token no proporcionado 1' });
+      return res.status(401).json({ message: 'Token no proporcionado 2' });
     }
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY) as any;
