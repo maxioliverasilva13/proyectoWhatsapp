@@ -51,7 +51,7 @@ VARIABLES DE ENTORNO REQUERIDAS:
 // Configuración optimizada
 const MAX_PARALLEL_DEPLOYS = 3; // Limitar concurrencia para no sobrecargar servidor
 const DEPLOY_TIMEOUT = 300000; // 5 minutos por deploy
-const IMAGE_TAG = process.env.GITHUB_SHA || forceImageTag || 'main';
+const IMAGE_TAG = forceImageTag || 'main'; // Usar 'main' por defecto, ignorar GITHUB_SHA por ahora
 const REGISTRY = 'ghcr.io/maxioliverasilva13/proyectowhatsapp'; // Tu registry real
 
 const client = new Client({
@@ -174,12 +174,35 @@ async function deployCompany(empresa) {
     
     // 4. Deploy usando imagen pre-construida (súper rápido)
     console.log(`🐳 Desplegando contenedor para ${empresa.db_name}...`);
-    console.log(`📦 Pulling imagen: ${REGISTRY}:${IMAGE_TAG}`);
+    console.log(`📦 Verificando imagen: ${REGISTRY}:${IMAGE_TAG}`);
+    
+    // Primero verificar si la imagen existe
+    try {
+      await executeSSH(dropletIp, `docker manifest inspect ${REGISTRY}:${IMAGE_TAG} > /dev/null 2>&1`);
+      console.log(`✅ Imagen ${REGISTRY}:${IMAGE_TAG} existe`);
+    } catch (error) {
+      console.log(`⚠️  Imagen ${REGISTRY}:${IMAGE_TAG} no existe, intentando con 'main'`);
+      const fallbackTag = 'main';
+      console.log(`📦 Usando imagen fallback: ${REGISTRY}:${fallbackTag}`);
+      
+      // Actualizar el .env con el tag correcto
+      const envContent = fs.readFileSync(`.env.${empresa.db_name}`, 'utf8');
+      const updatedEnv = envContent.replace(/IMAGE_TAG=.*/g, `IMAGE_TAG=${fallbackTag}`);
+      fs.writeFileSync(`.env.${empresa.db_name}`, updatedEnv);
+      
+      // Recopiar el .env actualizado
+      await execSync(
+        `scp -i private_key -o StrictHostKeyChecking=no .env.${empresa.db_name} root@${dropletIp}:/projects/${empresa.db_name}/.env`,
+        { timeout: 30000 }
+      );
+    }
     
     const deployResult = await executeSSH(dropletIp, `
       cd /projects/${empresa.db_name} && 
+      echo "=== CHECKING CURRENT IMAGE ===" &&
+      grep IMAGE_TAG .env &&
       echo "=== PULLING IMAGE ===" &&
-      docker pull ${REGISTRY}:${IMAGE_TAG} && 
+      docker compose pull &&
       echo "=== STOPPING OLD CONTAINERS ===" &&
       docker compose down --remove-orphans || true &&
       echo "=== STARTING NEW CONTAINERS ===" &&
