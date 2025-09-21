@@ -26,6 +26,9 @@ const virtualHost = isQA ? 'app.qa.measyapp.com' : 'app.measyapp.com';
 console.log(`🏠 Deploy optimizado de App Principal (${environment.toUpperCase()})`);
 console.log(`🌐 URL: https://${virtualHost}`);
 console.log(`📦 Imagen: ${REGISTRY}:${IMAGE_TAG}`);
+console.log(`🔍 DEBUG - Variables de entorno:`);
+console.log(`   - process.env.IMAGE_TAG: ${process.env.IMAGE_TAG}`);
+console.log(`   - Imagen final a usar: ${REGISTRY}:${IMAGE_TAG}`);
 
 // Función SSH optimizada con reintentos
 async function executeSSH(host, command, retries = 3) {
@@ -228,6 +231,8 @@ async function deployApp() {
       cd /projects/app && 
       echo "=== CHECKING CURRENT IMAGE ===" &&
       grep IMAGE_TAG .env &&
+      echo "=== VERIFYING IMAGE EXISTS ===" &&
+      docker manifest inspect \$(grep REGISTRY .env | cut -d'=' -f2):\$(grep IMAGE_TAG .env | cut -d'=' -f2) &&
       echo "=== PULLING IMAGE ===" &&
       docker compose pull &&
       echo "=== STOPPING OLD CONTAINERS ===" &&
@@ -238,6 +243,8 @@ async function deployApp() {
       sleep 45 &&
       echo "=== CONTAINERS STATUS ===" &&
       docker ps --filter "name=app" &&
+      echo "=== CURRENT IMAGE IN USE ===" &&
+      docker inspect app --format='{{.Config.Image}}' 2>/dev/null || echo "Container not found" &&
       echo "=== HEALTH CHECK STATUS ===" &&
       docker inspect app --format='{{.State.Health.Status}}' 2>/dev/null || echo "No health check configured"
     `);

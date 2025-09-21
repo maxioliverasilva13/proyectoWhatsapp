@@ -110,6 +110,26 @@ jobs:
           echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
         '
 
+    - name: Extract Image Tag
+      id: extract-tag
+      run: |
+        # Extraer solo el tag de la imagen construida
+        FULL_TAG="${{ needs.build-and-push.outputs.image-tag }}"
+        echo "Full image tag: $FULL_TAG"
+        
+        # Extraer solo la parte después del último ':'
+        IMAGE_TAG=$(echo "$FULL_TAG" | sed 's/.*://')
+        echo "Extracted tag: $IMAGE_TAG"
+        echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+        
+        # También intentar con el SHA del commit si no hay tag específico
+        if [ "$IMAGE_TAG" = "latest" ]; then
+          COMMIT_TAG="${{ github.ref_name }}-${{ github.sha }}"
+          COMMIT_TAG=$(echo "$COMMIT_TAG" | cut -c1-20)
+          echo "Using commit-based tag: $COMMIT_TAG"
+          echo "IMAGE_TAG=$COMMIT_TAG" >> $GITHUB_ENV
+        fi
+
     - name: Execute Optimized Deployment
       env:
         POSTGRES_USER_GLOBAL: ${{ secrets.POSTGRES_USER_GLOBAL }}
@@ -132,7 +152,8 @@ jobs:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         GITHUB_SHA: ${{ github.sha }}
         REGISTRY: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-        IMAGE_TAG: ${{ needs.build-and-push.outputs.image-tag }}
+        BUILT_IMAGE_TAGS: ${{ needs.build-and-push.outputs.image-tag }}
+        IMAGE_TAG: ${{ env.IMAGE_TAG }}
         EMAIL_USER: ${{ secrets.EMAIL_USER }}
         EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
         EMAIL_PORT: ${{ secrets.EMAIL_PORT }}

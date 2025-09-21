@@ -277,6 +277,10 @@ async function deployCompaniesParallel(empresas) {
   try {
     console.log('🎯 Iniciando deploy optimizado...');
     console.log(`📦 Usando imagen: ${REGISTRY}:${IMAGE_TAG}`);
+    console.log(`🔍 DEBUG - Variables de entorno:`);
+    console.log(`   - process.env.IMAGE_TAG: ${process.env.IMAGE_TAG}`);
+    console.log(`   - forceImageTag: ${forceImageTag}`);
+    console.log(`   - Imagen final a usar: ${REGISTRY}:${IMAGE_TAG}`);
     
     if (dbNameArg) {
       console.log(`🎯 Deploy específico para empresa: ${dbNameArg}`);
