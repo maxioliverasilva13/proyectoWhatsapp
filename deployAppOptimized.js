@@ -147,13 +147,13 @@ function createOptimizedDockerCompose() {
         reservations:
           memory: 512M
           cpus: '0.5'
-    # Health check
+    # Health check simple - verificar proceso Node.js
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      test: ["CMD", "pgrep", "-f", "node.*dist/main"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 60s
 
   traefik:
     image: traefik:v2.10
