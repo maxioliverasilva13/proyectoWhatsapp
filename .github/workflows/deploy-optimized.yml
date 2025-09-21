@@ -114,21 +114,23 @@ jobs:
       id: extract-tag
       run: |
         # Extraer solo el tag de la imagen construida
-        FULL_TAG="${{ needs.build-and-push.outputs.image-tag }}"
-        echo "Full image tag: $FULL_TAG"
+        FULL_TAGS="${{ needs.build-and-push.outputs.image-tag }}"
+        echo "Full image tags: $FULL_TAGS"
         
-        # Extraer solo la parte después del último ':'
-        IMAGE_TAG=$(echo "$FULL_TAG" | sed 's/.*://')
-        echo "Extracted tag: $IMAGE_TAG"
-        echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+        # Buscar el tag que contiene el SHA del commit (más específico)
+        COMMIT_SHA_SHORT=$(echo "${{ github.sha }}" | cut -c1-7)
+        echo "Looking for tag with SHA: $COMMIT_SHA_SHORT"
         
-        # También intentar con el SHA del commit si no hay tag específico
-        if [ "$IMAGE_TAG" = "latest" ]; then
-          COMMIT_TAG="${{ github.ref_name }}-${{ github.sha }}"
-          COMMIT_TAG=$(echo "$COMMIT_TAG" | cut -c1-20)
-          echo "Using commit-based tag: $COMMIT_TAG"
-          echo "IMAGE_TAG=$COMMIT_TAG" >> $GITHUB_ENV
+        # Buscar línea que contenga el SHA del commit
+        IMAGE_TAG=$(echo "$FULL_TAGS" | grep "$COMMIT_SHA_SHORT" | head -1 | sed 's/.*://')
+        
+        # Si no encuentra tag con SHA, usar el primero disponible
+        if [ -z "$IMAGE_TAG" ]; then
+          IMAGE_TAG=$(echo "$FULL_TAGS" | head -1 | sed 's/.*://')
         fi
+        
+        echo "Selected tag: $IMAGE_TAG"
+        echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
 
     - name: Execute Optimized Deployment
       env:
