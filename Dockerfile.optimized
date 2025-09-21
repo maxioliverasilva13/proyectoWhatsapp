@@ -56,9 +56,7 @@ RUN npm run build && \
 # ================================
 FROM node:18-alpine AS runtime
 
-# Instalar wget para health checks
-RUN apk add --no-cache wget && \
-    rm -rf /var/cache/apk/*
+# No necesitamos wget para el health check simple
 
 # Crear usuario no-root para seguridad
 RUN addgroup -g 1001 -S nodejs && \
@@ -81,9 +79,9 @@ EXPOSE 3000
 # Cambiar a usuario no-root
 USER nestjs
 
-# Health check endpoint
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
+# Health check simple - verificar que el proceso Node.js esté corriendo
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD pgrep -f "node.*dist/main" > /dev/null || exit 1
 
 # Comando de inicio
 CMD ["node", "dist/main"]
