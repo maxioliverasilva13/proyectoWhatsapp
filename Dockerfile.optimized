@@ -56,6 +56,10 @@ RUN npm run build && \
 # ================================
 FROM node:18-alpine AS runtime
 
+# Instalar wget para health checks
+RUN apk add --no-cache wget && \
+    rm -rf /var/cache/apk/*
+
 # Crear usuario no-root para seguridad
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nestjs -u 1001

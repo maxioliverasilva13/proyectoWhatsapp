@@ -234,8 +234,12 @@ async function deployApp() {
       docker compose down --remove-orphans || true &&
       echo "=== STARTING NEW CONTAINERS ===" &&
       docker compose up -d --force-recreate &&
+      echo "=== WAITING FOR CONTAINERS TO START ===" &&
+      sleep 45 &&
       echo "=== CONTAINERS STATUS ===" &&
-      docker ps --filter "name=app"
+      docker ps --filter "name=app" &&
+      echo "=== HEALTH CHECK STATUS ===" &&
+      docker inspect app --format='{{.State.Health.Status}}' 2>/dev/null || echo "No health check configured"
     `);
     
     console.log('📋 Deploy output:', deployResult);

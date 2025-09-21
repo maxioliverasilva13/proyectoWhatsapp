@@ -207,8 +207,12 @@ async function deployCompany(empresa) {
       docker compose down --remove-orphans || true &&
       echo "=== STARTING NEW CONTAINERS ===" &&
       docker compose up -d --force-recreate &&
+      echo "=== WAITING FOR CONTAINER TO START ===" &&
+      sleep 30 &&
       echo "=== CONTAINERS STATUS ===" &&
-      docker ps --filter "name=${empresa.db_name}-app"
+      docker ps --filter "name=${empresa.db_name}-app" &&
+      echo "=== HEALTH CHECK STATUS ===" &&
+      docker inspect ${empresa.db_name}-app --format='{{.State.Health.Status}}' 2>/dev/null || echo "No health check configured"
     `);
     
     console.log(`📋 Deploy output para ${empresa.db_name}:`, deployResult);
