@@ -132,6 +132,7 @@ jobs:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         GITHUB_SHA: ${{ github.sha }}
         REGISTRY: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        IMAGE_TAG: ${{ needs.build-and-push.outputs.image-tag }}
         EMAIL_USER: ${{ secrets.EMAIL_USER }}
         EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
         EMAIL_PORT: ${{ secrets.EMAIL_PORT }}

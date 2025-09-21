@@ -51,7 +51,7 @@ VARIABLES DE ENTORNO REQUERIDAS:
 // Configuración optimizada
 const MAX_PARALLEL_DEPLOYS = 3; // Limitar concurrencia para no sobrecargar servidor
 const DEPLOY_TIMEOUT = 300000; // 5 minutos por deploy
-const IMAGE_TAG = forceImageTag || 'main'; // Usar 'main' por defecto, ignorar GITHUB_SHA por ahora
+const IMAGE_TAG = forceImageTag || process.env.IMAGE_TAG || 'latest'; // Usar tag de GitHub Actions si está disponible
 const REGISTRY = 'ghcr.io/maxioliverasilva13/proyectowhatsapp'; // Tu registry real
 
 const client = new Client({
@@ -181,8 +181,8 @@ async function deployCompany(empresa) {
       await executeSSH(dropletIp, `docker manifest inspect ${REGISTRY}:${IMAGE_TAG} > /dev/null 2>&1`);
       console.log(`✅ Imagen ${REGISTRY}:${IMAGE_TAG} existe`);
     } catch (error) {
-      console.log(`⚠️  Imagen ${REGISTRY}:${IMAGE_TAG} no existe, intentando con 'main'`);
-      const fallbackTag = 'main';
+      console.log(`⚠️  Imagen ${REGISTRY}:${IMAGE_TAG} no existe, intentando con 'latest'`);
+      const fallbackTag = 'latest';
       console.log(`📦 Usando imagen fallback: ${REGISTRY}:${fallbackTag}`);
       
       // Actualizar el .env con el tag correcto

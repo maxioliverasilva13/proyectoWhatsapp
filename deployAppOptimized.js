@@ -14,7 +14,7 @@ const fs = require('fs');
  */
 
 // Configuración
-const IMAGE_TAG = 'main'; // Usar 'main' por defecto para la app principal
+const IMAGE_TAG = process.env.IMAGE_TAG || 'latest'; // Usar tag de GitHub Actions si está disponible
 const REGISTRY = 'ghcr.io/maxioliverasilva13/proyectowhatsapp';
 const DEPLOY_TIMEOUT = 300000; // 5 minutos
 
